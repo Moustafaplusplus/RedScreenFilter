@@ -14,7 +14,7 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
 
 ## Phase Breakdown
 
-### Phase 0-10% - Project Setup & Core Foundation
+### Phase 0-10% - Project Setup & Core Foundation ✅
 **Objective**: Initialize project structure, dependencies, and base architecture
 
 #### 0-5% - Android Studio Project Creation ✅
@@ -63,7 +63,7 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
 
 ---
 
-### Phase 10-30% - Core Overlay Service
+### Phase 10-30% - Core Overlay Service✅
 **Objective**: Functional red overlay that can be toggled on/off
 
 #### 10-15% - WindowManager Overlay Base ✅
@@ -148,7 +148,7 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
 
 ---
 
-### Phase 30-50% - Scheduling Engine
+### Phase 30-50% - Scheduling Engine✅
 **Objective**: Automatic on/off based on time or sunrise/sunset
 
 #### 30-35% - Basic Time-Based Scheduling ✅
@@ -211,15 +211,16 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
 
 ---
 
-### Phase 50-65% - Customization & Presets
+### Phase 50-65% - Customization & Presets✅
 **Objective**: Multiple screen modes and color variants
 
-#### 50-55% - Activity Presets
-- [ ] Create preset data model `PresetProfile.kt`
+#### 50-55% - Activity Presets ✅
+- [x] Create preset data model `PresetProfile.kt`
   ```kt
   data class PresetProfile(
       val name: String,
       val opacity: Float,
+      val brightness: Float,
       val red: Float = 1.0f,
       val green: Float = 0f,
       val blue: Float = 0f,
@@ -227,32 +228,33 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
   )
   ```
 
-- [ ] Create preset list with 5 defaults:
-  - Work (40% opacity, pure red)
-  - Gaming (30% opacity, pure red)
-  - Movie (20% opacity, pure red)
-  - Sleep (80% opacity, pure red)
+- [x] Create preset list with 5 defaults:
+  - Work (40% opacity, 70% brightness, pure red)
+  - Gaming (30% opacity, 80% brightness, pure red)
+  - Movie (20% opacity, 40% brightness, pure red)
+  - Sleep (80% opacity, 20% brightness, pure red)
   - Custom (user-editable)
 
-- [ ] Store presets in SharedPreferences
+- [x] Store presets in SharedPreferences
   - Serialize to JSON using Gson/Kotlinx.serialization
   - Load/save/delete preset methods
 
-- [ ] Add preset UI
+- [x] Add preset UI
   - Horizontal scrollable preset buttons/cards
   - Tap to apply preset instantly
   - Long-press to edit/delete
+  - Add brightness slider directly under opacity control
 
-**Deliverable**: Users can switch between preset profiles
+**Deliverable**: Users can switch between preset profiles and control brightness ✅
 
-#### 55-65% - Color Blindness Presets
-- [ ] Create color variant system
+#### 55-65% - Color Blindness Presets ✅
+- [x] Create color variant system
   - **Red Standard**: RGB(255, 0, 0)
   - **Red-Orange**: RGB(255, 100, 0) - for protanopia
   - **Red-Pink**: RGB(255, 0, 100) - for deuteranopia
   - **High Contrast Red**: Brighter, higher opacity floor
 
-- [ ] Add ColorVariant enum
+- [x] Add ColorVariant enum
   ```kt
   enum class ColorVariant {
       RED_STANDARD,
@@ -262,80 +264,95 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
   }
   ```
 
-- [ ] Create color picker UI
+- [x] Create color picker UI
   - Radio button group or dropdown
   - Preview color swatch
   - Save selected variant to preferences
 
-- [ ] Update `OverlayView` to use variant color
+- [x] Update `OverlayView` to use variant color
   - Read from `PreferencesManager`
   - Apply in real-time
 
-**Deliverable**: Users can select color blindness variants
+**Deliverable**: Users can select color blindness variants ✅
 
 ---
 
 ### Phase 65-80% - Smart Features
 **Objective**: Battery awareness, light sensing, and intelligent automation
 
-#### 65-70% - Battery Awareness
-- [ ] Create `BatteryManager.kt`
+#### 65-70% - Battery Awareness ✅
+- [x] Create `BatteryManager.kt`
   - Register BroadcastReceiver for battery changes
   - Detect low battery (< 20%) and critical (< 10%)
   - Store battery state
 
-- [ ] Extend `PreferencesManager`
+- [x] Extend `PreferencesManager`
   - `setBatteryOptimizationEnabled(Boolean)`
   - `getBatteryOptimizationEnabled(): Boolean`
 
-- [ ] Integrate with `RedOverlayService`
+- [x] Integrate with `RedOverlayService`
   - When battery < 20%, reduce opacity by 30%
   - Visual indicator in notification
   - Resume normal opacity when charging detected
 
-**Deliverable**: Overlay reduces intensity on low battery
+**Deliverable**: Overlay reduces intensity on low battery ✅
 
-#### 70-75% - Ambient Light Sensing
-- [ ] Create `LightSensorManager.kt`
-  - Register `SensorManager` listener for `TYPE_LIGHT`
-  - Callback updates lux reading every 5-10 seconds
-  - Smoothing algorithm to prevent jitter (moving average)
+#### 70-75% - Ambient Light Sensing ✅
+- [x] Create `LightSensorManager.kt` ✅
+  - Register `SensorManager` listener for `TYPE_LIGHT` ✅
+  - Callback updates lux reading every 5-10 seconds ✅
+  - Smoothing algorithm to prevent jitter (moving average, window size 5) ✅
 
-- [ ] Create illuminance-to-opacity mapping
+- [x] Create illuminance-to-opacity mapping with 3 sensitivity levels ✅
   ```kt
-  when(lux) {
-      in 0..50 -> 0.8f      // Dark: high opacity
-      in 51..500 -> 0.6f    // Dim: medium opacity
-      in 501..3000 -> 0.4f  // Normal: lower opacity
-      else -> 0.2f          // Bright: minimal opacity
-  }
+  LOW:      0.9f (minimal) → 0.3f (minimal change)
+  MEDIUM:   0.8f (normal) → 0.2f (normal mapping)
+  HIGH:     1.0f (aggressive) → 0.1f (aggressive adjustment)
   ```
 
-- [ ] Add UI settings
-  - Toggle: "Auto-adjust brightness"
-  - Sensitivity slider: Low/Medium/High
-  - Manual override to lock current opacity
+- [x] Add UI settings ✅
+  - Toggle: "Ambient Light Sensing" ✅
+  - Sensitivity slider: Low/Medium/High ✅
+  - Manual override lock to prevent auto-adjustment ✅
+  - Display current lux value with 500ms update frequency ✅
+  - Hide/show settings based on toggle state ✅
 
-**Deliverable**: Overlay auto-adjusts based on room light
+- [x] Integrate with existing systems ✅
+  - Respects battery reduction priority ✅
+  - Lock mechanism for manual override ✅
+  - Listener pattern compatible with RedOverlayService ✅
 
-#### 75-80% - 20-20-20 Eye Strain Reminders
-- [ ] Create `EyeStrainReminder.kt` Worker
-  - Runs every 20 minutes
-  - Sends local notification
-  - Message: "Look away for 20 seconds"
-  - Sound/vibration customizable
+**Deliverable**: Overlay auto-adjusts based on room light with 3 sensitivity presets ✅
 
-- [ ] Create notification configuration
-  - Notification channel: "Health Reminders"
-  - Priority: DEFAULT
-  - Sound: Subtle tone (get from system sounds)
+#### 75-80% - 20-20-20 Eye Strain Reminders ✅
+- [x] Create `EyeStrainReminder.kt` Worker ✅
+  - Runs every 20 minutes via WorkManager:PeriodicWorkRequestBuilder ✅
+  - Sends local notification ✅
+  - Message: "Look away for 20 seconds, 20 feet away" ✅
+  - Sound/vibration customizable with radio button selection ✅
+  - Respects do-not-disturb via notification style setting ✅
+  - Detects video call status using TelecomManager ✅
 
-- [ ] Add UI settings
-  - Toggle: "20-20-20 Reminders"
-  - Notification style: Sound / Vibration / Silent
-  - Pause during video calls (detect using `TelecomManager`)
+- [x] Create notification configuration ✅
+  - Notification channel: "Health Reminders" ✅
+  - Priority: DEFAULT ✅
+  - Sound: System notification sound (RingtoneManager) ✅
+  - Vibration: 300ms pulse ✅
+  - Silent mode supported ✅
 
-**Deliverable**: Reminders notify user every 20 minutes
+- [x] Add UI settings ✅
+  - Toggle: "20-20-20 Eye Strain Reminders" ✅
+  - Notification style selector: Sound / Vibration / Silent radio buttons ✅
+  - Automatic pausing during video calls (TelecomManager integration) ✅
+  - Settings card with collapsible options ✅
+
+- [x] WorkManager integration ✅
+  - Schedule/cancel periodic work dynamically ✅
+  - Uses EnqueueUniquePeriodicWork to prevent duplicates ✅
+  - 20-minute interval with default flexibility ✅
+  - Persists across device restart ✅
+
+**Deliverable**: Reminders notify user every 20 minutes with customizable notification style ✅
 
 ---
 
@@ -497,18 +514,18 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
 | 30-35% | 5 | Basic scheduling | 1.5 hours | HIGH | ✅ DONE |
 | 35-40% | 5 | WorkManager integration | 1.5 hours | HIGH | ✅ DONE |
 | 40-50% | 10 | Sunrise/sunset scheduling | 3 hours | HIGH | ✅ DONE |
-| 50-55% | 5 | Preset system | 1.5 hours | HIGH | 🔄 NEXT |
-| 55-65% | 10 | Color blindness variants | 2 hours | MEDIUM | ⏳ TODO |
-| 65-70% | 5 | Battery awareness | 1 hour | MEDIUM | ⏳ TODO |
-| 70-75% | 5 | Ambient light sensing | 1.5 hours | MEDIUM | ⏳ TODO |
-| 75-80% | 5 | 20-20-20 reminders | 1.5 hours | MEDIUM | ⏳ TODO |
+| 50-55% | 5 | Preset system | 1.5 hours | HIGH | ✅ DONE |
+| 55-65% | 10 | Color blindness variants | 2 hours | MEDIUM | ✅ DONE |
+| 65-70% | 5 | Battery awareness | 1 hour | MEDIUM | ✅ DONE |
+| 70-75% | 5 | Ambient light sensing | 1.5 hours | MEDIUM | ✅ DONE |
+| 75-80% | 5 | 20-20-20 reminders | 1.5 hours | MEDIUM | ✅ DONE |
 | 80-85% | 5 | Quick Settings tile | 1 hour | LOW | ⏳ TODO |
 | 85-90% | 5 | Voice commands | 1.5 hours | LOW | ⏳ TODO |
 | 90-92% | 2 | App exemptions | 1.5 hours | MEDIUM | ⏳ TODO |
 | 92-95% | 3 | Database & analytics | 2 hours | LOW | ⏳ TODO |
 | 95-98% | 3 | Analytics UI | 2 hours | LOW | ⏳ TODO |
 | 98-100% | 2 | Final polish | 1 hour | CRITICAL | ⏳ TODO |
-| **TOTAL** | **100%** | **32 tasks** | **~30 hours** | — | **50% Complete** |
+| **TOTAL** | **100%** | **32 tasks** | **~30 hours** | — | **80% Complete** |
 
 ---
 
@@ -526,15 +543,15 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
 - **Go/No-Go Decision**: Can schedule automatically
 
 ### Milestone 3: Customization (50-65%)
-- ⏳ Presets working (TODO)
-- ⏳ Color variants available (TODO)
+- ✅ Presets working
+- ✅ Color variants available
 - **Go/No-Go Decision**: Users can personalize experience
 
-### Milestone 4: Health & Features (65-80%)
-- ⏳ Battery awareness implemented (TODO)
-- ⏳ Light sensing works (TODO)
-- ⏳ 20-20-20 reminders active (TODO)
-- **Go/No-Go Decision**: Feature-complete for Phase 1 release
+### Milestone 4: Health & Features (65-80%) ✅
+- ✅ Battery awareness implemented
+- ✅ Light sensing works (ambient light auto-adjustment with 3 sensitivity levels)
+- ✅ 20-20-20 reminders active (WorkManager-based with 20-minute interval)
+- **Go/No-Go Decision**: ✅ Feature-complete for Phase 1 release - all health features implemented!
 
 ### Milestone 5: Polish & Release (80-100%)
 - ⏳ All UI refinements done (TODO)
@@ -549,8 +566,8 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
 **What to test at each milestone:**
 1. **10-30%**: App launches, overlay appears, toggle works
 2. **30-50%**: Scheduling logic, time-based auto-on/off, sunrise/sunset calculation
-3. **50-65%**: Presets switch correctly, colors display properly
-4. **65-80%**: Battery drain low, light sensor responsive, reminders notify
+3. **50-65%**: Presets switch correctly, brightness control works, colors display properly
+4. **65-80%**: Battery drain low, opacity reduces on low battery, light sensor responsive, reminders notify
 5. **80-100%**: All features work on real device, no crashes, smooth UX
 
 ---

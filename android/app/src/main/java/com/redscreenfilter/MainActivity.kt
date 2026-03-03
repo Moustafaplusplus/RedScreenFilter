@@ -7,20 +7,30 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.button.MaterialButton
+import java.util.concurrent.TimeUnit
 import com.google.android.material.slider.Slider
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.switchmaterial.SwitchMaterial
+import com.redscreenfilter.data.ColorVariant
+import com.redscreenfilter.data.LightSensorManager
 import com.redscreenfilter.data.LocationManager
 import com.redscreenfilter.data.PreferencesManager
 import com.redscreenfilter.data.SchedulingManager
@@ -69,6 +79,33 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sliderLocationOffset: Slider
     private lateinit var textLocationOffsetValue: TextView
     
+    // Color Variant UI Components
+    private lateinit var radioGroupColorVariant: RadioGroup
+    private lateinit var radioRedStandard: RadioButton
+    private lateinit var radioRedOrange: RadioButton
+    private lateinit var radioRedPink: RadioButton
+    private lateinit var radioHighContrast: RadioButton
+    private lateinit var colorPreviewBox: View
+    
+    // Battery Optimization UI Components
+    private lateinit var switchBatteryOptimization: SwitchMaterial
+    
+    // Light Sensor UI Components
+    private lateinit var switchLightSensor: SwitchMaterial
+    private lateinit var layoutLightSensorSettings: LinearLayout
+    private lateinit var sliderLightSensitivity: Slider
+    private lateinit var textLightSensitivityValue: TextView
+    private lateinit var switchLightSensorLocked: SwitchMaterial
+    private lateinit var textCurrentLux: TextView
+    
+    // Eye Strain Reminder UI Components
+    private lateinit var switchEyeStrainReminder: SwitchMaterial
+    private lateinit var layoutEyeStrainSettings: LinearLayout
+    private lateinit var radioGroupNotificationStyle: RadioGroup
+    private lateinit var radioNotificationSound: RadioButton
+    private lateinit var radioNotificationVibration: RadioButton
+    private lateinit var radioNotificationSilent: RadioButton
+    
     // Location permission launcher
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -86,6 +123,19 @@ class MainActivity : AppCompatActivity() {
                 R.string.location_permission_required,
                 Snackbar.LENGTH_LONG
             ).show()
+        }
+    }
+    
+    // Handler for updating lux display
+    private val luxUpdateHandler = Handler(Looper.getMainLooper())
+    private val luxUpdateRunnable = object : Runnable {
+        override fun run() {
+            if (preferencesManager.isLightSensorEnabled()) {
+                val lightSensorManager = LightSensorManager.getInstance(this@MainActivity)
+                val currentLux = lightSensorManager.getCurrentLux()
+                textCurrentLux.text = getString(R.string.current_lux_label).replace("--", currentLux.toInt().toString())
+                luxUpdateHandler.postDelayed(this, 500) // Update every 500ms
+            }
         }
     }
     
@@ -113,6 +163,11 @@ class MainActivity : AppCompatActivity() {
         // Setup listeners
         setupListeners()
         
+        // Schedule reminder worker if enabled
+        if (preferencesManager.isEyeStrainReminderEnabled()) {
+            scheduleEyeStrainReminder()
+        }
+        
         Log.d(TAG, "onCreate: Activity initialized")
     }
     
@@ -121,6 +176,18 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onResume: Checking permission status")
         // Check permission status when returning to app
         updatePermissionUI()
+        
+        // Start lux update loop if light sensor is enabled
+        if (preferencesManager.isLightSensorEnabled()) {
+            luxUpdateHandler.post(luxUpdateRunnable)
+        }
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        Log.d(TAG, "onPause: Cleaning up")
+        // Stop lux update loop
+        luxUpdateHandler.removeCallbacks(luxUpdateRunnable)
     }
     
     private fun initializeViews() {
@@ -144,6 +211,33 @@ class MainActivity : AppCompatActivity() {
         textSunriseTime = findViewById(R.id.text_sunrise_time)
         sliderLocationOffset = findViewById(R.id.slider_location_offset)
         textLocationOffsetValue = findViewById(R.id.text_location_offset_value)
+        
+        // Color Variant UI
+        radioGroupColorVariant = findViewById(R.id.radio_group_color_variant)
+        radioRedStandard = findViewById(R.id.radio_red_standard)
+        radioRedOrange = findViewById(R.id.radio_red_orange)
+        radioRedPink = findViewById(R.id.radio_red_pink)
+        radioHighContrast = findViewById(R.id.radio_high_contrast)
+        colorPreviewBox = findViewById(R.id.color_preview_box)
+        
+        // Battery Optimization UI
+        switchBatteryOptimization = findViewById(R.id.switch_battery_optimization)
+        
+        // Light Sensor UI
+        switchLightSensor = findViewById(R.id.switch_light_sensor)
+        layoutLightSensorSettings = findViewById(R.id.layout_light_sensor_settings)
+        sliderLightSensitivity = findViewById(R.id.slider_light_sensitivity)
+        textLightSensitivityValue = findViewById(R.id.text_light_sensitivity_value)
+        switchLightSensorLocked = findViewById(R.id.switch_light_sensor_locked)
+        textCurrentLux = findViewById(R.id.text_current_lux)
+        
+        // Eye Strain Reminder UI
+        switchEyeStrainReminder = findViewById(R.id.switch_eye_strain_reminder)
+        layoutEyeStrainSettings = findViewById(R.id.layout_eye_strain_settings)
+        radioGroupNotificationStyle = findViewById(R.id.radio_group_notification_style)
+        radioNotificationSound = findViewById(R.id.radio_notification_sound)
+        radioNotificationVibration = findViewById(R.id.radio_notification_vibration)
+        radioNotificationSilent = findViewById(R.id.radio_notification_silent)
     }
     
     private fun loadSettings() {
@@ -162,6 +256,18 @@ class MainActivity : AppCompatActivity() {
         
         // Load location scheduling settings
         loadLocationSchedulingSettings()
+        
+        // Load color variant settings
+        loadColorVariantSettings()
+        
+        // Load battery optimization settings
+        loadBatteryOptimizationSettings()
+        
+        // Load light sensor settings
+        loadLightSensorSettings()
+        
+        // Load eye strain reminder settings
+        loadEyeStrainReminderSettings()
     }
     
     private fun loadSchedulingSettings() {
@@ -199,6 +305,75 @@ class MainActivity : AppCompatActivity() {
         
         // Update calculated times if location is available
         updateCalculatedTimes()
+    }
+    
+    private fun loadColorVariantSettings() {
+        val colorVariantString = preferencesManager.getColorVariant()
+        val colorVariant = ColorVariant.fromString(colorVariantString)
+        
+        // Select the appropriate radio button
+        when (colorVariant) {
+            ColorVariant.RED_STANDARD -> radioRedStandard.isChecked = true
+            ColorVariant.RED_ORANGE -> radioRedOrange.isChecked = true
+            ColorVariant.RED_PINK -> radioRedPink.isChecked = true
+            ColorVariant.HIGH_CONTRAST -> radioHighContrast.isChecked = true
+        }
+        
+        // Update preview color
+        updateColorPreview(colorVariant)
+    }
+    
+    private fun updateColorPreview(variant: ColorVariant) {
+        colorPreviewBox.setBackgroundColor(variant.colorValue)
+    }
+    
+    private fun loadBatteryOptimizationSettings() {
+        val isBatteryOptimizationEnabled = preferencesManager.getBatteryOptimizationEnabled()
+        switchBatteryOptimization.isChecked = isBatteryOptimizationEnabled
+        Log.d(TAG, "loadBatteryOptimizationSettings: Battery optimization enabled = $isBatteryOptimizationEnabled")
+    }
+    
+    private fun loadLightSensorSettings() {
+        val isLightSensorEnabled = preferencesManager.isLightSensorEnabled()
+        switchLightSensor.isChecked = isLightSensorEnabled
+        
+        // Show/hide light sensor settings based on state
+        layoutLightSensorSettings.visibility = if (isLightSensorEnabled) View.VISIBLE else View.GONE
+        
+        // Load sensitivity level
+        val sensitivity = preferencesManager.getLightSensorSensitivity()
+        val sensitivityValue = when (sensitivity) {
+            "low" -> 0f
+            "medium" -> 1f
+            "high" -> 2f
+            else -> 1f // default to medium
+        }
+        sliderLightSensitivity.value = sensitivityValue
+        updateLightSensitivityText(sensitivityValue)
+        
+        // Load lock state
+        val isLocked = preferencesManager.isLightSensorLocked()
+        switchLightSensorLocked.isChecked = isLocked
+        
+        Log.d(TAG, "loadLightSensorSettings: Light sensor enabled = $isLightSensorEnabled, sensitivity = $sensitivity, locked = $isLocked")
+    }
+    
+    private fun loadEyeStrainReminderSettings() {
+        val isRemindersEnabled = preferencesManager.isEyeStrainReminderEnabled()
+        switchEyeStrainReminder.isChecked = isRemindersEnabled
+        
+        // Show/hide eye strain settings based on state
+        layoutEyeStrainSettings.visibility = if (isRemindersEnabled) View.VISIBLE else View.GONE
+        
+        // Load notification style
+        val style = preferencesManager.getEyeStrainNotificationStyle()
+        when (style) {
+            "vibration" -> radioNotificationVibration.isChecked = true
+            "silent" -> radioNotificationSilent.isChecked = true
+            else -> radioNotificationSound.isChecked = true // default to sound
+        }
+        
+        Log.d(TAG, "loadEyeStrainReminderSettings: Reminders enabled = $isRemindersEnabled, style = $style")
     }
     
     private fun setupListeners() {
@@ -265,6 +440,48 @@ class MainActivity : AppCompatActivity() {
             updateLocationOffsetText(offsetMinutes)
             updateCalculatedTimes()
         }
+        
+        // Color variant radio group
+        radioGroupColorVariant.setOnCheckedChangeListener { _, checkedId ->
+            val selectedVariant = when (checkedId) {
+                R.id.radio_red_standard -> ColorVariant.RED_STANDARD
+                R.id.radio_red_orange -> ColorVariant.RED_ORANGE
+                R.id.radio_red_pink -> ColorVariant.RED_PINK
+                R.id.radio_high_contrast -> ColorVariant.HIGH_CONTRAST
+                else -> ColorVariant.RED_STANDARD
+            }
+            handleColorVariantChange(selectedVariant)
+        }
+        
+        // Battery optimization switch
+        switchBatteryOptimization.setOnCheckedChangeListener { _, isChecked ->
+            handleBatteryOptimizationToggle(isChecked)
+        }
+        
+        // Light sensor toggle switch
+        switchLightSensor.setOnCheckedChangeListener { _, isChecked ->
+            handleLightSensorToggle(isChecked)
+        }
+        
+        // Light sensor sensitivity slider
+        sliderLightSensitivity.addOnChangeListener { _, value, _ ->
+            handleLightSensitivityChange(value)
+        }
+        
+        // Light sensor lock switch
+        switchLightSensorLocked.setOnCheckedChangeListener { _, isChecked ->
+            handleLightSensorLockToggle(isChecked)
+        }
+        
+        // Eye strain reminder toggle
+        switchEyeStrainReminder.setOnCheckedChangeListener { _, isChecked ->
+            handleEyeStrainReminderToggle(isChecked)
+        }
+        
+        // Notification style radio group
+        radioGroupNotificationStyle.setOnCheckedChangeListener { _, checkedId ->
+            handleNotificationStyleChange(checkedId)
+        }
     }
     
     private fun handleOverlayToggle(isEnabled: Boolean) {
@@ -329,6 +546,135 @@ class MainActivity : AppCompatActivity() {
         } else {
             startService(intent)
         }
+    }
+    
+    private fun handleColorVariantChange(variant: ColorVariant) {
+        Log.d(TAG, "handleColorVariantChange: variant=$variant")
+        
+        // Save color variant to preferences
+        preferencesManager.setColorVariant(variant.name)
+        
+        // Update preview color
+        updateColorPreview(variant)
+        
+        // Update overlay if it's running
+        if (preferencesManager.isOverlayEnabled() && hasOverlayPermission()) {
+            updateOverlayColor(variant)
+        }
+    }
+    
+    private fun updateOverlayColor(variant: ColorVariant) {
+        val intent = Intent(this, RedOverlayService::class.java).apply {
+            action = RedOverlayService.ACTION_UPDATE_COLOR
+            putExtra(RedOverlayService.EXTRA_COLOR_VARIANT, variant.name)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
+    }
+    
+    private fun handleBatteryOptimizationToggle(isEnabled: Boolean) {
+        Log.d(TAG, "handleBatteryOptimizationToggle: isEnabled=$isEnabled")
+        preferencesManager.setBatteryOptimizationEnabled(isEnabled)
+    }
+    
+    private fun handleLightSensorToggle(isEnabled: Boolean) {
+        Log.d(TAG, "handleLightSensorToggle: isEnabled=$isEnabled")
+        preferencesManager.setLightSensorEnabled(isEnabled)
+        
+        // Show/hide light sensor settings
+        layoutLightSensorSettings.visibility = if (isEnabled) View.VISIBLE else View.GONE
+        
+        // Start or stop lux update loop
+        if (isEnabled) {
+            luxUpdateHandler.post(luxUpdateRunnable)
+        } else {
+            luxUpdateHandler.removeCallbacks(luxUpdateRunnable)
+        }
+        
+        // Notify the service
+        val intent = Intent(this, RedOverlayService::class.java)
+        intent.action = "com.redscreenfilter.LIGHT_SENSOR_CHANGED"
+        startService(intent)
+    }
+    
+    private fun handleLightSensitivityChange(value: Float) {
+        val sensitivity = when (value.toInt()) {
+            0 -> "low"
+            1 -> "medium"
+            else -> "high"
+        }
+        Log.d(TAG, "handleLightSensitivityChange: sensitivity=$sensitivity")
+        preferencesManager.setLightSensorSensitivity(sensitivity)
+        updateLightSensitivityText(value)
+    }
+    
+    private fun handleLightSensorLockToggle(isLocked: Boolean) {
+        Log.d(TAG, "handleLightSensorLockToggle: isLocked=$isLocked")
+        preferencesManager.setLightSensorLocked(isLocked)
+    }
+    
+    private fun handleEyeStrainReminderToggle(isEnabled: Boolean) {
+        Log.d(TAG, "handleEyeStrainReminderToggle: isEnabled=$isEnabled")
+        preferencesManager.setEyeStrainReminderEnabled(isEnabled)
+        
+        // Show/hide eye strain settings
+        layoutEyeStrainSettings.visibility = if (isEnabled) View.VISIBLE else View.GONE
+        
+        // Schedule or cancel the reminder worker
+        if (isEnabled) {
+            scheduleEyeStrainReminder()
+        } else {
+            cancelEyeStrainReminder()
+        }
+    }
+    
+    private fun handleNotificationStyleChange(checkedId: Int) {
+        val style = when (checkedId) {
+            R.id.radio_notification_vibration -> "vibration"
+            R.id.radio_notification_silent -> "silent"
+            else -> "sound" // default to sound
+        }
+        Log.d(TAG, "handleNotificationStyleChange: style=$style")
+        preferencesManager.setEyeStrainNotificationStyle(style)
+    }
+    
+    private fun scheduleEyeStrainReminder() {
+        Log.d(TAG, "scheduleEyeStrainReminder: Scheduling 20-minute reminder worker")
+        try {
+            // Schedule a periodic work that runs every 20 minutes
+            val reminderWorker = androidx.work.PeriodicWorkRequestBuilder<com.redscreenfilter.worker.EyeStrainReminder>(
+                20, java.util.concurrent.TimeUnit.MINUTES
+            ).build()
+            
+            androidx.work.WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                "eye_strain_reminder",
+                androidx.work.ExistingPeriodicWorkPolicy.KEEP,
+                reminderWorker
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "scheduleEyeStrainReminder: Error scheduling worker", e)
+        }
+    }
+    
+    private fun cancelEyeStrainReminder() {
+        Log.d(TAG, "cancelEyeStrainReminder: Cancelling reminder worker")
+        try {
+            androidx.work.WorkManager.getInstance(this).cancelUniqueWork("eye_strain_reminder")
+        } catch (e: Exception) {
+            Log.e(TAG, "cancelEyeStrainReminder: Error cancelling worker", e)
+        }
+    }
+    
+    private fun updateLightSensitivityText(value: Float) {
+        val sensitivity = when (value.toInt()) {
+            0 -> getString(R.string.light_sensitivity_low)
+            1 -> getString(R.string.light_sensitivity_medium)
+            else -> getString(R.string.light_sensitivity_high)
+        }
+        textLightSensitivityValue.text = sensitivity
     }
     
     private fun updateOpacityText(percentage: Int) {

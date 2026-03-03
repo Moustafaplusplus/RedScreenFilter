@@ -15,18 +15,24 @@ import android.view.WindowManager
 import androidx.core.app.NotificationCompat
 import com.redscreenfilter.MainActivity
 import com.redscreenfilter.R
+import com.redscreenfilter.data.BatteryManager
+import com.redscreenfilter.data.ColorVariant
+import com.redscreenfilter.data.LightSensorManager
 import com.redscreenfilter.data.PreferencesManager
 
 /**
  * Red Screen Overlay Service
  * Foreground service that manages the overlay window using WindowManager.
  * Displays a full-screen red overlay with configurable opacity.
+ * Includes battery awareness and light sensing for automatic adjustments.
  */
-class RedOverlayService : Service() {
+class RedOverlayService : Service(), BatteryManager.BatteryStateListener, LightSensorManager.LightSensorListener {
     
     private var overlayView: OverlayView? = null
     private var windowManager: WindowManager? = null
     private lateinit var preferencesManager: PreferencesManager
+    private var batteryManager: BatteryManager? = null
+    private var lightSensorManager: LightSensorManager? = null
     
     private val TAG = "RedOverlayService"
     
@@ -35,6 +41,8 @@ class RedOverlayService : Service() {
         const val NOTIFICATION_CHANNEL_ID = "overlay_service_channel"
         const val ACTION_UPDATE_OPACITY = "com.redscreenfilter.UPDATE_OPACITY"
         const val EXTRA_OPACITY = "opacity"
+        const val ACTION_UPDATE_COLOR = "com.redscreenfilter.UPDATE_COLOR"
+        const val EXTRA_COLOR_VARIANT = "color_variant"
     }
     
     override fun onBind(intent: Intent?): IBinder? = null
@@ -49,6 +57,27 @@ class RedOverlayService : Service() {
             Log.d(TAG, "onCreate: Initializing PreferencesManager")
             preferencesManager = PreferencesManager.getInstance(this)
             Log.d(TAG, "onCreate: PreferencesManager initialized")
+            
+            // Initialize BatteryManager
+            Log.d(TAG, "onCreate: Initializing BatteryManager")
+            batteryManager = BatteryManager.getInstance(this).apply {
+                addListener(this@RedOverlayService)
+                startMonitoring()
+            }
+            Log.d(TAG, "onCreate: BatteryManager initialized and monitoring started")
+            
+            // Initialize LightSensorManager
+            Log.d(TAG, "onCreate: Initializing LightSensorManager")
+            lightSensorManager = LightSensorManager.getInstance(this).apply {
+                addListener(this@RedOverlayService)
+                if (preferencesManager.isLightSensorEnabled()) {
+                    startMonitoring()
+                    Log.d(TAG, "onCreate: Light sensor monitoring started")
+                } else {
+                    Log.d(TAG, "onCreate: Light sensor disabled in preferences")
+                }
+            }
+            Log.d(TAG, "onCreate: LightSensorManager initialized")
             
             // Create notification channel for Android O+
             Log.d(TAG, "onCreate: Creating notification channel")
@@ -88,6 +117,12 @@ class RedOverlayService : Service() {
                 Log.d(TAG, "onStartCommand: Updating opacity to $opacity")
                 updateOpacity(opacity)
             }
+            ACTION_UPDATE_COLOR -> {
+                val colorVariantString = intent.getStringExtra(EXTRA_COLOR_VARIANT)
+                val variant = ColorVariant.fromString(colorVariantString)
+                Log.d(TAG, "onStartCommand: Updating color to $variant")
+                updateColorVariant(variant)
+            }
         }
         return START_STICKY
     }
@@ -95,6 +130,21 @@ class RedOverlayService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "onDestroy: Service stopping")
+        
+        // Stop battery monitoring
+        batteryManager?.let {
+            it.removeListener(this)
+            it.stopMonitoring()
+            Log.d(TAG, "onDestroy: Battery monitoring stopped")
+        }
+        
+        // Stop light sensor monitoring
+        lightSensorManager?.let {
+            it.removeListener(this)
+            it.stopMonitoring()
+            Log.d(TAG, "onDestroy: Light sensor monitoring stopped")
+        }
+        
         removeOverlay()
     }
     
@@ -109,12 +159,15 @@ class RedOverlayService : Service() {
         
         Log.d(TAG, "createOverlay: Creating overlay view")
         
-        // Load saved opacity from preferences
+        // Load saved opacity and color variant from preferences
         val savedOpacity = preferencesManager.getOpacity()
-        Log.d(TAG, "createOverlay: Loaded opacity: $savedOpacity")
+        val colorVariantString = preferencesManager.getColorVariant()
+        val colorVariant = ColorVariant.fromString(colorVariantString)
+        Log.d(TAG, "createOverlay: Loaded opacity: $savedOpacity, color variant: $colorVariant")
         
         overlayView = OverlayView(this).apply {
             setOpacity(savedOpacity)
+            setColorVariant(colorVariant)
         }
         
         val layoutType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -174,10 +227,19 @@ class RedOverlayService : Service() {
     }
     
     /**
+     * Update overlay color variant
+     */
+    private fun updateColorVariant(variant: ColorVariant) {
+        Log.d(TAG, "updateColorVariant: Setting color to $variant")
+        overlayView?.setColorVariant(variant)
+    }
+    
+    /**
      * Create notification channel for foreground service (Android O+)
      */
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Channel for overlay service
             val channel = NotificationChannel(
                 NOTIFICATION_CHANNEL_ID,
                 "Red Screen Filter",
@@ -187,8 +249,18 @@ class RedOverlayService : Service() {
                 setShowBadge(false)
             }
             
+            // Channel for health reminders
+            val reminderChannel = NotificationChannel(
+                com.redscreenfilter.worker.EyeStrainReminder.CHANNEL_ID_REMINDERS,
+                com.redscreenfilter.worker.EyeStrainReminder.CHANNEL_NAME_REMINDERS,
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = "Health reminders for eye strain prevention"
+            }
+            
             val notificationManager = getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(channel)
+            notificationManager.createNotificationChannel(reminderChannel)
         }
     }
     
@@ -210,4 +282,122 @@ class RedOverlayService : Service() {
         .setOngoing(true)
         .setPriority(NotificationCompat.PRIORITY_LOW)
         .build()
+    
+    /**
+     * Handle battery state changes
+     */
+    override fun onBatteryStateChanged(level: Int, isLow: Boolean, isCritical: Boolean, isCharging: Boolean) {
+        Log.d(TAG, "onBatteryStateChanged: level=$level%, isLow=$isLow, isCritical=$isCritical, isCharging=$isCharging")
+        
+        // Check if battery optimization is enabled
+        if (!preferencesManager.getBatteryOptimizationEnabled()) {
+            Log.d(TAG, "onBatteryStateChanged: Battery optimization disabled, ignoring")
+            return
+        }
+        
+        val isBatteryReduced = preferencesManager.isBatteryReduced()
+        
+        if ((isLow || isCritical) && !isCharging && !isBatteryReduced) {
+            // Battery is low and not charging, reduce opacity
+            reduceBatteryOpacity()
+        } else if (!isLow && !isCritical && isCharging && isBatteryReduced) {
+            // Battery recovered or charging started, restore opacity
+            restoreBatteryOpacity()
+        } else if (!isLow && !isCritical && !isCharging && isBatteryReduced) {
+            // Battery recovered above threshold, restore opacity
+            restoreBatteryOpacity()
+        }
+        
+        // Update notification with battery status
+        updateNotificationWithBatteryStatus(level, isLow, isCritical)
+    }
+    
+    /**
+     * Reduce opacity due to low battery
+     */
+    private fun reduceBatteryOpacity() {
+        Log.d(TAG, "reduceBatteryOpacity: Reducing opacity by 30%")
+        
+        val currentOpacity = preferencesManager.getOpacity()
+        // Store original opacity for restoration
+        preferencesManager.setOriginalOpacityPreBattery(currentOpacity)
+        
+        // Reduce opacity by 30% (multiply by 0.7)
+        val reducedOpacity = (currentOpacity * 0.7f).coerceIn(0f, 1f)
+        preferencesManager.setOpacity(reducedOpacity)
+        preferencesManager.setIsBatteryReduced(true)
+        
+        // Apply reduced opacity to overlay
+        overlayView?.setOpacity(reducedOpacity)
+        Log.d(TAG, "reduceBatteryOpacity: Opacity reduced from $currentOpacity to $reducedOpacity")
+    }
+    
+    /**
+     * Restore opacity after low battery resolves
+     */
+    private fun restoreBatteryOpacity() {
+        Log.d(TAG, "restoreBatteryOpacity: Restoring original opacity")
+        
+        val originalOpacity = preferencesManager.getOriginalOpacityPreBattery()
+        preferencesManager.setOpacity(originalOpacity)
+        preferencesManager.setIsBatteryReduced(false)
+        
+        // Apply restored opacity to overlay
+        overlayView?.setOpacity(originalOpacity)
+        Log.d(TAG, "restoreBatteryOpacity: Opacity restored to $originalOpacity")
+    }
+    
+    /**
+     * Update notification with battery status indicator
+     */
+    private fun updateNotificationWithBatteryStatus(level: Int, isLow: Boolean, isCritical: Boolean) {
+        val notificationManager = getSystemService(NotificationManager::class.java)
+        
+        val statusText = when {
+            isCritical -> "🔴 Critical Battery ($level%)"
+            isLow -> "🟡 Low Battery ($level%)"
+            else -> "Battery: $level%"
+        }
+        
+        val notification = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+            .setContentTitle("Red Screen Filter Active")
+            .setContentText(statusText)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentIntent(
+                PendingIntent.getActivity(
+                    this,
+                    0,
+                    Intent(this, MainActivity::class.java),
+                    PendingIntent.FLAG_IMMUTABLE
+                )
+            )
+            .setOngoing(true)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .build()
+        
+        notificationManager.notify(NOTIFICATION_ID, notification)
+    }
+    
+    /**
+     * Handle light level changes from light sensor
+     */
+    override fun onLightLevelChanged(lux: Float, opacity: Float) {
+        // Check if light sensor is locked (manual override)
+        if (preferencesManager.isLightSensorLocked()) {
+            Log.d(TAG, "onLightLevelChanged: Light sensor locked, ignoring")
+            return
+        }
+        
+        Log.d(TAG, "onLightLevelChanged: lux=$lux, suggested opacity=$opacity")
+        
+        // Don't override if battery reduction is active
+        if (preferencesManager.isBatteryReduced()) {
+            Log.d(TAG, "onLightLevelChanged: Battery reduction active, not adjusting opacity")
+            return
+        }
+        
+        // Update opacity
+        preferencesManager.setOpacity(opacity)
+        overlayView?.setOpacity(opacity)
+    }
 }

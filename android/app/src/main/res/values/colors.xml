@@ -4,4 +4,10 @@
     <color name="white">#FFFFFFFF</color>
     <color name="red">#FFFF0000</color>
     <color name="red_overlay">#80FF0000</color>
+    
+    <!-- Color Variant for Accessibility -->
+    <color name="red_standard">#FFFF0000</color>
+    <color name="red_orange">#FFFF6400</color>
+    <color name="red_pink">#FFFF0064</color>
+    <color name="high_contrast">#FFFF3232</color>
 </resources>

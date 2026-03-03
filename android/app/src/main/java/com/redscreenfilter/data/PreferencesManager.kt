@@ -29,6 +29,18 @@ class PreferencesManager private constructor(context: Context) {
         private const val KEY_USE_LOCATION_SCHEDULE = "use_location_schedule"
         private const val KEY_COLOR_VARIANT = "color_variant"
         private const val KEY_BATTERY_OPTIMIZATION = "battery_optimization"
+        private const val KEY_ORIGINAL_OPACITY_PRE_BATTERY = "original_opacity_pre_battery"
+        private const val KEY_IS_BATTERY_REDUCED = "is_battery_reduced"
+        
+        // Light sensor keys
+        private const val KEY_LIGHT_SENSOR_ENABLED = "light_sensor_enabled"
+        private const val KEY_LIGHT_SENSOR_SENSITIVITY = "light_sensor_sensitivity"
+        private const val KEY_LIGHT_SENSOR_LOCKED = "light_sensor_locked"
+        private const val KEY_ORIGINAL_OPACITY_PRE_LIGHT = "original_opacity_pre_light"
+        
+        // Eye strain reminder keys
+        private const val KEY_EYE_STRAIN_REMINDER_ENABLED = "eye_strain_reminder_enabled"
+        private const val KEY_EYE_STRAIN_NOTIFICATION_STYLE = "eye_strain_notification_style"
         
         // Location keys
         private const val KEY_LOCATION_LATITUDE = "location_latitude"
@@ -150,6 +162,75 @@ class PreferencesManager private constructor(context: Context) {
     
     fun getBatteryOptimizationEnabled(): Boolean {
         return sharedPreferences.getBoolean(KEY_BATTERY_OPTIMIZATION, true)
+    }
+    
+    fun setOriginalOpacityPreBattery(opacity: Float) {
+        sharedPreferences.edit().putFloat(KEY_ORIGINAL_OPACITY_PRE_BATTERY, opacity).apply()
+    }
+    
+    fun getOriginalOpacityPreBattery(): Float {
+        return sharedPreferences.getFloat(KEY_ORIGINAL_OPACITY_PRE_BATTERY, 0.5f)
+    }
+    
+    fun setIsBatteryReduced(reduced: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_IS_BATTERY_REDUCED, reduced).apply()
+    }
+    
+    fun isBatteryReduced(): Boolean {
+        return sharedPreferences.getBoolean(KEY_IS_BATTERY_REDUCED, false)
+    }
+    
+    // ========== Light Sensor Settings ==========
+    
+    fun setLightSensorEnabled(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_LIGHT_SENSOR_ENABLED, enabled).apply()
+    }
+    
+    fun isLightSensorEnabled(): Boolean {
+        return sharedPreferences.getBoolean(KEY_LIGHT_SENSOR_ENABLED, false)
+    }
+    
+    fun setLightSensorSensitivity(sensitivity: String) {
+        sharedPreferences.edit().putString(KEY_LIGHT_SENSOR_SENSITIVITY, sensitivity).apply()
+    }
+    
+    fun getLightSensorSensitivity(): String {
+        return sharedPreferences.getString(KEY_LIGHT_SENSOR_SENSITIVITY, "medium") ?: "medium"
+    }
+    
+    fun setLightSensorLocked(locked: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_LIGHT_SENSOR_LOCKED, locked).apply()
+    }
+    
+    fun isLightSensorLocked(): Boolean {
+        return sharedPreferences.getBoolean(KEY_LIGHT_SENSOR_LOCKED, false)
+    }
+    
+    fun setOriginalOpacityPreLight(opacity: Float) {
+        sharedPreferences.edit().putFloat(KEY_ORIGINAL_OPACITY_PRE_LIGHT, opacity).apply()
+    }
+    
+    fun getOriginalOpacityPreLight(): Float {
+        return sharedPreferences.getFloat(KEY_ORIGINAL_OPACITY_PRE_LIGHT, 0.5f)
+    }
+    
+    // ========== Eye Strain Reminder Settings ==========
+    
+    fun setEyeStrainReminderEnabled(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_EYE_STRAIN_REMINDER_ENABLED, enabled).apply()
+    }
+    
+    fun isEyeStrainReminderEnabled(): Boolean {
+        return sharedPreferences.getBoolean(KEY_EYE_STRAIN_REMINDER_ENABLED, false)
+    }
+    
+    fun setEyeStrainNotificationStyle(style: String) {
+        // Valid values: "sound", "vibration", "silent"
+        sharedPreferences.edit().putString(KEY_EYE_STRAIN_NOTIFICATION_STYLE, style).apply()
+    }
+    
+    fun getEyeStrainNotificationStyle(): String {
+        return sharedPreferences.getString(KEY_EYE_STRAIN_NOTIFICATION_STYLE, "sound") ?: "sound"
     }
     
     // ========== Location Settings ==========

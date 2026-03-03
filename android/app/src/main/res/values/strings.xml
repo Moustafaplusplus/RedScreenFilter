@@ -42,4 +42,38 @@
     <!-- Service Notifications -->
     <string name="overlay_active">Red Screen Filter Active</string>
     <string name="overlay_inactive">Red Screen Filter Inactive</string>
+    
+    <!-- Color Variant Strings -->
+    <string name="color_variant_title">Color Accessibility</string>
+    <string name="color_variant_subtitle">Choose the color variant that works best for you</string>
+    <string name="color_red_standard">Red Standard - For standard vision</string>
+    <string name="color_red_orange">Red-Orange - Better for protanopia</string>
+    <string name="color_red_pink">Red-Pink - Better for deuteranopia</string>
+    <string name="color_high_contrast">High Contrast - Maximum visibility</string>
+    <string name="color_preview">Color Preview:</string>
+    
+    <!-- Battery Optimization Strings -->
+    <string name="battery_optimization_title">Battery Awareness</string>
+    <string name="battery_optimization_subtitle">Reduce overlay intensity when battery is low</string>
+    
+    <!-- Light Sensor Strings -->
+    <string name="light_sensor_title">Ambient Light Sensing</string>
+    <string name="light_sensor_subtitle">Auto-adjust overlay based on ambient light</string>
+    <string name="light_sensitivity_label">Sensitivity Level:</string>
+    <string name="light_sensitivity_low">Low Sensitivity</string>
+    <string name="light_sensitivity_medium">Medium Sensitivity</string>
+    <string name="light_sensitivity_high">High Sensitivity</string>
+    <string name="current_lux_label">Current Light Level: -- lux</string>
+    <string name="lock_light_sensor">Lock Current Opacity</string>
+    <string name="lock_light_sensor_subtitle">Override auto-adjustment temporarily</string>
+    
+    <!-- Eye Strain Reminder Strings -->
+    <string name="eye_strain_reminder_title">20-20-20 Reminder</string>
+    <string name="eye_strain_reminder_message">Look away for 20 seconds, 20 feet away</string>
+    <string name="eye_strain_reminder_toggle">20-20-20 Eye Strain Reminders</string>
+    <string name="eye_strain_reminder_subtitle">Get reminded every 20 minutes to protect your eyes</string>
+    <string name="notification_style_label">Notification Style:</string>
+    <string name="notification_style_sound">Sound</string>
+    <string name="notification_style_vibration">Vibration</string>
+    <string name="notification_style_silent">Silent</string>
 </resources>

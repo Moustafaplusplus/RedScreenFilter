@@ -6,11 +6,13 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.util.Log
 import android.view.View
+import com.redscreenfilter.data.ColorVariant
 
 /**
  * OverlayView - Custom View for Red Screen Overlay
  * 
- * Draws a full-screen red rectangle with configurable opacity.
+ * Draws a full-screen red rectangle with configurable opacity and color variant.
+ * Supports color blindness variants for accessibility.
  * Touch events pass through this view to underlying apps.
  */
 class OverlayView(context: Context) : View(context) {
@@ -18,7 +20,7 @@ class OverlayView(context: Context) : View(context) {
     private val TAG = "OverlayView"
     
     private val paint = Paint().apply {
-        color = Color.RED
+        color = ColorVariant.RED_STANDARD.colorValue
         style = Paint.Style.FILL
         alpha = 128 // Default 50% opacity (128/255)
     }
@@ -46,6 +48,16 @@ class OverlayView(context: Context) : View(context) {
     fun setOverlayColor(color: Int) {
         paint.color = color
         Log.d(TAG, "setOverlayColor: color=$color")
+        invalidate()
+    }
+    
+    /**
+     * Set overlay color variant (for accessibility/color blindness)
+     * @param variant ColorVariant enum value
+     */
+    fun setColorVariant(variant: ColorVariant) {
+        paint.color = variant.colorValue
+        Log.d(TAG, "setColorVariant: variant=${variant.displayName}, color=${variant.colorValue}")
         invalidate()
     }
     
