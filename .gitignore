@@ -6,6 +6,7 @@
 *.swo
 *~
 .vscode/
+*.log
 
 # Android
 android/.gradle
@@ -18,6 +19,19 @@ android/.c9/
 android/*.launch
 android/.settings/
 android/*.sublime-workspace
+android/captures/
+android/.externalNativeBuild/
+android/.cxx/
+android/*.aab
+android/*.apk
+android/output-metadata.json
+android/misc.xml
+android/deploymentTargetDropDown.xml
+android/render.experimental.xml
+android/*.jks
+android/*.keystore
+android/google-services.json
+android/*.hprof
 
 # iOS
 ios/Pods/
