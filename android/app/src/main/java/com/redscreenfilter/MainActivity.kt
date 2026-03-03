@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.View
 import android.widget.SeekBar
 import android.widget.TextView
@@ -26,6 +27,8 @@ import com.redscreenfilter.service.RedOverlayService
  */
 class MainActivity : AppCompatActivity() {
     
+    private val TAG = "MainActivity"
+    
     private lateinit var preferencesManager: PreferencesManager
     
     // UI Components
@@ -39,6 +42,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         
+        Log.d(TAG, "onCreate: Activity starting")
+        
         // Initialize PreferencesManager
         preferencesManager = PreferencesManager.getInstance(this)
         
@@ -50,10 +55,13 @@ class MainActivity : AppCompatActivity() {
         
         // Setup listeners
         setupListeners()
+        
+        Log.d(TAG, "onCreate: Activity initialized")
     }
     
     override fun onResume() {
         super.onResume()
+        Log.d(TAG, "onResume: Checking permission status")
         // Check permission status when returning to app
         updatePermissionUI()
     }
@@ -112,35 +120,55 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun handleOverlayToggle(isEnabled: Boolean) {
+        Log.d(TAG, "handleOverlayToggle: isEnabled=$isEnabled")
+        
         if (isEnabled) {
             // Check permission before enabling
-            if (hasOverlayPermission()) {
+            val hasPermission = hasOverlayPermission()
+            Log.d(TAG, "handleOverlayToggle: hasPermission=$hasPermission")
+            
+            if (hasPermission) {
+                Log.d(TAG, "handleOverlayToggle: Starting overlay service")
                 startOverlayService()
                 preferencesManager.setOverlayEnabled(true)
                 updatePermissionUI()
             } else {
                 // Permission not granted, revert toggle and show permission UI
+                Log.w(TAG, "handleOverlayToggle: Permission not granted, reverting toggle")
                 switchOverlay.isChecked = false
                 cardPermission.visibility = View.VISIBLE
             }
         } else {
+            Log.d(TAG, "handleOverlayToggle: Stopping overlay service")
             stopOverlayService()
             preferencesManager.setOverlayEnabled(false)
         }
     }
     
     private fun startOverlayService() {
+        Log.d(TAG, "startOverlayService: Creating intent")
         val intent = Intent(this, RedOverlayService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Log.d(TAG, "startOverlayService: Starting foreground service (Android O+)")
+                startForegroundService(intent)
+            } else {
+                Log.d(TAG, "startOverlayService: Starting service")
+                startService(intent)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "startOverlayService: Error starting service", e)
         }
     }
     
     private fun stopOverlayService() {
+        Log.d(TAG, "stopOverlayService: Stopping service")
         val intent = Intent(this, RedOverlayService::class.java)
-        stopService(intent)
+        try {
+            stopService(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "stopOverlayService: Error stopping service", e)
+        }
     }
     
     private fun updateOverlayOpacity(opacity: Float) {

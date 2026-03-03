@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.util.Log
 import android.view.View
 
 /**
@@ -14,10 +15,16 @@ import android.view.View
  */
 class OverlayView(context: Context) : View(context) {
     
+    private val TAG = "OverlayView"
+    
     private val paint = Paint().apply {
         color = Color.RED
         style = Paint.Style.FILL
         alpha = 128 // Default 50% opacity (128/255)
+    }
+    
+    init {
+        Log.d(TAG, "OverlayView created")
     }
     
     /**
@@ -26,7 +33,9 @@ class OverlayView(context: Context) : View(context) {
      */
     fun setOpacity(opacity: Float) {
         val clampedOpacity = opacity.coerceIn(0.0f, 1.0f)
-        paint.alpha = (clampedOpacity * 255).toInt()
+        val alphaValue = (clampedOpacity * 255).toInt()
+        paint.alpha = alphaValue
+        Log.d(TAG, "setOpacity: opacity=$opacity, alpha=$alphaValue")
         invalidate() // Request redraw
     }
     
@@ -36,6 +45,7 @@ class OverlayView(context: Context) : View(context) {
      */
     fun setOverlayColor(color: Int) {
         paint.color = color
+        Log.d(TAG, "setOverlayColor: color=$color")
         invalidate()
     }
     
@@ -43,5 +53,6 @@ class OverlayView(context: Context) : View(context) {
         super.onDraw(canvas)
         // Draw full-screen red rectangle
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
+        Log.d(TAG, "onDraw: width=$width, height=$height, alpha=${paint.alpha}")
     }
 }

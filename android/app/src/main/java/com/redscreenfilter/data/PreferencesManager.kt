@@ -2,6 +2,7 @@ package com.redscreenfilter.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
@@ -12,6 +13,7 @@ import androidx.security.crypto.MasterKey
  */
 class PreferencesManager private constructor(context: Context) {
     
+    private val TAG = "PreferencesManager"
     private val sharedPreferences: SharedPreferences
     
     companion object {
@@ -41,19 +43,28 @@ class PreferencesManager private constructor(context: Context) {
     }
     
     init {
+        Log.d(TAG, "init: Creating MasterKey")
         // Create MasterKey for encryption
         val masterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
         
+        Log.d(TAG, "init: Initializing EncryptedSharedPreferences")
         // Initialize EncryptedSharedPreferences
-        sharedPreferences = EncryptedSharedPreferences.create(
-            context,
-            PREFS_NAME,
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
+        sharedPreferences = try {
+            EncryptedSharedPreferences.create(
+                context,
+                PREFS_NAME,
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "init: Failed to create EncryptedSharedPreferences, using regular SharedPreferences", e)
+            // Fallback to regular SharedPreferences if encryption fails
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        }
+        Log.d(TAG, "init: PreferencesManager ready")
     }
     
     // ========== Overlay Settings ==========
