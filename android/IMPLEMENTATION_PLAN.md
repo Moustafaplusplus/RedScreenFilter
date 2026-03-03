@@ -122,26 +122,29 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
 
 **Deliverable**: Settings persist across app closures ✅
 
-#### 20-30% - MainActivity & Basic UI
-- [ ] Create `MainActivity.kt`
-  - Display toggle button (on/off overlay)
-  - Display opacity slider (0-100%)
-  - Request `SYSTEM_ALERT_WINDOW` permission at runtime
-  - Start/stop `RedOverlayService`
+#### 20-30% - MainActivity & Basic UI ✅
+- [x] Create `MainActivity.kt`
+  - Display toggle button (on/off overlay) ✅
+  - Display opacity slider (0-100%) ✅
+  - Request `SYSTEM_ALERT_WINDOW` permission at runtime ✅
+  - Start/stop `RedOverlayService` ✅
+  - Real-time opacity updates via intent ✅
+  - Load/save settings with PreferencesManager ✅
+  - Permission status checking on resume ✅
   
-- [ ] Create layout (Choose one):
-  - **Option A**: XML-based with Material Design 3
-  - **Option B**: Jetpack Compose
+- [x] Created layout with Material Design 3 (XML-based) ✅
   
-  *Recommendation*: Start with XML for simplicity
-  
-- [ ] Add layout file `activity_main.xml`
-  - Toggle Switch for on/off
-  - SeekBar for opacity (0-100)
-  - TextViews showing current opacity
-  - Basic styling with Material Design 3
+- [x] Add layout file `activity_main.xml`
+  - MaterialCardView containers with elevation ✅
+  - SwitchMaterial for toggle with title/subtitle ✅
+  - SeekBar for opacity (0-100) with min/max labels ✅
+  - TextView showing current opacity percentage ✅
+  - Permission card (appears when permission not granted) ✅
+  - MaterialButton for permission request ✅
+  - Info text at bottom ✅
+  - 24dp padding, 12dp card radius, Material Design 3 styling ✅
 
-**Deliverable**: Can toggle overlay and adjust opacity from UI
+**Deliverable**: Can toggle overlay and adjust opacity from UI ✅
 
 ---
 
@@ -490,8 +493,8 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
 | 5-10% | 5 | Dependencies & structure | 1 hour | CRITICAL | ✅ DONE |
 | 10-15% | 5 | Overlay service base | 2 hours | CRITICAL | ✅ DONE |
 | 15-20% | 5 | Settings persistence | 1.5 hours | CRITICAL | ✅ DONE |
-| 20-30% | 10 | Main UI & toggle | 2 hours | CRITICAL | 🔄 NEXT |
-| 30-35% | 5 | Basic scheduling | 1.5 hours | HIGH | ⏳ TODO |
+| 20-30% | 10 | Main UI & toggle | 2 hours | CRITICAL | ✅ DONE |
+| 30-35% | 5 | Basic scheduling | 1.5 hours | HIGH | 🔄 NEXT |
 | 35-40% | 5 | WorkManager integration | 1.5 hours | HIGH | ⏳ TODO |
 | 40-50% | 10 | Sunrise/sunset scheduling | 3 hours | HIGH | ⏳ TODO |
 | 50-55% | 5 | Preset system | 1.5 hours | HIGH | ⏳ TODO |
@@ -505,7 +508,7 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
 | 92-95% | 3 | Database & analytics | 2 hours | LOW | ⏳ TODO |
 | 95-98% | 3 | Analytics UI | 2 hours | LOW | ⏳ TODO |
 | 98-100% | 2 | Final polish | 1 hour | CRITICAL | ⏳ TODO |
-| **TOTAL** | **100%** | **32 tasks** | **~30 hours** | — | **20% Complete** |
+| **TOTAL** | **100%** | **32 tasks** | **~30 hours** | — | **30% Complete** |
 
 ---
 

@@ -1,5 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Red Screen Filter</string>
-    <string name="welcome_message">Red Screen Filter</string>
+    
+    <!-- Main UI Strings -->
+    <string name="overlay_toggle_title">Red Screen Overlay</string>
+    <string name="overlay_toggle_subtitle">Enable red filter to reduce eye strain</string>
+    <string name="opacity_title">Opacity Control</string>
+    <string name="opacity_min">0%</string>
+    <string name="opacity_max">100%</string>
+    <string name="opacity_value_default">Current Opacity: 50%</string>
+    <string name="opacity_value_format">Current Opacity: %d%%</string>
+    
+    <!-- Permission Strings -->
+    <string name="permission_required">Permission Required</string>
+    <string name="permission_description">This app needs permission to display overlay on screen. Please grant "Display over other apps" permission.</string>
+    <string name="grant_permission">Grant Permission</string>
+    
+    <!-- Info Strings -->
+    <string name="info_message">Red screen filter helps reduce blue light and eye strain during night time usage</string>
+    
+    <!-- Service Notifications -->
+    <string name="overlay_active">Red Screen Filter Active</string>
+    <string name="overlay_inactive">Red Screen Filter Inactive</string>
 </resources>
