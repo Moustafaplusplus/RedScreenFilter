@@ -66,28 +66,31 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
 ### Phase 10-30% - Core Overlay Service
 **Objective**: Functional red overlay that can be toggled on/off
 
-#### 10-15% - WindowManager Overlay Base
-- [ ] Create `RedOverlayService.kt` (Foreground Service)
-  - Extends `Service`
-  - Handles overlay window creation with `WindowManager`
-  - Implements lifecycle (onCreate, onStartCommand, onDestroy)
-  - Uses `WindowManager.LayoutParams` for overlay positioning
-  - Set window type to `TYPE_APPLICATION_OVERLAY` (API 26+, fallback for older)
+#### 10-15% - WindowManager Overlay Base ✅
+- [x] Create `RedOverlayService.kt` (Foreground Service)
+  - Extends `Service` ✅
+  - Handles overlay window creation with `WindowManager` ✅
+  - Implements lifecycle (onCreate, onStartCommand, onDestroy) ✅
+  - Uses `WindowManager.LayoutParams` for overlay positioning ✅
+  - Set window type to `TYPE_APPLICATION_OVERLAY` (API 26+, fallback for older) ✅
+  - Foreground notification with NotificationChannel ✅
+  - ACTION_UPDATE_OPACITY intent handling ✅
 
-- [ ] Create overlay view (`OverlayView.kt`)
-  - Custom View extending `View`
-  - Draws red rectangle with configurable opacity
-  - Color: `Color.RED` (rgb(255, 0, 0)) with alpha channel
-  - `isUserInteractionEnabled = false` to pass touch events
+- [x] Create overlay view (`OverlayView.kt`)
+  - Custom View extending `View` ✅
+  - Draws red rectangle with configurable opacity ✅
+  - Color: `Color.RED` (rgb(255, 0, 0)) with alpha channel ✅
+  - Touch events pass through (FLAG_NOT_TOUCHABLE) ✅
+  - setOpacity() and setOverlayColor() methods ✅
 
-- [ ] Add permissions to `AndroidManifest.xml`
-  ```xml
-  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
-  ```
+- [x] Add permissions to `AndroidManifest.xml`
+  - `SYSTEM_ALERT_WINDOW` permission ✅
+  - `FOREGROUND_SERVICE` permission ✅
+  - `FOREGROUND_SERVICE_SYSTEM_EXEMPTED` permission ✅
+  - `POST_NOTIFICATIONS` permission (Android 13+) ✅
+  - Service registered with foregroundServiceType="systemExempted" ✅
 
-**Deliverable**: Service can be started, red overlay appears on screen
+**Deliverable**: Service can be started, red overlay appears on screen ✅
 
 #### 15-20% - Settings Persistence Layer
 - [ ] Create `PreferencesManager.kt`
@@ -480,8 +483,8 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
 |-------|---|-------|-----------|----------|--------|
 | 0-5% | 5 | Project creation | 30 min | CRITICAL | ✅ DONE |
 | 5-10% | 5 | Dependencies & structure | 1 hour | CRITICAL | ✅ DONE |
-| 10-15% | 5 | Overlay service base | 2 hours | CRITICAL | 🔄 NEXT |
-| 15-20% | 5 | Settings persistence | 1.5 hours | CRITICAL | ⏳ TODO |
+| 10-15% | 5 | Overlay service base | 2 hours | CRITICAL | ✅ DONE |
+| 15-20% | 5 | Settings persistence | 1.5 hours | CRITICAL | 🔄 NEXT |
 | 20-30% | 10 | Main UI & toggle | 2 hours | CRITICAL | ⏳ TODO |
 | 30-35% | 5 | Basic scheduling | 1.5 hours | HIGH | ⏳ TODO |
 | 35-40% | 5 | WorkManager integration | 1.5 hours | HIGH | ⏳ TODO |
@@ -497,7 +500,7 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
 | 92-95% | 3 | Database & analytics | 2 hours | LOW | ⏳ TODO |
 | 95-98% | 3 | Analytics UI | 2 hours | LOW | ⏳ TODO |
 | 98-100% | 2 | Final polish | 1 hour | CRITICAL | ⏳ TODO |
-| **TOTAL** | **100%** | **32 tasks** | **~30 hours** | — | **10% Complete** |
+| **TOTAL** | **100%** | **32 tasks** | **~30 hours** | — | **15% Complete** |
 
 ---
 
