@@ -1,0 +1,43 @@
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+*.swp
+*.swo
+*~
+.vscode/
+
+# Android
+android/.gradle
+android/local.properties
+android/**/build/
+android/.idea/
+android/*.iml
+android/.classpath
+android/.c9/
+android/*.launch
+android/.settings/
+android/*.sublime-workspace
+
+# iOS
+ios/Pods/
+ios/Podfile.lock
+ios/*.xcarchive
+ios/DerivedData/
+ios/**/*.pbxuser
+ios/**/*.mode1v3
+ios/**/*.mode2v3
+ios/**/*.perspectivev3
+ios/**/**/xcuserdata/
+ios/**/**/xcshareddata/
+ios/.swiftpm/
+
+# Xcode
+**/*.xcodeproj/xcuserdata/
+**/*.xcodeproj/project.xcworkspace/xcuserdata/
+**/*.playground/xcuserdata/
+
+# IDEs
+.idea/
+*.sublime-project
+*.sublime-workspace

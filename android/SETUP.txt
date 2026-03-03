@@ -1,0 +1,15 @@
+# Project structure placeholder for Android project
+# This directory will contain the full Android Gradle project
+
+## When using Android Studio:
+1. Create new Android project targeting API 28+
+2. Place it in this directory
+3. Update build.gradle.kts with project configuration
+4. Import required dependencies
+
+## Expected files after setup:
+- build.gradle.kts (project level)
+- app/build.gradle.kts (app level)
+- settings.gradle.kts
+- gradle/wrapper/ (Gradle wrapper)
+- app/src/main/ (source code)

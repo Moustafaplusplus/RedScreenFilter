@@ -1,0 +1,18 @@
+# Project structure placeholder for iOS project
+# This directory will contain the full Xcode project
+
+## When using Xcode:
+1. Create new iOS app project (SwiftUI)
+2. Name it "RedScreenFilter"
+3. Place it in this directory (ios/RedScreenFilter)
+4. Configure signing & capabilities
+5. Set deployment target to iOS 14.0+
+
+## Expected files after setup:
+- RedScreenFilter.xcodeproj/
+- RedScreenFilter/
+  - Sources/
+  - Resources/
+  - Info.plist
+- Tests/
+- Podfile (if CocoaPods needed)
