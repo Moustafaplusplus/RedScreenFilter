@@ -8,13 +8,13 @@ import android.os.BatteryManager
 import android.util.Log
 
 /**
- * Battery Manager
+ * Battery Monitor
  * Monitors device battery status and notifies listeners of battery state changes.
  * Detects low battery (< 20%) and critical battery (< 10%).
  */
-class BatteryManager(private val context: Context) {
+class BatteryMonitor(private val context: Context) {
     
-    private val TAG = "BatteryManager"
+    private val TAG = "BatteryMonitor"
     private val preferencesManager = PreferencesManager.getInstance(context)
     
     private var currentBatteryLevel: Int = 0
@@ -30,11 +30,11 @@ class BatteryManager(private val context: Context) {
         private const val CRITICAL_BATTERY_THRESHOLD = 10
         
         @Volatile
-        private var instance: BatteryManager? = null
+        private var instance: BatteryMonitor? = null
         
-        fun getInstance(context: Context): BatteryManager {
+        fun getInstance(context: Context): BatteryMonitor {
             return instance ?: synchronized(this) {
-                instance ?: BatteryManager(context.applicationContext).also {
+                instance ?: BatteryMonitor(context.applicationContext).also {
                     instance = it
                 }
             }

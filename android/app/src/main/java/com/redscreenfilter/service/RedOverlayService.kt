@@ -15,7 +15,7 @@ import android.view.WindowManager
 import androidx.core.app.NotificationCompat
 import com.redscreenfilter.MainActivity
 import com.redscreenfilter.R
-import com.redscreenfilter.data.BatteryManager
+import com.redscreenfilter.data.BatteryMonitor
 import com.redscreenfilter.data.ColorVariant
 import com.redscreenfilter.data.LightSensorManager
 import com.redscreenfilter.data.PreferencesManager
@@ -26,12 +26,12 @@ import com.redscreenfilter.data.PreferencesManager
  * Displays a full-screen red overlay with configurable opacity.
  * Includes battery awareness and light sensing for automatic adjustments.
  */
-class RedOverlayService : Service(), BatteryManager.BatteryStateListener, LightSensorManager.LightSensorListener {
+class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightSensorManager.LightSensorListener {
     
     private var overlayView: OverlayView? = null
     private var windowManager: WindowManager? = null
     private lateinit var preferencesManager: PreferencesManager
-    private var batteryManager: BatteryManager? = null
+    private var batteryManager: BatteryMonitor? = null
     private var lightSensorManager: LightSensorManager? = null
     
     private val TAG = "RedOverlayService"
@@ -58,13 +58,13 @@ class RedOverlayService : Service(), BatteryManager.BatteryStateListener, LightS
             preferencesManager = PreferencesManager.getInstance(this)
             Log.d(TAG, "onCreate: PreferencesManager initialized")
             
-            // Initialize BatteryManager
-            Log.d(TAG, "onCreate: Initializing BatteryManager")
-            batteryManager = BatteryManager.getInstance(this).apply {
+            // Initialize BatteryMonitor
+            Log.d(TAG, "onCreate: Initializing BatteryMonitor")
+            batteryManager = BatteryMonitor.getInstance(this).apply {
                 addListener(this@RedOverlayService)
                 startMonitoring()
             }
-            Log.d(TAG, "onCreate: BatteryManager initialized and monitoring started")
+            Log.d(TAG, "onCreate: BatteryMonitor initialized and monitoring started")
             
             // Initialize LightSensorManager
             Log.d(TAG, "onCreate: Initializing LightSensorManager")
