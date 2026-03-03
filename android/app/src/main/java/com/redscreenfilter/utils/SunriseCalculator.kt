@@ -29,53 +29,49 @@ object SunriseCalculator {
         
         Log.d(TAG, "calculateSunriseSunset: lat=$latitude, lon=$longitude, date=${calendar.time}")
         
-        // Get timezone offset in hours
-        val timeZone = calendar.timeZone
-        val offsetMillis = timeZone.getOffset(calendar.timeInMillis)
-        val offsetHours = offsetMillis / (1000.0 * 60 * 60)
-        
         // Get day of year
         val dayOfYear = calendar.get(Calendar.DAY_OF_YEAR)
         
-        // Calculate sunrise and sunset times
-        val sunriseTime = calculateSunEvent(latitude, longitude, dayOfYear, offsetHours, true)
-        val sunsetTime = calculateSunEvent(latitude, longitude, dayOfYear, offsetHours, false)
+        // Calculate sunrise and sunset times (in minutes from midnight, solar/UTC time)
+        val sunriseTime = calculateSunEvent(latitude, longitude, dayOfYear, true)
+        val sunsetTime = calculateSunEvent(latitude, longitude, dayOfYear, false)
         
-        // Convert to epoch milliseconds
-        val baseCalendar = calendar.clone() as Calendar
-        baseCalendar.apply {
+        // Convert to epoch milliseconds using UTC calendar to avoid timezone double-application
+        val utcCalendar = (calendar.clone() as Calendar).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
-        val dayStartMillis = baseCalendar.timeInMillis
+        val dayStartMillis = utcCalendar.timeInMillis
         
         val sunriseMillis = dayStartMillis + (sunriseTime * 60 * 1000).toLong()
         val sunsetMillis = dayStartMillis + (sunsetTime * 60 * 1000).toLong()
         
         Log.d(TAG, "calculateSunriseSunset: sunrise=$sunriseTime min, sunset=$sunsetTime min")
+        Log.d(TAG, "calculateSunriseSunset: sunrise UTC=${java.util.Date(sunriseMillis)}, sunset UTC=${java.util.Date(sunsetMillis)}")
         
         return Pair(sunriseMillis, sunsetMillis)
     }
     
     /**
      * Calculate sun event time (sunrise or sunset)
-     * @return Time in minutes from midnight (local time)
+     * @return Time in minutes from midnight (solar time, relative to longitude)
      */
     private fun calculateSunEvent(
         latitude: Double,
         longitude: Double,
         dayOfYear: Int,
-        timezoneOffset: Double,
         isSunrise: Boolean
     ): Double {
         
         // Convert latitude to radians
         val latRad = Math.toRadians(latitude)
         
-        // Calculate solar noon
-        val solarNoon = 720 - 4 * longitude - timezoneOffset * 60
+        // Calculate solar noon (in minutes from midnight, UTC)
+        // Every 15° of longitude = 1 hour difference in solar time
+        val solarNoon = 720 - 4 * longitude
         
         // Calculate solar declination
         val declination = calculateDeclination(dayOfYear)
