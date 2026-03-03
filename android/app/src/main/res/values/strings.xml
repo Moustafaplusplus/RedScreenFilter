@@ -19,6 +19,26 @@
     <!-- Info Strings -->
     <string name="info_message">Red screen filter helps reduce blue light and eye strain during night time usage</string>
     
+    <!-- Scheduling Strings -->
+    <string name="scheduling_title">Time Scheduling</string>
+    <string name="scheduling_subtitle">Automatically enable overlay based on time</string>
+    <string name="scheduling_start_time">Start Time</string>
+    <string name="scheduling_end_time">End Time</string>
+    <string name="scheduling_enabled">Scheduling Enabled</string>
+    <string name="scheduling_disabled">Scheduling Disabled</string>
+    <string name="scheduling_time_format">%02d:%02d</string>
+    
+    <!-- Location Scheduling Strings -->
+    <string name="location_scheduling_title">Sunset/Sunrise Scheduling</string>
+    <string name="location_scheduling_subtitle">Use device location for automatic times</string>
+    <string name="location_offset">Time Offset</string>
+    <string name="location_offset_value">%+d minutes</string>
+    <string name="location_get_location">Get Location</string>
+    <string name="location_sunset_label">Sunset (Start)</string>
+    <string name="location_sunrise_label">Sunrise (End)</string>
+    <string name="location_no_data">Location not available</string>
+    <string name="location_permission_required">Location permission required for this feature</string>
+    
     <!-- Service Notifications -->
     <string name="overlay_active">Red Screen Filter Active</string>
     <string name="overlay_inactive">Red Screen Filter Inactive</string>

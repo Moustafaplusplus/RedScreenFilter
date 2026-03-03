@@ -30,6 +30,12 @@ class PreferencesManager private constructor(context: Context) {
         private const val KEY_COLOR_VARIANT = "color_variant"
         private const val KEY_BATTERY_OPTIMIZATION = "battery_optimization"
         
+        // Location keys
+        private const val KEY_LOCATION_LATITUDE = "location_latitude"
+        private const val KEY_LOCATION_LONGITUDE = "location_longitude"
+        private const val KEY_LOCATION_LAST_UPDATE = "location_last_update"
+        private const val KEY_LOCATION_OFFSET_MINUTES = "location_offset_minutes"
+        
         @Volatile
         private var instance: PreferencesManager? = null
         
@@ -144,6 +150,40 @@ class PreferencesManager private constructor(context: Context) {
     
     fun getBatteryOptimizationEnabled(): Boolean {
         return sharedPreferences.getBoolean(KEY_BATTERY_OPTIMIZATION, true)
+    }
+    
+    // ========== Location Settings ==========
+    
+    fun setLocationLatitude(latitude: Double) {
+        sharedPreferences.edit().putFloat(KEY_LOCATION_LATITUDE, latitude.toFloat()).apply()
+    }
+    
+    fun getLocationLatitude(): Double {
+        return sharedPreferences.getFloat(KEY_LOCATION_LATITUDE, 0f).toDouble()
+    }
+    
+    fun setLocationLongitude(longitude: Double) {
+        sharedPreferences.edit().putFloat(KEY_LOCATION_LONGITUDE, longitude.toFloat()).apply()
+    }
+    
+    fun getLocationLongitude(): Double {
+        return sharedPreferences.getFloat(KEY_LOCATION_LONGITUDE, 0f).toDouble()
+    }
+    
+    fun setLocationLastUpdate(timestamp: Long) {
+        sharedPreferences.edit().putLong(KEY_LOCATION_LAST_UPDATE, timestamp).apply()
+    }
+    
+    fun getLocationLastUpdate(): Long {
+        return sharedPreferences.getLong(KEY_LOCATION_LAST_UPDATE, 0L)
+    }
+    
+    fun setLocationOffsetMinutes(offsetMinutes: Int) {
+        sharedPreferences.edit().putInt(KEY_LOCATION_OFFSET_MINUTES, offsetMinutes).apply()
+    }
+    
+    fun getLocationOffsetMinutes(): Int {
+        return sharedPreferences.getInt(KEY_LOCATION_OFFSET_MINUTES, 0)
     }
     
     // ========== Complete Settings Object ==========

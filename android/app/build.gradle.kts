@@ -71,6 +71,9 @@ dependencies {
     // Permissions - Runtime permission handling
     implementation("androidx.activity:activity-ktx:1.8.1")
     
+    // Location Services - Google Play Services
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    
     // Database - Room for analytics
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")

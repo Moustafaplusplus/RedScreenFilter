@@ -151,8 +151,8 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
 ### Phase 30-50% - Scheduling Engine
 **Objective**: Automatic on/off based on time or sunrise/sunset
 
-#### 30-35% - Basic Time-Based Scheduling
-- [ ] Create `SchedulingManager.kt`
+#### 30-35% - Basic Time-Based Scheduling ✅
+- [x] Create `SchedulingManager.kt`
   - Methods:
     - `getScheduledState(): Boolean` - returns if overlay should be active
     - `isScheduleEnabled(): Boolean`
@@ -160,54 +160,54 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
     - Check if current time falls within scheduled window
     - Handle day boundary crossings (e.g., 10 PM to 7 AM)
 
-- [ ] Create scheduling UI fragment/screen
+- [x] Create scheduling UI fragment/screen
   - Time pickers for start/end times
   - Toggle to enable/disable scheduling
   - Display formatted times
 
-**Deliverable**: Overlay state follows scheduled times
+**Deliverable**: Overlay state follows scheduled times ✅
 
-#### 35-40% - WorkManager for Background Scheduling
-- [ ] Create `ScheduleWorker.kt` (Extends `CoroutineWorker`)
+#### 35-40% - WorkManager for Background Scheduling ✅
+- [x] Create `ScheduleWorker.kt` (Extends `CoroutineWorker`)
   - Runs periodically (every 15 minutes)
   - Calls `SchedulingManager.getScheduledState()`
   - Updates overlay state if needed
   - Resilient to Doze mode
 
-- [ ] Register periodic WorkRequest
+- [x] Register periodic WorkRequest
   - Use `PeriodicWorkRequestBuilder`
   - 15-minute interval with flexibility
   - Ensure runs across device sleep
 
-**Deliverable**: Overlay automatically updates every 15 minutes per schedule
+**Deliverable**: Overlay automatically updates every 15 minutes per schedule ✅
 
-#### 40-50% - Sunrise/Sunset Scheduling
-- [ ] Add location permission
+#### 40-50% - Sunrise/Sunset Scheduling ✅
+- [x] Add location permission
   ```xml
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
   ```
 
-- [ ] Create `LocationManager.kt`
+- [x] Create `LocationManager.kt`
   - Request user's latitude/longitude
   - Calculate sunset time using solar equation (search: "java sunset calculator")
   - Cache location, update every 6 hours
 
-- [ ] Create `SunriseCalculator.kt` (Utility)
+- [x] Create `SunriseCalculator.kt` (Utility)
   - Implement SPA (Solar Position Algorithm) or use library
   - Input: lat/lon, date → Output: sunrise/sunset times (Epoch milliseconds)
 
-- [ ] Extend `SchedulingManager`
+- [x] Extend `SchedulingManager`
   - Add `useLocationBasedSchedule: Boolean`
   - If enabled, use sunset+offset as start time
   - Sunrise as end time
 
-- [ ] Add UI for location scheduling
+- [x] Add UI for location scheduling
   - Toggle: "Use sunset/sunrise scheduling"
   - Offset slider: -60 to +60 minutes
   - Display calculated times
 
-**Deliverable**: Overlay can schedule based on device location's sunrise/sunset
+**Deliverable**: Overlay can schedule based on device location's sunrise/sunset ✅
 
 ---
 
@@ -494,10 +494,10 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
 | 10-15% | 5 | Overlay service base | 2 hours | CRITICAL | ✅ DONE |
 | 15-20% | 5 | Settings persistence | 1.5 hours | CRITICAL | ✅ DONE |
 | 20-30% | 10 | Main UI & toggle | 2 hours | CRITICAL | ✅ DONE |
-| 30-35% | 5 | Basic scheduling | 1.5 hours | HIGH | 🔄 NEXT |
-| 35-40% | 5 | WorkManager integration | 1.5 hours | HIGH | ⏳ TODO |
-| 40-50% | 10 | Sunrise/sunset scheduling | 3 hours | HIGH | ⏳ TODO |
-| 50-55% | 5 | Preset system | 1.5 hours | HIGH | ⏳ TODO |
+| 30-35% | 5 | Basic scheduling | 1.5 hours | HIGH | ✅ DONE |
+| 35-40% | 5 | WorkManager integration | 1.5 hours | HIGH | ✅ DONE |
+| 40-50% | 10 | Sunrise/sunset scheduling | 3 hours | HIGH | ✅ DONE |
+| 50-55% | 5 | Preset system | 1.5 hours | HIGH | 🔄 NEXT |
 | 55-65% | 10 | Color blindness variants | 2 hours | MEDIUM | ⏳ TODO |
 | 65-70% | 5 | Battery awareness | 1 hour | MEDIUM | ⏳ TODO |
 | 70-75% | 5 | Ambient light sensing | 1.5 hours | MEDIUM | ⏳ TODO |
@@ -508,7 +508,7 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
 | 92-95% | 3 | Database & analytics | 2 hours | LOW | ⏳ TODO |
 | 95-98% | 3 | Analytics UI | 2 hours | LOW | ⏳ TODO |
 | 98-100% | 2 | Final polish | 1 hour | CRITICAL | ⏳ TODO |
-| **TOTAL** | **100%** | **32 tasks** | **~30 hours** | — | **30% Complete** |
+| **TOTAL** | **100%** | **32 tasks** | **~30 hours** | — | **50% Complete** |
 
 ---
 
@@ -526,20 +526,20 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
 - **Go/No-Go Decision**: Can schedule automatically
 
 ### Milestone 3: Customization (50-65%)
-- ✅ Presets working
-- ✅ Color variants available
+- ⏳ Presets working (TODO)
+- ⏳ Color variants available (TODO)
 - **Go/No-Go Decision**: Users can personalize experience
 
 ### Milestone 4: Health & Features (65-80%)
-- ✅ Battery awareness implemented
-- ✅ Light sensing works
-- ✅ 20-20-20 reminders active
+- ⏳ Battery awareness implemented (TODO)
+- ⏳ Light sensing works (TODO)
+- ⏳ 20-20-20 reminders active (TODO)
 - **Go/No-Go Decision**: Feature-complete for Phase 1 release
 
 ### Milestone 5: Polish & Release (80-100%)
-- ✅ All UI refinements done
-- ✅ Performance optimized
-- ✅ Ready for testing on device
+- ⏳ All UI refinements done (TODO)
+- ⏳ Performance optimized (TODO)
+- ⏳ Ready for testing on device (TODO)
 - **Go/No-Go Decision**: Release to Play Store (or personal use)
 
 ---

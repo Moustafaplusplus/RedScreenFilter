@@ -3,16 +3,32 @@ package com.redscreenfilter.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.util.Log
+import com.redscreenfilter.data.SchedulingManager
+import com.redscreenfilter.utils.WorkScheduler
 
 /**
  * Boot Completed Receiver
- * Handles BOOT_COMPLETED broadcast to restore overlay state on device startup
+ * Handles BOOT_COMPLETED broadcast to restore overlay state and scheduling on device startup
  */
 class BootCompletedReceiver : BroadcastReceiver() {
+    
+    private val TAG = "BootCompletedReceiver"
+    
     override fun onReceive(context: Context?, intent: Intent?) {
-        if (intent?.action == Intent.ACTION_BOOT_COMPLETED) {
-            // TODO: Implement in Phase 98-100%
-            // Restore overlay state and restart services
+        if (context == null || intent?.action != Intent.ACTION_BOOT_COMPLETED) {
+            return
         }
+        
+        Log.d(TAG, "onReceive: Boot completed, checking scheduling state")
+        
+        // Check if scheduling is enabled
+        val schedulingManager = SchedulingManager.getInstance(context)
+        if (schedulingManager.isScheduleEnabled()) {
+            Log.d(TAG, "onReceive: Scheduling is enabled, re-scheduling WorkManager")
+            WorkScheduler.schedulePeriodicWork(context)
+        }
+        
+        // Future: Also restore overlay state if it was active before reboot (Phase 98-100%)
     }
 }
