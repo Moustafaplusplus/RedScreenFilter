@@ -92,30 +92,35 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
 
 **Deliverable**: Service can be started, red overlay appears on screen ✅
 
-#### 15-20% - Settings Persistence Layer
-- [ ] Create `PreferencesManager.kt`
-  - Wraps SharedPreferences
-  - Methods:
-    - `setOverlayEnabled(Boolean)`
-    - `isOverlayEnabled(): Boolean`
-    - `setOpacity(Float)` (0.0-1.0)
-    - `getOpacity(): Float`
-    - More methods for future features
-  - Use `EncryptedSharedPreferences` for security
+#### 15-20% - Settings Persistence Layer ✅
+- [x] Create `PreferencesManager.kt`
+  - Wraps EncryptedSharedPreferences ✅
+  - Singleton pattern with getInstance(Context) ✅
+  - MasterKey with AES256_GCM encryption ✅
+  - Core methods:
+    - `setOverlayEnabled(Boolean)` / `isOverlayEnabled()` ✅
+    - `setOpacity(Float)` / `getOpacity()` with clamping ✅
+  - Scheduling methods:
+    - `setScheduleEnabled()` / `isScheduleEnabled()` ✅
+    - `setScheduleStartTime()` / `getScheduleStartTime()` ✅
+    - `setScheduleEndTime()` / `getScheduleEndTime()` ✅
+  - Smart features methods:
+    - `setUseAmbientLight()` / `getUseAmbientLight()` ✅
+    - `setUseLocationSchedule()` / `getUseLocationSchedule()` ✅
+    - `setColorVariant()` / `getColorVariant()` ✅
+    - `setBatteryOptimizationEnabled()` / `getBatteryOptimizationEnabled()` ✅
+  - Bulk operations:
+    - `getSettings()` - returns complete OverlaySettings object ✅
+    - `saveSettings(OverlaySettings)` - saves all settings at once ✅
+    - `clearAll()` - clears all preferences ✅
 
-- [ ] Create data class `OverlaySettings.kt`
-  ```kt
-  data class OverlaySettings(
-      val isEnabled: Boolean = false,
-      val opacity: Float = 0.5f,
-      val scheduleEnabled: Boolean = false,
-      val scheduleStartTime: String = "21:00", // HH:mm
-      val scheduleEndTime: String = "07:00",
-      val useAmbientLight: Boolean = false
-  )
-  ```
+- [x] Data class `OverlaySettings.kt` (already created in Phase 5-10%)
+  - All required fields with defaults ✅
+  - `isEnabled`, `opacity`, `scheduleEnabled` ✅
+  - `scheduleStartTime`, `scheduleEndTime` ✅
+  - `useAmbientLight`, `useLocationSchedule`, `colorVariant` ✅
 
-**Deliverable**: Settings persist across app closures
+**Deliverable**: Settings persist across app closures ✅
 
 #### 20-30% - MainActivity & Basic UI
 - [ ] Create `MainActivity.kt`
@@ -484,8 +489,8 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
 | 0-5% | 5 | Project creation | 30 min | CRITICAL | ✅ DONE |
 | 5-10% | 5 | Dependencies & structure | 1 hour | CRITICAL | ✅ DONE |
 | 10-15% | 5 | Overlay service base | 2 hours | CRITICAL | ✅ DONE |
-| 15-20% | 5 | Settings persistence | 1.5 hours | CRITICAL | 🔄 NEXT |
-| 20-30% | 10 | Main UI & toggle | 2 hours | CRITICAL | ⏳ TODO |
+| 15-20% | 5 | Settings persistence | 1.5 hours | CRITICAL | ✅ DONE |
+| 20-30% | 10 | Main UI & toggle | 2 hours | CRITICAL | 🔄 NEXT |
 | 30-35% | 5 | Basic scheduling | 1.5 hours | HIGH | ⏳ TODO |
 | 35-40% | 5 | WorkManager integration | 1.5 hours | HIGH | ⏳ TODO |
 | 40-50% | 10 | Sunrise/sunset scheduling | 3 hours | HIGH | ⏳ TODO |
@@ -500,7 +505,7 @@ Complete step-by-step implementation roadmap for Red Screen Filter Android app (
 | 92-95% | 3 | Database & analytics | 2 hours | LOW | ⏳ TODO |
 | 95-98% | 3 | Analytics UI | 2 hours | LOW | ⏳ TODO |
 | 98-100% | 2 | Final polish | 1 hour | CRITICAL | ⏳ TODO |
-| **TOTAL** | **100%** | **32 tasks** | **~30 hours** | — | **15% Complete** |
+| **TOTAL** | **100%** | **32 tasks** | **~30 hours** | — | **20% Complete** |
 
 ---
 
