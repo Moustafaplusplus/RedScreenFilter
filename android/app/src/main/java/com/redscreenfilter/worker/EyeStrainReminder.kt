@@ -94,7 +94,7 @@ class EyeStrainReminder(
         
         // Create notification
         val builder = NotificationCompat.Builder(context, CHANNEL_ID_REMINDERS)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle(context.getString(R.string.eye_strain_reminder_title))
             .setContentText(context.getString(R.string.eye_strain_reminder_message))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
