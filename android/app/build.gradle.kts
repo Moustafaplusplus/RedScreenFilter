@@ -40,6 +40,12 @@ android {
         jvmTarget = "17"
     }
     
+    buildFeatures {
+        buildConfig = true
+        viewBinding = true
+        dataBinding = true
+    }
+    
     // KAPT configuration to avoid compatibility issues
     kapt {
         correctErrorTypes = true
@@ -85,4 +91,3 @@ dependencies {
     // Optional - Charts for analytics (uncomment when ready)
     // implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 }
-

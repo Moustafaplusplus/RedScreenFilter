@@ -18,6 +18,12 @@
     <!-- Location Permissions for Sunrise/Sunset Scheduling -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    
+    <!-- App Exemption Permissions -->
+    <!-- Required to detect current foreground app -->
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
+    <!-- Required to query all installed packages (Android 11+) -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 
     <application
         android:allowBackup="true"
@@ -39,6 +45,11 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- Handle Quick Settings Tile Preferences (Long Click) -->
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
+            </intent-filter>
         </activity>
         
         <!-- Red Overlay Foreground Service -->
@@ -49,7 +60,8 @@
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Screen overlay filter for eye protection" />
+                android:value="Screen overlay filter for eye protection">
+            </property>
         </service>
         
         <!-- Boot Completed Receiver for WorkManager Scheduling -->
@@ -59,6 +71,38 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+        
+        <!-- Quick Settings Tile Service -->
+        <service
+            android:name=".receiver.OverlayQuickSettingsTile"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+        
+        <!-- Voice Command Receiver for Google Assistant Integration -->
+        <receiver
+            android:name=".receiver.VoiceCommandReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <!-- Handle voice command action -->
+            <intent-filter android:priority="100">
+                <action android:name="android.intent.action.VOICE_COMMAND" />
+            </intent-filter>
+            <!-- Handle Google Assistant voice intents -->
+            <intent-filter android:priority="100">
+                <action android:name="com.google.android.gm.action.AUTO_SEND" />
+                <action android:name="android.intent.action.SEND" />
+                <action android:name="com.example.android.audioapp.PLAY_SONG" />
+            </intent-filter>
+            <!-- Handle custom voice control actions -->
+            <intent-filter android:priority="100">
+                <action android:name="com.redscreenfilter.action.VOICE_CONTROL" />
             </intent-filter>
         </receiver>
         

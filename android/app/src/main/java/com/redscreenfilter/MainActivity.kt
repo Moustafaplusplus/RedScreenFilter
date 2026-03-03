@@ -15,6 +15,7 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
+import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,6 +24,7 @@ import androidx.core.content.ContextCompat
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.button.MaterialButton
 import java.util.concurrent.TimeUnit
@@ -35,6 +37,7 @@ import com.redscreenfilter.data.LocationManager
 import com.redscreenfilter.data.PreferencesManager
 import com.redscreenfilter.data.SchedulingManager
 import com.redscreenfilter.service.RedOverlayService
+import com.redscreenfilter.ui.AnalyticsFragment
 import com.redscreenfilter.utils.WorkScheduler
 
 /**
@@ -106,6 +109,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var radioNotificationVibration: RadioButton
     private lateinit var radioNotificationSilent: RadioButton
     
+    // Navigation Components
+    private lateinit var bottomNavigation: BottomNavigationView
+    private lateinit var scrollSettings: ScrollView
+    
     // Location permission launcher
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -123,6 +130,14 @@ class MainActivity : AppCompatActivity() {
                 R.string.location_permission_required,
                 Snackbar.LENGTH_LONG
             ).show()
+        }
+    }
+
+    private val postNotificationsPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (!granted) {
+            Log.w(TAG, "POST_NOTIFICATIONS permission denied")
         }
     }
     
@@ -163,6 +178,11 @@ class MainActivity : AppCompatActivity() {
         // Setup listeners
         setupListeners()
         
+        // Setup bottom navigation
+        setupBottomNavigation()
+
+        requestRuntimePermissions()
+        
         // Schedule reminder worker if enabled
         if (preferencesManager.isEyeStrainReminderEnabled()) {
             scheduleEyeStrainReminder()
@@ -188,6 +208,14 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onPause: Cleaning up")
         // Stop lux update loop
         luxUpdateHandler.removeCallbacks(luxUpdateRunnable)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        luxUpdateHandler.removeCallbacksAndMessages(null)
+        if (::bottomNavigation.isInitialized) {
+            bottomNavigation.setOnItemSelectedListener { false }
+        }
     }
     
     private fun initializeViews() {
@@ -238,6 +266,10 @@ class MainActivity : AppCompatActivity() {
         radioNotificationSound = findViewById(R.id.radio_notification_sound)
         radioNotificationVibration = findViewById(R.id.radio_notification_vibration)
         radioNotificationSilent = findViewById(R.id.radio_notification_silent)
+        
+        // Navigation UI
+        bottomNavigation = findViewById(R.id.bottom_navigation)
+        scrollSettings = findViewById(R.id.scroll_settings)
     }
     
     private fun loadSettings() {
@@ -706,6 +738,44 @@ class MainActivity : AppCompatActivity() {
             cardPermission.visibility = View.VISIBLE
         }
     }
+
+    private fun requestRuntimePermissions() {
+        if (!hasOverlayPermission()) {
+            requestOverlayPermission()
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            postNotificationsPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
+    private fun requestLocationPermissionsIfNeeded() {
+        val fineLocationGranted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        val coarseLocationGranted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (!fineLocationGranted || !coarseLocationGranted) {
+            locationPermissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        } else {
+            requestLocationAndUpdate()
+        }
+    }
     
     // ========== Scheduling Methods ==========
     
@@ -802,7 +872,7 @@ class MainActivity : AppCompatActivity() {
             val cachedLocation = locationManager.getCachedLocation()
             if (cachedLocation == null) {
                 Log.d(TAG, "handleLocationSchedulingToggle: No cached location, requesting new location")
-                requestLocationPermissionAndUpdate()
+                requestLocationPermissionsIfNeeded()
             } else {
                 updateCalculatedTimes()
             }
@@ -810,16 +880,7 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun requestLocationPermissionAndUpdate() {
-        if (locationManager.hasLocationPermission()) {
-            requestLocationAndUpdate()
-        } else {
-            locationPermissionLauncher.launch(
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                )
-            )
-        }
+        requestLocationPermissionsIfNeeded()
     }
     
     private fun requestLocationAndUpdate() {
@@ -874,5 +935,58 @@ class MainActivity : AppCompatActivity() {
     
     private fun updateLocationOffsetText(offsetMinutes: Int) {
         textLocationOffsetValue.text = getString(R.string.location_offset_value, offsetMinutes)
+    }
+    
+    private fun setupBottomNavigation() {
+        // Set settings as default selected item
+        bottomNavigation.selectedItemId = R.id.menu_settings
+        
+        // Handle navigation item selection
+        bottomNavigation.setOnItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.menu_settings -> {
+                    Log.d(TAG, "Settings tab selected")
+                    showSettingsFragment()
+                    true
+                }
+                R.id.menu_analytics -> {
+                    Log.d(TAG, "Analytics tab selected")
+                    showAnalyticsFragment()
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+    
+    private fun showSettingsFragment() {
+        // Show settings ScrollView
+        scrollSettings.visibility = View.VISIBLE
+        // Hide analytics fragment if visible
+        supportFragmentManager.findFragmentByTag("analytics_fragment")?.let {
+            supportFragmentManager.beginTransaction()
+                .hide(it)
+                .commit()
+        }
+    }
+    
+    private fun showAnalyticsFragment() {
+        // Hide settings ScrollView
+        scrollSettings.visibility = View.GONE
+        
+        // Create or show analytics fragment
+        val fragmentManager = supportFragmentManager
+        val existingFragment = fragmentManager.findFragmentByTag("analytics_fragment")
+        
+        if (existingFragment != null) {
+            fragmentManager.beginTransaction()
+                .show(existingFragment)
+                .commit()
+        } else {
+            val analyticsFragment = AnalyticsFragment()
+            fragmentManager.beginTransaction()
+                .add(R.id.fragment_container, analyticsFragment, "analytics_fragment")
+                .commit()
+        }
     }
 }

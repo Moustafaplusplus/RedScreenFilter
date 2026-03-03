@@ -48,6 +48,9 @@ class PreferencesManager private constructor(context: Context) {
         private const val KEY_LOCATION_LAST_UPDATE = "location_last_update"
         private const val KEY_LOCATION_OFFSET_MINUTES = "location_offset_minutes"
         
+        // Exempted apps keys
+        private const val KEY_EXEMPTED_APPS = "exempted_apps"
+        
         @Volatile
         private var instance: PreferencesManager? = null
         
@@ -265,6 +268,49 @@ class PreferencesManager private constructor(context: Context) {
     
     fun getLocationOffsetMinutes(): Int {
         return sharedPreferences.getInt(KEY_LOCATION_OFFSET_MINUTES, 0)
+    }
+    
+    // ========== App Exemptions ==========
+    
+    fun getExemptedApps(): Set<String> {
+        val exemptedJson = sharedPreferences.getString(KEY_EXEMPTED_APPS, "")
+        return if (exemptedJson.isNullOrEmpty()) {
+            emptySet()
+        } else {
+            try {
+                val gson = com.google.gson.Gson()
+                gson.fromJson(exemptedJson, Array<String>::class.java).toSet()
+            } catch (e: Exception) {
+                Log.e(TAG, "getExemptedApps: Error deserializing exempted apps", e)
+                emptySet()
+            }
+        }
+    }
+    
+    fun setExemptedApps(packageNames: Set<String>) {
+        try {
+            val gson = com.google.gson.Gson()
+            val exemptedJson = gson.toJson(packageNames.toTypedArray())
+            sharedPreferences.edit().putString(KEY_EXEMPTED_APPS, exemptedJson).apply()
+        } catch (e: Exception) {
+            Log.e(TAG, "setExemptedApps: Error serializing exempted apps", e)
+        }
+    }
+    
+    fun isAppExempted(packageName: String): Boolean {
+        return getExemptedApps().contains(packageName)
+    }
+    
+    fun addExemptedApp(packageName: String) {
+        val currentExempted = getExemptedApps().toMutableSet()
+        currentExempted.add(packageName)
+        setExemptedApps(currentExempted)
+    }
+    
+    fun removeExemptedApp(packageName: String) {
+        val currentExempted = getExemptedApps().toMutableSet()
+        currentExempted.remove(packageName)
+        setExemptedApps(currentExempted)
     }
     
     // ========== Complete Settings Object ==========

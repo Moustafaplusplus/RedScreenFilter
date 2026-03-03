@@ -8,15 +8,19 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.util.Log
 import android.view.Gravity
 import android.view.WindowManager
 import androidx.core.app.NotificationCompat
+import com.redscreenfilter.BuildConfig
 import com.redscreenfilter.MainActivity
 import com.redscreenfilter.R
 import com.redscreenfilter.data.BatteryMonitor
 import com.redscreenfilter.data.ColorVariant
+import com.redscreenfilter.data.ExemptedAppsManager
 import com.redscreenfilter.data.LightSensorManager
 import com.redscreenfilter.data.PreferencesManager
 
@@ -33,6 +37,23 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
     private lateinit var preferencesManager: PreferencesManager
     private var batteryManager: BatteryMonitor? = null
     private var lightSensorManager: LightSensorManager? = null
+    private var exemptedAppsManager: ExemptedAppsManager? = null
+    private var overlayHiddenDueToExemption = false
+    private var lastForegroundApp: String? = null
+    private val appExemptionHandler = Handler(Looper.getMainLooper())
+    private val appExemptionCheckInterval = 3000L
+    private val appExemptionRunnable = object : Runnable {
+        override fun run() {
+            try {
+                if (preferencesManager.isOverlayEnabled()) {
+                    updateOverlayForCurrentApp()
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "startAppExemptionCheck: Error in periodic check", e)
+            }
+            appExemptionHandler.postDelayed(this, appExemptionCheckInterval)
+        }
+    }
     
     private val TAG = "RedOverlayService"
     
@@ -43,6 +64,8 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
         const val EXTRA_OPACITY = "opacity"
         const val ACTION_UPDATE_COLOR = "com.redscreenfilter.UPDATE_COLOR"
         const val EXTRA_COLOR_VARIANT = "color_variant"
+        const val ACTION_TOGGLE_OVERLAY = "com.redscreenfilter.TOGGLE_OVERLAY"
+        const val ACTION_STOP_SERVICE = "com.redscreenfilter.STOP_SERVICE"
     }
     
     override fun onBind(intent: Intent?): IBinder? = null
@@ -84,6 +107,11 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
             createNotificationChannel()
             Log.d(TAG, "onCreate: Notification channel created")
             
+            // Initialize ExemptedAppsManager
+            Log.d(TAG, "onCreate: Initializing ExemptedAppsManager")
+            exemptedAppsManager = ExemptedAppsManager.getInstance(this)
+            Log.d(TAG, "onCreate: ExemptedAppsManager initialized")
+            
             // Start as foreground service
             Log.d(TAG, "onCreate: Starting foreground service")
             startForeground(NOTIFICATION_ID, createNotification())
@@ -98,6 +126,11 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
             Log.d(TAG, "onCreate: Creating overlay")
             createOverlay()
             Log.d(TAG, "onCreate: Overlay created")
+            
+            // Start checking for exempted apps
+            Log.d(TAG, "onCreate: Starting app exemption check")
+            startAppExemptionCheck()
+            Log.d(TAG, "onCreate: App exemption check started")
             
             Log.d(TAG, "onCreate: Service started successfully")
         } catch (e: Exception) {
@@ -123,6 +156,21 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
                 Log.d(TAG, "onStartCommand: Updating color to $variant")
                 updateColorVariant(variant)
             }
+            ACTION_TOGGLE_OVERLAY -> {
+                val isEnabled = preferencesManager.isOverlayEnabled()
+                Log.d(TAG, "onStartCommand: Toggling overlay from $isEnabled to ${!isEnabled}")
+                preferencesManager.setOverlayEnabled(!isEnabled)
+                if (!isEnabled) {
+                    if (overlayView == null) createOverlay()
+                    updateOpacity(preferencesManager.getOpacity())
+                } else {
+                    removeOverlay()
+                }
+            }
+            ACTION_STOP_SERVICE -> {
+                Log.d(TAG, "onStartCommand: Stop service action triggered")
+                stopSelf()
+            }
         }
         return START_STICKY
     }
@@ -130,6 +178,8 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "onDestroy: Service stopping")
+
+        appExemptionHandler.removeCallbacks(appExemptionRunnable)
         
         // Stop battery monitoring
         batteryManager?.let {
@@ -146,6 +196,10 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
         }
         
         removeOverlay()
+        windowManager = null
+        exemptedAppsManager = null
+        batteryManager = null
+        lightSensorManager = null
     }
     
     /**
@@ -219,6 +273,45 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
     }
     
     /**
+     * Check if current foreground app is exempted and update overlay visibility
+     */
+    private fun updateOverlayForCurrentApp() {
+        try {
+            val foregroundApp = exemptedAppsManager?.getForegroundAppPackage()
+            
+            // Only update if app changed
+            if (foregroundApp == lastForegroundApp) {
+                return
+            }
+            lastForegroundApp = foregroundApp
+            
+            val isExempted = exemptedAppsManager?.isAppExempt(foregroundApp ?: "") ?: false
+            
+            if (isExempted && !overlayHiddenDueToExemption && overlayView != null) {
+                // Hide overlay for exempted app
+                Log.d(TAG, "updateOverlayForCurrentApp: Hiding overlay for exempted app: $foregroundApp")
+                removeOverlay()
+                overlayHiddenDueToExemption = true
+            } else if (!isExempted && overlayHiddenDueToExemption) {
+                // Show overlay again when leaving exempted app
+                Log.d(TAG, "updateOverlayForCurrentApp: Showing overlay after leaving exempted app: $foregroundApp")
+                createOverlay()
+                overlayHiddenDueToExemption = false
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "updateOverlayForCurrentApp: Error checking app exemption", e)
+        }
+    }
+    
+    /**
+     * Start periodic check for foreground app changes
+     */
+    private fun startAppExemptionCheck() {
+        appExemptionHandler.removeCallbacks(appExemptionRunnable)
+        appExemptionHandler.postDelayed(appExemptionRunnable, appExemptionCheckInterval)
+    }
+    
+    /**
      * Update overlay opacity
      */
     private fun updateOpacity(opacity: Float) {
@@ -276,18 +369,40 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
                 this,
                 0,
                 Intent(this, MainActivity::class.java),
-                PendingIntent.FLAG_IMMUTABLE
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
         )
         .setOngoing(true)
         .setPriority(NotificationCompat.PRIORITY_LOW)
+        .addAction(
+            R.drawable.ic_filter_inactive,
+            "Stop",
+            PendingIntent.getService(
+                this,
+                1,
+                Intent(this, RedOverlayService::class.java).apply { action = ACTION_STOP_SERVICE },
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+        )
+        .addAction(
+            R.drawable.ic_filter_active,
+            "Settings",
+            PendingIntent.getActivity(
+                this,
+                2,
+                Intent(this, MainActivity::class.java),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+        )
         .build()
     
     /**
      * Handle battery state changes
      */
     override fun onBatteryStateChanged(level: Int, isLow: Boolean, isCritical: Boolean, isCharging: Boolean) {
-        Log.d(TAG, "onBatteryStateChanged: level=$level%, isLow=$isLow, isCritical=$isCritical, isCharging=$isCharging")
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "onBatteryStateChanged: level=$level%, isLow=$isLow, isCritical=$isCritical, isCharging=$isCharging")
+        }
         
         // Check if battery optimization is enabled
         if (!preferencesManager.getBatteryOptimizationEnabled()) {
@@ -384,15 +499,11 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
     override fun onLightLevelChanged(lux: Float, opacity: Float) {
         // Check if light sensor is locked (manual override)
         if (preferencesManager.isLightSensorLocked()) {
-            Log.d(TAG, "onLightLevelChanged: Light sensor locked, ignoring")
             return
         }
         
-        Log.d(TAG, "onLightLevelChanged: lux=$lux, suggested opacity=$opacity")
-        
         // Don't override if battery reduction is active
         if (preferencesManager.isBatteryReduced()) {
-            Log.d(TAG, "onLightLevelChanged: Battery reduction active, not adjusting opacity")
             return
         }
         

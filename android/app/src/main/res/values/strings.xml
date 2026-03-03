@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- App Name -->
     <string name="app_name">Red Screen Filter</string>
+    
+    <!-- Notifications & Permissions Strings -->
+    <string name="notification_permission_title">Notification Permission</string>
+    <string name="notification_permission_required">This app would like to send you notifications about overlay status and health reminders.</string>
+    <string name="overlay_permission_title">Display Over Other Apps</string>
+    <string name="overlay_permission_description">This app needs permission to display the red screen overlay on top of other apps.</string>
+    
     
     <!-- Main UI Strings -->
     <string name="overlay_toggle_title">Red Screen Overlay</string>
@@ -76,4 +84,29 @@
     <string name="notification_style_sound">Sound</string>
     <string name="notification_style_vibration">Vibration</string>
     <string name="notification_style_silent">Silent</string>
+    
+    <!-- App Exemption Strings -->
+    <string name="app_exemptions">App Exemptions</string>
+    <string name="app_exemptions_subtitle">Hide overlay for specific apps</string>
+    <string name="app_exemptions_description">Select apps where you want to disable the red screen overlay (e.g., camera, photo editor)</string>
+    <string name="search_apps">Search apps...</string>
+    <string name="app_icon">App icon</string>
+    <string name="exempt_app">Exempt this app</string>
+    <string name="no_apps_found">No apps found</string>
+    
+    <!-- Analytics Dashboard Strings -->
+    <string name="analytics_title">Usage Analytics</string>
+    <string name="analytics_subtitle">Your red screen filter statistics</string>
+    <string name="settings_label">Settings</string>
+    <string name="today_usage_label">Today\'s Usage</string>
+    <string name="week_usage_label">This Week\'s Usage</string>
+    <string name="month_usage_label">This Month\'s Usage</string>
+    <string name="current_streak_label">Usage Streak</string>
+    <string name="current_streak_days">%d days</string>
+    <string name="average_opacity_label">Average Opacity</string>
+    <string name="opacity_percent">%d%%</string>
+    <string name="most_used_preset_label">Most Used Preset</string>
+    <string name="total_events_label">Total Interactions</string>
+    <string name="total_events_count">%d events</string>
+    <string name="streak_days">%d</string>
 </resources>
