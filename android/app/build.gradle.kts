@@ -39,6 +39,11 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+    
+    // KAPT configuration to avoid compatibility issues
+    kapt {
+        correctErrorTypes = true
+    }
 }
 
 dependencies {
