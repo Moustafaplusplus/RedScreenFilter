@@ -1,11 +1,13 @@
 package com.redscreenfilter.service
 
+import android.app.KeyguardManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.Handler
@@ -18,8 +20,8 @@ import androidx.core.app.NotificationCompat
 import com.redscreenfilter.BuildConfig
 import com.redscreenfilter.MainActivity
 import com.redscreenfilter.R
+import com.redscreenfilter.core.model.ColorVariant
 import com.redscreenfilter.data.BatteryMonitor
-import com.redscreenfilter.data.ColorVariant
 import com.redscreenfilter.data.ExemptedAppsManager
 import com.redscreenfilter.data.LightSensorManager
 import com.redscreenfilter.data.PreferencesManager
@@ -41,11 +43,18 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
     private var overlayHiddenDueToExemption = false
     private var lastForegroundApp: String? = null
     private val appExemptionHandler = Handler(Looper.getMainLooper())
-    private val appExemptionCheckInterval = 3000L
+    private val appExemptionCheckInterval = 1500L // Reduced from 3000L for better responsiveness
+    private val keyguardManager by lazy { getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager }
+    private val homeLauncherPackage by lazy {
+        val homeIntent = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_HOME)
+        }
+        packageManager.resolveActivity(homeIntent, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.packageName
+    }
     private val appExemptionRunnable = object : Runnable {
         override fun run() {
             try {
-                if (preferencesManager.isOverlayEnabled()) {
+                if (hasAnyOverlayEnabled()) {
                     updateOverlayForCurrentApp()
                 }
             } catch (e: Exception) {
@@ -66,6 +75,9 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
         const val EXTRA_COLOR_VARIANT = "color_variant"
         const val ACTION_TOGGLE_OVERLAY = "com.redscreenfilter.TOGGLE_OVERLAY"
         const val ACTION_STOP_SERVICE = "com.redscreenfilter.STOP_SERVICE"
+        const val ACTION_UPDATE_EXTRA_DIM = "com.redscreenfilter.UPDATE_EXTRA_DIM"
+        const val EXTRA_EXTRA_DIM_ENABLED = "extra_dim_enabled"
+        const val EXTRA_EXTRA_DIM_INTENSITY = "extra_dim_intensity"
     }
     
     override fun onBind(intent: Intent?): IBinder? = null
@@ -135,7 +147,6 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
             Log.d(TAG, "onCreate: Service started successfully")
         } catch (e: Exception) {
             Log.e(TAG, "onCreate: FATAL ERROR during service creation", e)
-            e.printStackTrace()
             // Stop the service if we can't initialize
             stopSelf()
         }
@@ -156,20 +167,39 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
                 Log.d(TAG, "onStartCommand: Updating color to $variant")
                 updateColorVariant(variant)
             }
+            ACTION_UPDATE_EXTRA_DIM -> {
+                val isEnabled = intent.getBooleanExtra(
+                    EXTRA_EXTRA_DIM_ENABLED,
+                    preferencesManager.isExtraDimEnabled()
+                )
+                val intensity = intent.getFloatExtra(
+                    EXTRA_EXTRA_DIM_INTENSITY,
+                    preferencesManager.getExtraDimIntensity()
+                )
+                Log.d(TAG, "onStartCommand: Updating extra dim enabled=$isEnabled intensity=$intensity")
+                updateExtraDimState(isEnabled, intensity)
+            }
             ACTION_TOGGLE_OVERLAY -> {
                 val isEnabled = preferencesManager.isOverlayEnabled()
                 Log.d(TAG, "onStartCommand: Toggling overlay from $isEnabled to ${!isEnabled}")
                 preferencesManager.setOverlayEnabled(!isEnabled)
                 if (!isEnabled) {
                     if (overlayView == null) createOverlay()
-                    updateOpacity(preferencesManager.getOpacity())
+                    applyCurrentOverlayState()
                 } else {
-                    removeOverlay()
+                    if (!hasAnyOverlayEnabled()) {
+                        removeOverlay()
+                    } else {
+                        applyCurrentOverlayState()
+                    }
                 }
             }
             ACTION_STOP_SERVICE -> {
                 Log.d(TAG, "onStartCommand: Stop service action triggered")
                 stopSelf()
+            }
+            else -> {
+                applyCurrentOverlayState()
             }
         }
         return START_STICKY
@@ -217,11 +247,17 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
         val savedOpacity = preferencesManager.getOpacity()
         val colorVariantString = preferencesManager.getColorVariant()
         val colorVariant = ColorVariant.fromString(colorVariantString)
-        Log.d(TAG, "createOverlay: Loaded opacity: $savedOpacity, color variant: $colorVariant")
+        val extraDimEnabled = preferencesManager.isExtraDimEnabled()
+        val extraDimIntensity = preferencesManager.getExtraDimIntensity()
+        Log.d(
+            TAG,
+            "createOverlay: Loaded opacity: $savedOpacity, color variant: $colorVariant, extraDimEnabled=$extraDimEnabled, extraDimIntensity=$extraDimIntensity"
+        )
         
         overlayView = OverlayView(this).apply {
-            setOpacity(savedOpacity)
+            setOpacity(if (preferencesManager.isOverlayEnabled()) savedOpacity else 0f)
             setColorVariant(colorVariant)
+            setDimOpacity(if (extraDimEnabled) extraDimIntensity else 0f)
         }
         
         val layoutType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -249,6 +285,11 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
         try {
             windowManager?.addView(overlayView, params)
             Log.d(TAG, "createOverlay: Overlay added to WindowManager successfully")
+            
+            // Request redraw to apply opacity that was set before adding to window
+            overlayView?.postInvalidate()
+            Log.d(TAG, "createOverlay: Requested overlay redraw to apply saved opacity")
+            applyCurrentOverlayState()
         } catch (e: Exception) {
             Log.e(TAG, "createOverlay: Failed to add overlay", e)
             // Stop the service if overlay can't be created
@@ -277,24 +318,33 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
      */
     private fun updateOverlayForCurrentApp() {
         try {
+            if (!hasAnyOverlayEnabled()) {
+                if (overlayView != null) {
+                    removeOverlay()
+                }
+                overlayHiddenDueToExemption = false
+                return
+            }
+
             val foregroundApp = exemptedAppsManager?.getForegroundAppPackage()
+            Log.d(TAG, "updateOverlayForCurrentApp: Foreground app detected: $foregroundApp")
             
-            // Only update if app changed
-            if (foregroundApp == lastForegroundApp) {
+            // Only update if app changed OR if we were hidden and need to recheck
+            if (foregroundApp == lastForegroundApp && !overlayHiddenDueToExemption && overlayView != null) {
                 return
             }
             lastForegroundApp = foregroundApp
             
             val isExempted = exemptedAppsManager?.isAppExempt(foregroundApp ?: "") ?: false
+            val hiddenForContext = shouldHideForContext(foregroundApp)
+            Log.d(TAG, "updateOverlayForCurrentApp: Is $foregroundApp exempted? $isExempted, hiddenForContext=$hiddenForContext")
             
-            if (isExempted && !overlayHiddenDueToExemption && overlayView != null) {
-                // Hide overlay for exempted app
-                Log.d(TAG, "updateOverlayForCurrentApp: Hiding overlay for exempted app: $foregroundApp")
+            if ((isExempted || hiddenForContext) && !overlayHiddenDueToExemption && overlayView != null) {
+                Log.d(TAG, "updateOverlayForCurrentApp: Hiding overlay for exempted/context app: $foregroundApp")
                 removeOverlay()
                 overlayHiddenDueToExemption = true
-            } else if (!isExempted && overlayHiddenDueToExemption) {
-                // Show overlay again when leaving exempted app
-                Log.d(TAG, "updateOverlayForCurrentApp: Showing overlay after leaving exempted app: $foregroundApp")
+            } else if (!isExempted && !hiddenForContext && (overlayHiddenDueToExemption || overlayView == null)) {
+                Log.d(TAG, "updateOverlayForCurrentApp: Showing overlay for non-exempted/context app: $foregroundApp")
                 createOverlay()
                 overlayHiddenDueToExemption = false
             }
@@ -308,7 +358,62 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
      */
     private fun startAppExemptionCheck() {
         appExemptionHandler.removeCallbacks(appExemptionRunnable)
-        appExemptionHandler.postDelayed(appExemptionRunnable, appExemptionCheckInterval)
+        appExemptionHandler.postDelayed(appExemptionRunnable, 100) // Start quickly
+    }
+
+    private fun hasAnyOverlayEnabled(): Boolean {
+        return preferencesManager.isOverlayEnabled() || preferencesManager.isExtraDimEnabled()
+    }
+
+    private fun isOnLockScreen(): Boolean {
+        return keyguardManager.isKeyguardLocked
+    }
+
+    private fun isOnHomeScreen(foregroundApp: String?): Boolean {
+        val launcherPackage = homeLauncherPackage ?: return false
+        return !foregroundApp.isNullOrBlank() && foregroundApp == launcherPackage
+    }
+
+    private fun shouldHideForContext(foregroundApp: String?): Boolean {
+        val hideOnLockScreen = preferencesManager.shouldHideOverlayOnLockScreen()
+        val hideOnHomeScreen = preferencesManager.shouldHideOverlayOnHomeScreen()
+
+        if (hideOnLockScreen && isOnLockScreen()) return true
+        if (hideOnHomeScreen && isOnHomeScreen(foregroundApp)) return true
+
+        return false
+    }
+
+    private fun applyCurrentOverlayState() {
+        if (!hasAnyOverlayEnabled()) {
+            removeOverlay()
+            return
+        }
+
+        // Re-check exemption and context before showing
+        val foregroundApp = exemptedAppsManager?.getForegroundAppPackage()
+        val isExempted = exemptedAppsManager?.isAppExempt(foregroundApp ?: "") ?: false
+        val hiddenForContext = shouldHideForContext(foregroundApp)
+        
+        if (isExempted || hiddenForContext) {
+            removeOverlay()
+            overlayHiddenDueToExemption = true
+            return
+        }
+
+        if (overlayView == null) {
+            createOverlay()
+            return
+        }
+
+        val redOpacity = if (preferencesManager.isOverlayEnabled()) preferencesManager.getOpacity() else 0f
+        val colorVariant = ColorVariant.fromString(preferencesManager.getColorVariant())
+        val dimOpacity = if (preferencesManager.isExtraDimEnabled()) preferencesManager.getExtraDimIntensity() else 0f
+
+        overlayView?.setColorVariant(colorVariant)
+        overlayView?.setOpacity(redOpacity)
+        overlayView?.setDimOpacity(dimOpacity)
+        overlayHiddenDueToExemption = false
     }
     
     /**
@@ -316,7 +421,7 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
      */
     private fun updateOpacity(opacity: Float) {
         Log.d(TAG, "updateOpacity: Setting opacity to $opacity")
-        overlayView?.setOpacity(opacity)
+        applyCurrentOverlayState()
     }
     
     /**
@@ -324,7 +429,13 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
      */
     private fun updateColorVariant(variant: ColorVariant) {
         Log.d(TAG, "updateColorVariant: Setting color to $variant")
-        overlayView?.setColorVariant(variant)
+        applyCurrentOverlayState()
+    }
+
+    private fun updateExtraDimState(isEnabled: Boolean, intensity: Float) {
+        preferencesManager.setExtraDimEnabled(isEnabled)
+        preferencesManager.setExtraDimIntensity(intensity)
+        applyCurrentOverlayState()
     }
     
     /**
