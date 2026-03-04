@@ -101,6 +101,43 @@ interface UsageEventDao {
      */
     @Query("SELECT * FROM usage_events WHERE eventType = :eventType ORDER BY timestamp DESC")
     suspend fun getEventsByType(eventType: String): List<UsageEvent>
+
+    /**
+     * Get events since a specific timestamp, or all events when timestamp is null
+     */
+    @Query("""
+        SELECT * FROM usage_events
+        WHERE (:startTime IS NULL OR timestamp >= :startTime)
+        ORDER BY timestamp DESC
+    """)
+    suspend fun getEventsSince(startTime: Long?): List<UsageEvent>
+
+    /**
+     * Get average opacity since a specific timestamp, or all-time when timestamp is null
+     */
+    @Query("""
+        SELECT AVG(opacity) FROM usage_events
+        WHERE opacity > 0 AND (:startTime IS NULL OR timestamp >= :startTime)
+    """)
+    suspend fun getAverageOpacitySince(startTime: Long?): Float
+
+    /**
+     * Get most used preset since a specific timestamp, or all-time when timestamp is null
+     */
+    @Query("""
+        SELECT preset FROM usage_events
+        WHERE preset != '' AND (:startTime IS NULL OR timestamp >= :startTime)
+        GROUP BY preset
+        ORDER BY COUNT(*) DESC
+        LIMIT 1
+    """)
+    suspend fun getMostUsedPresetSince(startTime: Long?): String?
+
+    /**
+     * Get event count since a specific timestamp, or all-time when timestamp is null
+     */
+    @Query("SELECT COUNT(*) FROM usage_events WHERE (:startTime IS NULL OR timestamp >= :startTime)")
+    suspend fun getEventCountSince(startTime: Long?): Int
     
     /**
      * Delete all events

@@ -12,6 +12,7 @@ import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
@@ -21,12 +22,17 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
+import androidx.core.widget.NestedScrollView
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import androidx.lifecycle.lifecycleScope
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.card.MaterialCardView
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.button.MaterialButtonToggleGroup
+import com.google.android.material.card.MaterialCardView
 import java.util.concurrent.TimeUnit
 import com.google.android.material.slider.Slider
 import com.google.android.material.snackbar.Snackbar
@@ -36,9 +42,11 @@ import com.redscreenfilter.data.LightSensorManager
 import com.redscreenfilter.data.LocationManager
 import com.redscreenfilter.data.PreferencesManager
 import com.redscreenfilter.data.SchedulingManager
+import com.redscreenfilter.data.repository.AnalyticsRepository
 import com.redscreenfilter.service.RedOverlayService
 import com.redscreenfilter.ui.AnalyticsFragment
 import com.redscreenfilter.utils.WorkScheduler
+import kotlinx.coroutines.launch
 
 /**
  * MainActivity - Main UI for Red Screen Filter
@@ -59,6 +67,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var preferencesManager: PreferencesManager
     private lateinit var schedulingManager: SchedulingManager
     private lateinit var locationManager: LocationManager
+    private lateinit var analyticsRepository: AnalyticsRepository
     
     // UI Components
     private lateinit var switchOverlay: SwitchMaterial
@@ -111,7 +120,14 @@ class MainActivity : AppCompatActivity() {
     
     // Navigation Components
     private lateinit var bottomNavigation: BottomNavigationView
-    private lateinit var scrollSettings: ScrollView
+    private lateinit var scrollSettings: NestedScrollView
+    private lateinit var fragmentContainer: FrameLayout
+    private lateinit var settingsTabs: MaterialButtonToggleGroup
+    private lateinit var sectionDisplay: View
+    private lateinit var sectionAutomation: View
+    private lateinit var sectionWellness: View
+
+    private val sectionInterpolator = FastOutSlowInInterpolator()
     
     // Location permission launcher
     private val locationPermissionLauncher = registerForActivityResult(
@@ -168,6 +184,9 @@ class MainActivity : AppCompatActivity() {
         
         // Initialize LocationManager
         locationManager = LocationManager.getInstance(this)
+
+        // Initialize AnalyticsRepository
+        analyticsRepository = AnalyticsRepository.getInstance(this)
         
         // Initialize UI components
         initializeViews()
@@ -177,6 +196,9 @@ class MainActivity : AppCompatActivity() {
         
         // Setup listeners
         setupListeners()
+
+        // Setup segmented sections
+        setupSectionTabs()
         
         // Setup bottom navigation
         setupBottomNavigation()
@@ -187,6 +209,8 @@ class MainActivity : AppCompatActivity() {
         if (preferencesManager.isEyeStrainReminderEnabled()) {
             scheduleEyeStrainReminder()
         }
+
+        animateSettingsEntrance()
         
         Log.d(TAG, "onCreate: Activity initialized")
     }
@@ -270,6 +294,11 @@ class MainActivity : AppCompatActivity() {
         // Navigation UI
         bottomNavigation = findViewById(R.id.bottom_navigation)
         scrollSettings = findViewById(R.id.scroll_settings)
+        fragmentContainer = findViewById(R.id.fragment_container)
+        settingsTabs = findViewById(R.id.group_settings_tabs)
+        sectionDisplay = findViewById(R.id.section_display)
+        sectionAutomation = findViewById(R.id.section_automation)
+        sectionWellness = findViewById(R.id.section_wellness)
     }
     
     private fun loadSettings() {
@@ -432,7 +461,12 @@ class MainActivity : AppCompatActivity() {
             }
             
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                val finalOpacity = (seekBar?.progress ?: 0) / 100f
+                logAnalyticsSafely { repository ->
+                    repository.logOpacityChanged(finalOpacity)
+                }
+            }
         })
         
         // Permission request button
@@ -528,6 +562,9 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, "handleOverlayToggle: Starting overlay service")
                 startOverlayService()
                 preferencesManager.setOverlayEnabled(true)
+                logAnalyticsSafely { repository ->
+                    repository.logOverlayToggled(true, preferencesManager.getOpacity())
+                }
                 updatePermissionUI()
             } else {
                 // Permission not granted, revert toggle and show permission UI
@@ -539,6 +576,9 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "handleOverlayToggle: Stopping overlay service")
             stopOverlayService()
             preferencesManager.setOverlayEnabled(false)
+            logAnalyticsSafely { repository ->
+                repository.logOverlayToggled(false, preferencesManager.getOpacity())
+            }
         }
     }
     
@@ -592,6 +632,20 @@ class MainActivity : AppCompatActivity() {
         // Update overlay if it's running
         if (preferencesManager.isOverlayEnabled() && hasOverlayPermission()) {
             updateOverlayColor(variant)
+        }
+
+        logAnalyticsSafely { repository ->
+            repository.logPresetApplied(variant.name, preferencesManager.getOpacity())
+        }
+    }
+
+    private fun logAnalyticsSafely(action: suspend (AnalyticsRepository) -> Unit) {
+        lifecycleScope.launch {
+            try {
+                action(analyticsRepository)
+            } catch (e: Exception) {
+                Log.e(TAG, "logAnalyticsSafely: Failed to log analytics event", e)
+            }
         }
     }
     
@@ -937,6 +991,56 @@ class MainActivity : AppCompatActivity() {
         textLocationOffsetValue.text = getString(R.string.location_offset_value, offsetMinutes)
     }
     
+    private fun setupSectionTabs() {
+        val sections = listOf(sectionDisplay, sectionAutomation, sectionWellness)
+        settingsTabs.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            val target = when (checkedId) {
+                R.id.tab_automation -> sectionAutomation
+                R.id.tab_wellness -> sectionWellness
+                else -> sectionDisplay
+            }
+            switchToSection(target, sections)
+        }
+
+        settingsTabs.check(R.id.tab_display)
+        switchToSection(sectionDisplay, sections)
+    }
+
+    private fun switchToSection(target: View, sections: List<View>) {
+        sections.forEach { section ->
+            if (section == target) {
+                if (!section.isVisible) {
+                    section.alpha = 0f
+                    section.visibility = View.VISIBLE
+                }
+                section.animate()
+                    .alpha(1f)
+                    .setDuration(240)
+                    .setInterpolator(sectionInterpolator)
+                    .start()
+            } else if (section.isVisible) {
+                section.animate()
+                    .alpha(0f)
+                    .setDuration(200)
+                    .setInterpolator(sectionInterpolator)
+                    .withEndAction { section.visibility = View.GONE }
+                    .start()
+            }
+        }
+    }
+
+    private fun animateSettingsEntrance() {
+        scrollSettings.alpha = 0f
+        scrollSettings.translationY = 36f
+        scrollSettings.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(420)
+            .setInterpolator(sectionInterpolator)
+            .start()
+    }
+
     private fun setupBottomNavigation() {
         // Set settings as default selected item
         bottomNavigation.selectedItemId = R.id.menu_settings
@@ -962,17 +1066,20 @@ class MainActivity : AppCompatActivity() {
     private fun showSettingsFragment() {
         // Show settings ScrollView
         scrollSettings.visibility = View.VISIBLE
+        fragmentContainer.visibility = View.GONE
         // Hide analytics fragment if visible
         supportFragmentManager.findFragmentByTag("analytics_fragment")?.let {
             supportFragmentManager.beginTransaction()
                 .hide(it)
                 .commit()
         }
+        animateSettingsEntrance()
     }
     
     private fun showAnalyticsFragment() {
         // Hide settings ScrollView
         scrollSettings.visibility = View.GONE
+        fragmentContainer.visibility = View.VISIBLE
         
         // Create or show analytics fragment
         val fragmentManager = supportFragmentManager

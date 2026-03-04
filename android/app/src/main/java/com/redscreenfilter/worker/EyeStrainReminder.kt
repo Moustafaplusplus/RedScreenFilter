@@ -1,8 +1,10 @@
 package com.redscreenfilter.worker
 
 import android.content.Context
+import android.app.KeyguardManager
 import android.media.RingtoneManager
 import android.os.Build
+import android.os.PowerManager
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.telecom.TelecomManager
@@ -53,6 +55,12 @@ class EyeStrainReminder(
                 Log.d(TAG, "doWork: User is in video call, skipping reminder")
                 return Result.success()
             }
+
+            // Only remind when user is actively using phone
+            if (!isUserActivelyUsingPhone()) {
+                Log.d(TAG, "doWork: Device is not actively in use, skipping reminder")
+                return Result.success()
+            }
             
             // Send notification
             sendReminderNotification()
@@ -80,6 +88,23 @@ class EyeStrainReminder(
             }
         } catch (e: Exception) {
             Log.w(TAG, "isInVideoCall: Error checking call state", e)
+            false
+        }
+    }
+
+    /**
+     * Consider phone actively used when screen is interactive and not locked.
+     */
+    private fun isUserActivelyUsingPhone(): Boolean {
+        return try {
+            val powerManager = applicationContext.getSystemService(Context.POWER_SERVICE) as? PowerManager
+            val keyguardManager = applicationContext.getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
+
+            val isInteractive = powerManager?.isInteractive == true
+            val isLocked = keyguardManager?.isKeyguardLocked == true
+            isInteractive && !isLocked
+        } catch (e: Exception) {
+            Log.w(TAG, "isUserActivelyUsingPhone: Error checking device active state", e)
             false
         }
     }

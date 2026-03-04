@@ -26,6 +26,10 @@
     
     <!-- Info Strings -->
     <string name="info_message">Red screen filter helps reduce blue light and eye strain during night time usage</string>
+    <string name="tab_display">Display</string>
+    <string name="tab_automation">Automation</string>
+    <string name="tab_wellness">Wellness</string>
+    <string name="hero_hint">Night comfort profiles switch automatically when you change sections.</string>
     
     <!-- Scheduling Strings -->
     <string name="scheduling_title">Time Scheduling</string>
@@ -97,10 +101,15 @@
     <!-- Analytics Dashboard Strings -->
     <string name="analytics_title">Usage Analytics</string>
     <string name="analytics_subtitle">Your red screen filter statistics</string>
+    <string name="analytics_period_today">Showing Today data</string>
+    <string name="analytics_period_week">Showing This Week data</string>
+    <string name="analytics_period_month">Showing This Month data</string>
+    <string name="analytics_period_all_time">Showing All Time data</string>
     <string name="settings_label">Settings</string>
     <string name="today_usage_label">Today\'s Usage</string>
     <string name="week_usage_label">This Week\'s Usage</string>
     <string name="month_usage_label">This Month\'s Usage</string>
+    <string name="all_time_usage_label">All Time Usage</string>
     <string name="current_streak_label">Usage Streak</string>
     <string name="current_streak_days">%d days</string>
     <string name="average_opacity_label">Average Opacity</string>

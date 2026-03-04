@@ -9,35 +9,45 @@
     tools:context=".ui.AnalyticsFragment">
 
     <!-- Header -->
-    <LinearLayout
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp"
-        android:background="?attr/colorPrimary">
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp">
 
-        <TextView
-            android:id="@+id/text_analytics_title"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/analytics_title"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorOnPrimary"
-            android:gravity="center" />
+            android:orientation="vertical"
+            android:padding="20dp">
 
-        <TextView
-            android:id="@+id/text_analytics_subtitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/analytics_subtitle"
-            android:textSize="12sp"
-            android:textColor="?attr/colorOnPrimary"
-            android:gravity="center"
-            android:layout_marginTop="4dp"
-            android:alpha="0.8" />
+            <TextView
+                android:id="@+id/text_analytics_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/analytics_title"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorPrimary"
+                android:gravity="center" />
 
-    </LinearLayout>
+            <TextView
+                android:id="@+id/text_analytics_subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/analytics_subtitle"
+                android:textSize="12sp"
+                android:textColor="?attr/colorOnSurface"
+                android:gravity="center"
+                android:layout_marginTop="4dp"
+                android:alpha="0.8" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
 
     <!-- Loading Progress -->
     <ProgressBar
@@ -89,6 +99,7 @@
                     android:padding="16dp">
 
                     <TextView
+                        android:id="@+id/text_today_usage_label"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/today_usage_label"
@@ -135,6 +146,7 @@
                     android:padding="16dp">
 
                     <TextView
+                        android:id="@+id/text_week_usage_label"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/week_usage_label"
@@ -181,6 +193,7 @@
                     android:padding="16dp">
 
                     <TextView
+                        android:id="@+id/text_month_usage_label"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/month_usage_label"

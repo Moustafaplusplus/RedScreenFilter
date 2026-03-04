@@ -1,13 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Core neutrals -->
+    <color name="carbon_black">#050608</color>
+    <color name="onyx_black">#0B0D12</color>
+    <color name="charcoal_surface">#14161E</color>
+    <color name="card_overlay">#1E212E</color>
+    <color name="glass_stroke">#33FFFFFF</color>
+
+    <!-- Accent reds -->
+    <color name="scarlet_core">#FF1B3C</color>
+    <color name="ember_orange">#FF4D2E</color>
+    <color name="crimson_glow">#FF3450</color>
+    <color name="pulse_magenta">#FF356D</color>
+
+    <!-- Text -->
+    <color name="text_primary_on_dark">#F6F6F9</color>
+    <color name="text_secondary_on_dark">#A5A7B5</color>
+
+    <!-- Misc -->
+    <color name="surface_tint">#26FFFFFF</color>
+    <color name="divider_dim">#19FFFFFF</color>
+    <color name="nav_outline">#40FFFFFF</color>
+
+    <!-- Overlay tint -->
+    <color name="red_overlay">#B0FF1B3C</color>
+
+    <!-- Accessibility variants keep original identifiers -->
+    <color name="red_standard">#FF1B3C</color>
+    <color name="red_orange">#FF4D2E</color>
+    <color name="red_pink">#FF2E5D</color>
+    <color name="high_contrast">#FFFF4D57</color>
+
+    <!-- Legacy names referenced elsewhere -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="red">#FFFF0000</color>
-    <color name="red_overlay">#80FF0000</color>
-    
-    <!-- Color Variant for Accessibility -->
-    <color name="red_standard">#FFFF0000</color>
-    <color name="red_orange">#FFFF6400</color>
-    <color name="red_pink">#FFFF0064</color>
-    <color name="high_contrast">#FFFF3232</color>
+    <color name="red">@color/scarlet_core</color>
 </resources>

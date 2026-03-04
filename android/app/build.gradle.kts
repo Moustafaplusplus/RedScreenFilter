@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("kotlin-kapt")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -45,11 +45,6 @@ android {
         viewBinding = true
         dataBinding = true
     }
-    
-    // KAPT configuration to avoid compatibility issues
-    kapt {
-        correctErrorTypes = true
-    }
 }
 
 dependencies {
@@ -83,10 +78,13 @@ dependencies {
     // Database - Room for analytics
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
     
     // JSON Serialization
     implementation("com.google.code.gson:gson:2.10.1")
+
+    // Motion & Splash
+    implementation("com.airbnb.android:lottie:6.4.0")
     
     // Optional - Charts for analytics (uncomment when ready)
     // implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")

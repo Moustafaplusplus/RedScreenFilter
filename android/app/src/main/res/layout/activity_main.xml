@@ -1,938 +1,242 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:background="@color/carbon_black"
     tools:context=".MainActivity">
 
-    <!-- Fragment Container -->
+    <ImageView
+        android:id="@+id/background_gradient"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bg_app_gradient"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <View
+        android:id="@+id/background_vignette"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/surface_tint"
+        android:alpha="0.35"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/top_app_bar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="12dp"
+        android:title="@string/app_name"
+        android:subtitle="@string/overlay_toggle_subtitle"
+        android:titleTextAppearance="@style/TextAppearance.Material3.HeadlineMedium"
+        android:subtitleTextAppearance="@style/TextAppearance.Material3.BodySmall"
+        app:titleCentered="false"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <FrameLayout
-        android:id="@+id/fragment_container"
-        android:layout_width="match_parent"
+        android:id="@+id/main_content"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:clipToPadding="false"
+        app:layout_constraintTop_toBottomOf="@id/top_app_bar"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <!-- Bottom Navigation -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:menu="@menu/bottom_navigation_menu" />
-
-    <!-- Main Settings ScrollView (shown initially) -->
-    <ScrollView
-        android:id="@+id/scroll_settings"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:fillViewport="true">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
-
-    <!-- App Title -->
-    <TextView
-        android:id="@+id/text_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/app_name"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:textColor="?attr/colorPrimary"
-        android:gravity="center"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp" />
-
-    <!-- Overlay Toggle Card -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_toggle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp">
-
-        <LinearLayout
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/scroll_settings"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_height="match_parent"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="32dp"
+            android:fillViewport="true"
+            android:fadeScrollbars="false">
 
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/overlay_toggle_title"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/overlay_toggle_subtitle"
-                        android:textSize="14sp"
-                        android:textColor="?android:attr/textColorSecondary"
-                        android:layout_marginTop="4dp" />
-
-                </LinearLayout>
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switch_overlay"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- Opacity Control Card -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_opacity"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/opacity_title"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginTop="8dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/opacity_min"
-                    android:textSize="12sp" />
-
-                <SeekBar
-                    android:id="@+id/seekbar_opacity"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:max="100"
-                    android:progress="50" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/opacity_max"
-                    android:textSize="12sp" />
-
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/text_opacity_value"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/opacity_value_default"
-                android:textSize="16sp"
-                android:textColor="?attr/colorPrimary"
-                android:textStyle="bold"
-                android:layout_gravity="center"
-                android:layout_marginTop="8dp" />
-
-        </LinearLayout>
-
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- Color Blindness Variants Card -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_color_variant"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/color_variant_title"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/color_variant_subtitle"
-                android:textSize="14sp"
-                android:textColor="?android:attr/textColorSecondary"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="12dp" />
-
-            <!-- Radio Group for Color Variants -->
-            <RadioGroup
-                android:id="@+id/radio_group_color_variant"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <RadioButton
-                    android:id="@+id/radio_red_standard"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/color_red_standard"
-                    android:textSize="16sp"
-                    android:layout_marginBottom="8dp" />
-
-                <RadioButton
-                    android:id="@+id/radio_red_orange"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/color_red_orange"
-                    android:textSize="16sp"
-                    android:layout_marginBottom="8dp" />
-
-                <RadioButton
-                    android:id="@+id/radio_red_pink"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/color_red_pink"
-                    android:textSize="16sp"
-                    android:layout_marginBottom="8dp" />
-
-                <RadioButton
-                    android:id="@+id/radio_high_contrast"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/color_high_contrast"
-                    android:textSize="16sp"
-                    android:layout_marginBottom="8dp" />
-
-            </RadioGroup>
-
-            <!-- Color Preview -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginTop="12dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/color_preview"
-                    android:textSize="14sp" />
-
-                <View
-                    android:id="@+id/color_preview_box"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_marginStart="12dp"
-                    android:background="@drawable/color_preview_background" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- Battery Optimization Card -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_battery_optimization"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/battery_optimization_title"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/battery_optimization_subtitle"
-                        android:textSize="14sp"
-                        android:textColor="?android:attr/textColorSecondary"
-                        android:layout_marginTop="4dp" />
-
-                </LinearLayout>
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switch_battery_optimization"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- Light Sensor Card -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_light_sensor"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/light_sensor_title"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/light_sensor_subtitle"
-                        android:textSize="14sp"
-                        android:textColor="?android:attr/textColorSecondary"
-                        android:layout_marginTop="4dp" />
-
-                </LinearLayout>
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switch_light_sensor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-
-            </LinearLayout>
-
-            <!-- Light Sensor Settings (shown when enabled) -->
-            <LinearLayout
-                android:id="@+id/layout_light_sensor_settings"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:visibility="gone"
-                android:layout_marginTop="16dp">
+                android:animateLayoutChanges="true">
 
-                <!-- Sensitivity Label -->
-                <LinearLayout
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_hero_summary"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="8dp">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/light_sensitivity_label"
-                        android:textSize="14sp" />
-
-                    <TextView
-                        android:id="@+id/text_light_sensitivity_value"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/light_sensitivity_medium"
-                        android:textSize="12sp"
-                        android:textColor="?android:attr/textColorSecondary" />
-
-                </LinearLayout>
-
-                <!-- Sensitivity Slider -->
-                <com.google.android.material.slider.Slider
-                    android:id="@+id/slider_light_sensitivity"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:valueFrom="0"
-                    android:valueTo="2"
-                    android:stepSize="1"
-                    android:layout_marginBottom="16dp" />
-
-                <!-- Current Lux Display -->
-                <TextView
-                    android:id="@+id/text_current_lux"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/current_lux_label"
-                    android:textSize="12sp"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:layout_marginBottom="12dp" />
-
-                <!-- Lock Light Sensor -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/lock_light_sensor"
-                            android:textSize="14sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/lock_light_sensor_subtitle"
-                            android:textSize="12sp"
-                            android:textColor="?android:attr/textColorSecondary"
-                            android:layout_marginTop="2dp" />
-
-                    </LinearLayout>
-
-                    <com.google.android.material.switchmaterial.SwitchMaterial
-                        android:id="@+id/switch_light_sensor_locked"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- Eye Strain Reminder Card -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_eye_strain_reminder"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/eye_strain_reminder_toggle"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/eye_strain_reminder_subtitle"
-                        android:textSize="14sp"
-                        android:textColor="?android:attr/textColorSecondary"
-                        android:layout_marginTop="4dp" />
-
-                </LinearLayout>
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switch_eye_strain_reminder"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-
-            </LinearLayout>
-
-            <!-- Eye Strain Settings (shown when enabled) -->
-            <LinearLayout
-                android:id="@+id/layout_eye_strain_settings"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone"
-                android:layout_marginTop="16dp">
-
-                <!-- Notification Style Label -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/notification_style_label"
-                    android:textSize="14sp"
-                    android:layout_marginBottom="8dp" />
-
-                <!-- Notification Style Radio Group -->
-                <RadioGroup
-                    android:id="@+id/radio_group_notification_style"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <RadioButton
-                        android:id="@+id/radio_notification_sound"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/notification_style_sound"
-                        android:layout_marginBottom="8dp" />
-
-                    <RadioButton
-                        android:id="@+id/radio_notification_vibration"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/notification_style_vibration"
-                        android:layout_marginBottom="8dp" />
-
-                    <RadioButton
-                        android:id="@+id/radio_notification_silent"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/notification_style_silent" />
-
-                </RadioGroup>
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- Scheduling Card -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_scheduling"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <!-- Scheduling Header with Toggle -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/scheduling_title"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/scheduling_subtitle"
-                        android:textSize="14sp"
-                        android:textColor="?android:attr/textColorSecondary"
-                        android:layout_marginTop="4dp" />
-
-                </LinearLayout>
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switch_scheduling"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-
-            </LinearLayout>
-
-            <!-- Time Pickers Container -->
-            <LinearLayout
-                android:id="@+id/layout_time_pickers"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="16dp"
-                android:visibility="gone">
-
-                <!-- Start Time Picker -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/scheduling_start_time"
-                        android:textSize="16sp" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_start_time"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="21:00"
-                        style="@style/Widget.Material3.Button.OutlinedButton" />
-
-                </LinearLayout>
-
-                <!-- End Time Picker -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginTop="12dp">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/scheduling_end_time"
-                        android:textSize="16sp" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_end_time"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="07:00"
-                        style="@style/Widget.Material3.Button.OutlinedButton" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- Location Scheduling Card -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_location_scheduling"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <!-- Location Scheduling Header with Toggle -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/location_scheduling_title"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/location_scheduling_subtitle"
-                        android:textSize="14sp"
-                        android:textColor="?android:attr/textColorSecondary"
-                        android:layout_marginTop="4dp" />
-
-                </LinearLayout>
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switch_location_scheduling"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-
-            </LinearLayout>
-
-            <!-- Location Settings Container -->
-            <LinearLayout
-                android:id="@+id/layout_location_settings"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="16dp"
-                android:visibility="gone">
-
-                <!-- Get Location Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/button_get_location"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/location_get_location"
-                    style="@style/Widget.Material3.Button.OutlinedButton" />
-
-                <!-- Calculated Times Display -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="12dp">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/location_sunset_label"
-                            android:textSize="12sp"
-                            android:textColor="?android:attr/textColorSecondary" />
-
-                        <TextView
-                            android:id="@+id/text_sunset_time"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="--:--"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="?attr/colorPrimary"
-                            android:layout_marginTop="4dp" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/location_sunrise_label"
-                            android:textSize="12sp"
-                            android:textColor="?android:attr/textColorSecondary" />
-
-                        <TextView
-                            android:id="@+id/text_sunrise_time"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="--:--"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="?attr/colorPrimary"
-                            android:layout_marginTop="4dp" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-                <!-- Offset Slider -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/location_offset"
-                    android:textSize="14sp"
-                    android:layout_marginTop="16dp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
                     android:layout_marginTop="8dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="-60"
-                        android:textSize="12sp" />
+                        android:orientation="vertical"
+                        android:padding="24dp">
 
-                    <com.google.android.material.slider.Slider
-                        android:id="@+id/slider_location_offset"
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/text_hero_title"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/app_name"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/text_hero_subtitle"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/info_message"
+                                    android:textSize="12sp"
+                                    android:alpha="0.7"
+                                    android:layout_marginTop="2dp" />
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/text_hero_hint"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/hero_hint"
+                            android:textSize="13sp"
+                            android:alpha="0.8"
+                            android:layout_marginTop="16dp" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/group_settings_tabs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    app:singleSelection="true"
+                    app:selectionRequired="true">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/tab_display"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:valueFrom="-60"
-                        android:valueTo="60"
-                        android:value="0"
-                        android:stepSize="5"
-                        android:layout_marginStart="8dp"
-                        android:layout_marginEnd="8dp" />
+                        android:text="@string/tab_display"
+                        android:checked="true" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/tab_automation"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="+60"
-                        android:textSize="12sp" />
+                        android:layout_weight="1"
+                        android:text="@string/tab_automation" />
 
-                </LinearLayout>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/tab_wellness"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/tab_wellness" />
 
-                <TextView
-                    android:id="@+id/text_location_offset_value"
-                    android:layout_width="wrap_content"
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                <FrameLayout
+                    android:id="@+id/sections_container"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/location_offset_value"
-                    android:textSize="14sp"
-                    android:textColor="?attr/colorPrimary"
-                    android:layout_gravity="center"
-                    android:layout_marginTop="4dp" />
+                    android:layout_marginTop="16dp">
+
+                    <LinearLayout
+                        android:id="@+id/section_display"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:animateLayoutChanges="true">
+
+                        <include layout="@layout/include_settings_display" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/section_automation"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        android:animateLayoutChanges="true">
+
+                        <include layout="@layout/include_settings_automation" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/section_wellness"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        android:animateLayoutChanges="true">
+
+                        <include layout="@layout/include_settings_wellness" />
+
+                    </LinearLayout>
+
+                </FrameLayout>
 
             </LinearLayout>
 
-        </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
 
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- Permission Status Card -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_permission"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp"
-        app:strokeWidth="2dp"
-        app:strokeColor="?attr/colorError"
-        android:visibility="gone">
-
-        <LinearLayout
+        <FrameLayout
+            android:id="@+id/fragment_container"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:background="@android:color/transparent" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/permission_required"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="?attr/colorError" />
+    </FrameLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/permission_description"
-                android:textSize="14sp"
-                android:layout_marginTop="8dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_request_permission"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/grant_permission"
-                android:layout_marginTop="12dp" />
-
-        </LinearLayout>
-
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- Info Text -->
-    <TextView
-        android:id="@+id/text_info"
-        android:layout_width="match_parent"
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="@string/info_message"
-        android:textSize="12sp"
-        android:textColor="?android:attr/textColorSecondary"
-        android:gravity="center"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="24dp" />
+        android:layout_margin="16dp"
+        android:background="@drawable/bg_card_glass"
+        android:padding="12dp"
+        app:itemIconTint="@color/nav_item_color"
+        app:itemTextColor="@color/nav_item_color"
+        app:itemIconSize="28dp"
+        app:itemRippleColor="@color/nav_ripple_color"
+        app:menu="@menu/bottom_navigation_menu"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    </LinearLayout>
-    </ScrollView>
-
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

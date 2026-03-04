@@ -166,6 +166,21 @@ class AnalyticsService(private val context: Context) {
             }
         }
     }
+
+    /**
+     * Get usage time since a specific timestamp, or all-time when timestamp is null
+     */
+    suspend fun getUsageTimeSince(startTime: Long?): Long {
+        return withContext(Dispatchers.IO) {
+            try {
+                val events = dao.getEventsSince(startTime)
+                calculateUsageTime(events)
+            } catch (e: Exception) {
+                Log.e(TAG, "getUsageTimeSince: Error calculating usage time", e)
+                0L
+            }
+        }
+    }
     
     /**
      * Get current usage streak (consecutive days with overlay active)
@@ -219,6 +234,21 @@ class AnalyticsService(private val context: Context) {
             }
         }
     }
+
+    /**
+     * Get average opacity since a specific timestamp, or all-time when timestamp is null
+     */
+    suspend fun getAverageOpacitySince(startTime: Long?): Float {
+        return withContext(Dispatchers.IO) {
+            try {
+                val average = dao.getAverageOpacitySince(startTime)
+                average.takeIf { it.isFinite() } ?: 0.5f
+            } catch (e: Exception) {
+                Log.e(TAG, "getAverageOpacitySince: Error getting average opacity", e)
+                0.5f
+            }
+        }
+    }
     
     /**
      * Get most used preset
@@ -235,6 +265,20 @@ class AnalyticsService(private val context: Context) {
             }
         }
     }
+
+    /**
+     * Get most used preset since a specific timestamp, or all-time when timestamp is null
+     */
+    suspend fun getMostUsedPresetSince(startTime: Long?): String {
+        return withContext(Dispatchers.IO) {
+            try {
+                dao.getMostUsedPresetSince(startTime) ?: "None"
+            } catch (e: Exception) {
+                Log.e(TAG, "getMostUsedPresetSince: Error getting most used preset", e)
+                "None"
+            }
+        }
+    }
     
     /**
      * Get total number of events
@@ -245,6 +289,20 @@ class AnalyticsService(private val context: Context) {
                 dao.getEventCount()
             } catch (e: Exception) {
                 Log.e(TAG, "getTotalEventCount: Error getting event count", e)
+                0
+            }
+        }
+    }
+
+    /**
+     * Get total number of events since a specific timestamp, or all-time when timestamp is null
+     */
+    suspend fun getTotalEventCountSince(startTime: Long?): Int {
+        return withContext(Dispatchers.IO) {
+            try {
+                dao.getEventCountSince(startTime)
+            } catch (e: Exception) {
+                Log.e(TAG, "getTotalEventCountSince: Error getting event count", e)
                 0
             }
         }

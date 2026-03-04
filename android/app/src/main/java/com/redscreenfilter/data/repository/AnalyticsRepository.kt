@@ -6,6 +6,7 @@ import com.redscreenfilter.data.AnalyticsService
 import com.redscreenfilter.data.database.UsageEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.Calendar
 
 /**
  * Analytics Repository
@@ -94,6 +95,21 @@ class AnalyticsRepository(private val context: Context) {
         val currentStreak: Int,
         val totalEvents: Int
     )
+
+    enum class AnalyticsPeriod {
+        TODAY,
+        WEEK,
+        MONTH,
+        ALL_TIME
+    }
+
+    data class PeriodStats(
+        val usageTime: String,
+        val averageOpacity: Float,
+        val mostUsedPreset: String,
+        val currentStreak: Int,
+        val totalEvents: Int
+    )
     
     suspend fun getUsageStats(): UsageStats {
         return withContext(Dispatchers.IO) {
@@ -127,6 +143,59 @@ class AnalyticsRepository(private val context: Context) {
                     totalEvents = 0
                 )
             }
+        }
+    }
+
+    suspend fun getPeriodStats(period: AnalyticsPeriod): PeriodStats {
+        return withContext(Dispatchers.IO) {
+            try {
+                val startTime = getStartTimeForPeriod(period)
+                val usageTime = analyticsService.getUsageTimeSince(startTime)
+                val averageOpacity = analyticsService.getAverageOpacitySince(startTime)
+                val mostUsedPreset = analyticsService.getMostUsedPresetSince(startTime)
+                val currentStreak = analyticsService.getCurrentStreak()
+                val totalEvents = analyticsService.getTotalEventCountSince(startTime)
+
+                PeriodStats(
+                    usageTime = analyticsService.formatTime(usageTime),
+                    averageOpacity = averageOpacity,
+                    mostUsedPreset = mostUsedPreset,
+                    currentStreak = currentStreak,
+                    totalEvents = totalEvents
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "getPeriodStats: Error", e)
+                PeriodStats(
+                    usageTime = "00:00:00",
+                    averageOpacity = 0.5f,
+                    mostUsedPreset = "None",
+                    currentStreak = 0,
+                    totalEvents = 0
+                )
+            }
+        }
+    }
+
+    private fun getStartTimeForPeriod(period: AnalyticsPeriod): Long? {
+        val calendar = Calendar.getInstance()
+        calendar.apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+
+        return when (period) {
+            AnalyticsPeriod.TODAY -> calendar.timeInMillis
+            AnalyticsPeriod.WEEK -> {
+                calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+                calendar.timeInMillis
+            }
+            AnalyticsPeriod.MONTH -> {
+                calendar.set(Calendar.DAY_OF_MONTH, 1)
+                calendar.timeInMillis
+            }
+            AnalyticsPeriod.ALL_TIME -> null
         }
     }
     
