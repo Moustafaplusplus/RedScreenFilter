@@ -1,17 +1,23 @@
 package com.redscreenfilter.ui
 
+import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.SearchView
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.redscreenfilter.R
+import com.redscreenfilter.core.designsystem.RedScreenFilterTheme
 import com.redscreenfilter.data.ExemptedAppsManager
-import com.redscreenfilter.databinding.FragmentAppExemptionBinding
-import com.redscreenfilter.ui.adapter.InstalledAppsAdapter
+import com.redscreenfilter.data.ForegroundAppDetector
+import com.redscreenfilter.feature.app_exemption.ui.AppExemptionComposeScreen
+import com.redscreenfilter.feature.app_exemption.ui.AppExemptionComposeUiState
 import kotlinx.coroutines.launch
 
 /**
@@ -21,64 +27,70 @@ import kotlinx.coroutines.launch
  * Includes search functionality to filter apps.
  */
 class AppExemptionFragment : Fragment() {
-    
-    private var _binding: FragmentAppExemptionBinding? = null
-    private val binding get() = _binding!!
-    
+
     private lateinit var exemptedAppsManager: ExemptedAppsManager
-    private lateinit var appsAdapter: InstalledAppsAdapter
+    private lateinit var foregroundAppDetector: ForegroundAppDetector
+    private var composeUiState by mutableStateOf(
+        AppExemptionComposeUiState(
+            query = "",
+            isLoading = false,
+            apps = emptyList(),
+            hasUsageStatsPermission = true
+        )
+    )
     
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentAppExemptionBinding.inflate(inflater, container, false)
-        return binding.root
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                RedScreenFilterTheme {
+                    AppExemptionComposeScreen(
+                        uiState = composeUiState,
+                        onQueryChanged = { query ->
+                            composeUiState = composeUiState.copy(query = query)
+                            if (query.isBlank()) {
+                                loadApps()
+                            } else {
+                                searchApps(query)
+                            }
+                        },
+                        onExemptionChanged = { packageName, isExempt ->
+                            exemptedAppsManager.toggleAppExemption(packageName, isExempt)
+                            val updated = composeUiState.apps.map {
+                                if (it.packageName == packageName) it.copy(isExempted = isExempt) else it
+                            }
+                            composeUiState = composeUiState.copy(apps = updated)
+                        },
+                        onRequestPermission = {
+                            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                        }
+                    )
+                }
+            }
+        }
     }
     
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
         exemptedAppsManager = ExemptedAppsManager.getInstance(requireContext())
-        
-        setupRecyclerView()
-        setupSearch()
+        foregroundAppDetector = ForegroundAppDetector.getInstance(requireContext())
+        checkPermissionAndLoadApps()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        checkPermissionAndLoadApps()
+    }
+
+    private fun checkPermissionAndLoadApps() {
+        val hasPermission = foregroundAppDetector.hasUsageStatsPermission()
+        composeUiState = composeUiState.copy(hasUsageStatsPermission = hasPermission)
         loadApps()
-    }
-    
-    /**
-     * Setup RecyclerView for app list
-     */
-    private fun setupRecyclerView() {
-        appsAdapter = InstalledAppsAdapter { packageName, isExempt ->
-            exemptedAppsManager.toggleAppExemption(packageName, isExempt)
-        }
-        
-        binding.recyclerViewApps.apply {
-            adapter = appsAdapter
-            layoutManager = LinearLayoutManager(requireContext())
-        }
-    }
-    
-    /**
-     * Setup search functionality
-     */
-    private fun setupSearch() {
-        binding.searchViewApps.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                return false
-            }
-            
-            override fun onQueryTextChange(newText: String?): Boolean {
-                if (newText.isNullOrEmpty()) {
-                    loadApps()
-                } else {
-                    searchApps(newText)
-                }
-                return true
-            }
-        })
     }
     
     /**
@@ -86,10 +98,9 @@ class AppExemptionFragment : Fragment() {
      */
     private fun loadApps() {
         viewLifecycleOwner.lifecycleScope.launch {
-            binding.progressBar.visibility = View.VISIBLE
+            composeUiState = composeUiState.copy(isLoading = true)
             val apps = exemptedAppsManager.getInstalledApps()
-            appsAdapter.submitList(apps)
-            binding.progressBar.visibility = View.GONE
+            composeUiState = composeUiState.copy(isLoading = false, apps = apps)
         }
     }
     
@@ -99,12 +110,7 @@ class AppExemptionFragment : Fragment() {
     private fun searchApps(query: String) {
         viewLifecycleOwner.lifecycleScope.launch {
             val results = exemptedAppsManager.searchApps(query)
-            appsAdapter.submitList(results)
+            composeUiState = composeUiState.copy(apps = results)
         }
-    }
-    
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }

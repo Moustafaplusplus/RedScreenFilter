@@ -12,53 +12,75 @@ import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.View
-import android.widget.FrameLayout
-import android.widget.LinearLayout
-import android.widget.RadioButton
-import android.widget.RadioGroup
-import android.widget.ScrollView
-import android.widget.SeekBar
-import android.widget.TextView
+import androidx.activity.compose.setContent
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Apps
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.view.isVisible
-import androidx.core.widget.NestedScrollView
-import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.lifecycle.lifecycleScope
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.button.MaterialButtonToggleGroup
-import com.google.android.material.card.MaterialCardView
 import java.util.concurrent.TimeUnit
-import com.google.android.material.slider.Slider
 import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.switchmaterial.SwitchMaterial
-import com.redscreenfilter.data.ColorVariant
+import com.redscreenfilter.core.model.ColorVariant
 import com.redscreenfilter.data.LightSensorManager
 import com.redscreenfilter.data.LocationManager
 import com.redscreenfilter.data.PreferencesManager
 import com.redscreenfilter.data.SchedulingManager
+import com.redscreenfilter.data.ExemptedAppsManager
 import com.redscreenfilter.data.repository.AnalyticsRepository
-import com.redscreenfilter.service.RedOverlayService
-import com.redscreenfilter.ui.AnalyticsFragment
+import com.redscreenfilter.core.designsystem.RedScreenFilterTheme
+import com.redscreenfilter.core.designsystem.RsfTheme
+import com.redscreenfilter.feature.settings.coordinator.OverlayControlCoordinator
+import com.redscreenfilter.feature.settings.coordinator.PermissionCoordinator
+import com.redscreenfilter.feature.settings.coordinator.ScheduleCoordinator
+import com.redscreenfilter.feature.analytics.ui.AnalyticsComposeScreen
+import com.redscreenfilter.feature.analytics.ui.AnalyticsComposeUiState
+import com.redscreenfilter.feature.app_exemption.ui.AppExemptionComposeScreen
+import com.redscreenfilter.feature.app_exemption.ui.AppExemptionComposeUiState
+import com.redscreenfilter.feature.settings.ui.AutomationComposeUiState
+import com.redscreenfilter.feature.settings.ui.AutomationSettingsSectionCompose
+import com.redscreenfilter.feature.settings.ui.BrightnessComposeUiState
+import com.redscreenfilter.feature.settings.ui.DisplayComposeUiState
+import com.redscreenfilter.feature.settings.ui.DisplaySettingsSectionCompose
+import com.redscreenfilter.feature.settings.ui.OverlayVisibilityComposeUiState
+import com.redscreenfilter.feature.settings.ui.OverlayVisibilitySettingsSectionCompose
+import com.redscreenfilter.feature.settings.ui.WellnessComposeUiState
+import com.redscreenfilter.feature.settings.ui.WellnessSettingsSectionCompose
+import com.redscreenfilter.data.repository.AnalyticsRepository.AnalyticsPeriod
+import com.redscreenfilter.feature.settings.viewmodel.AutomationSettingsViewModel
+import com.redscreenfilter.feature.settings.viewmodel.BrightnessSettingsViewModel
+import com.redscreenfilter.feature.settings.viewmodel.DisplaySettingsViewModel
+import com.redscreenfilter.feature.settings.viewmodel.WellnessSettingsViewModel
 import com.redscreenfilter.utils.WorkScheduler
 import kotlinx.coroutines.launch
 
 /**
  * MainActivity - Main UI for Red Screen Filter
- * 
- * Features:
- * - Toggle overlay on/off
- * - Adjust opacity with SeekBar
- * - Request SYSTEM_ALERT_WINDOW permission
- * - Start/stop RedOverlayService
- * - Schedule overlay based on time
- * - Background scheduling with WorkManager
- * - Location-based sunrise/sunset scheduling
  */
 class MainActivity : AppCompatActivity() {
     
@@ -68,66 +90,89 @@ class MainActivity : AppCompatActivity() {
     private lateinit var schedulingManager: SchedulingManager
     private lateinit var locationManager: LocationManager
     private lateinit var analyticsRepository: AnalyticsRepository
-    
-    // UI Components
-    private lateinit var switchOverlay: SwitchMaterial
-    private lateinit var seekbarOpacity: SeekBar
-    private lateinit var textOpacityValue: TextView
-    private lateinit var cardPermission: MaterialCardView
-    private lateinit var buttonRequestPermission: MaterialButton
-    
-    // Scheduling UI Components
-    private lateinit var switchScheduling: SwitchMaterial
-    private lateinit var layoutTimePickers: LinearLayout
-    private lateinit var buttonStartTime: MaterialButton
-    private lateinit var buttonEndTime: MaterialButton
-    
-    // Location Scheduling UI Components
-    private lateinit var switchLocationScheduling: SwitchMaterial
-    private lateinit var layoutLocationSettings: LinearLayout
-    private lateinit var buttonGetLocation: MaterialButton
-    private lateinit var textSunsetTime: TextView
-    private lateinit var textSunriseTime: TextView
-    private lateinit var sliderLocationOffset: Slider
-    private lateinit var textLocationOffsetValue: TextView
-    
-    // Color Variant UI Components
-    private lateinit var radioGroupColorVariant: RadioGroup
-    private lateinit var radioRedStandard: RadioButton
-    private lateinit var radioRedOrange: RadioButton
-    private lateinit var radioRedPink: RadioButton
-    private lateinit var radioHighContrast: RadioButton
-    private lateinit var colorPreviewBox: View
-    
-    // Battery Optimization UI Components
-    private lateinit var switchBatteryOptimization: SwitchMaterial
-    
-    // Light Sensor UI Components
-    private lateinit var switchLightSensor: SwitchMaterial
-    private lateinit var layoutLightSensorSettings: LinearLayout
-    private lateinit var sliderLightSensitivity: Slider
-    private lateinit var textLightSensitivityValue: TextView
-    private lateinit var switchLightSensorLocked: SwitchMaterial
-    private lateinit var textCurrentLux: TextView
-    
-    // Eye Strain Reminder UI Components
-    private lateinit var switchEyeStrainReminder: SwitchMaterial
-    private lateinit var layoutEyeStrainSettings: LinearLayout
-    private lateinit var radioGroupNotificationStyle: RadioGroup
-    private lateinit var radioNotificationSound: RadioButton
-    private lateinit var radioNotificationVibration: RadioButton
-    private lateinit var radioNotificationSilent: RadioButton
-    
-    // Navigation Components
-    private lateinit var bottomNavigation: BottomNavigationView
-    private lateinit var scrollSettings: NestedScrollView
-    private lateinit var fragmentContainer: FrameLayout
-    private lateinit var settingsTabs: MaterialButtonToggleGroup
-    private lateinit var sectionDisplay: View
-    private lateinit var sectionAutomation: View
-    private lateinit var sectionWellness: View
+    private lateinit var exemptedAppsManager: ExemptedAppsManager
 
-    private val sectionInterpolator = FastOutSlowInInterpolator()
+    private lateinit var displaySettingsViewModel: DisplaySettingsViewModel
+    private lateinit var brightnessSettingsViewModel: BrightnessSettingsViewModel
+    private lateinit var automationSettingsViewModel: AutomationSettingsViewModel
+    private lateinit var wellnessSettingsViewModel: WellnessSettingsViewModel
+    private lateinit var permissionCoordinator: PermissionCoordinator
+    private lateinit var overlayControlCoordinator: OverlayControlCoordinator
+    private lateinit var scheduleCoordinator: ScheduleCoordinator
+    private var isLocationLoading: Boolean = false
+    private var displayComposeUiState by mutableStateOf(
+        DisplayComposeUiState(
+            isOverlayEnabled = false,
+            opacityPercentage = 50,
+            selectedColorVariant = ColorVariant.RED_STANDARD,
+            showPermissionCard = false
+        )
+    )
+    private var automationComposeUiState by mutableStateOf(
+        AutomationComposeUiState(
+            isSchedulingEnabled = false,
+            startTime = "21:00",
+            endTime = "07:00",
+            isLocationSchedulingEnabled = false,
+            isLocationLoading = false,
+            sunsetTime = "--:--",
+            sunriseTime = "--:--",
+            locationOffsetMinutes = 0,
+            isLightSensorEnabled = false,
+            lightSensitivityValue = 1f,
+            lightSensitivityLabel = "",
+            currentLuxLabel = "",
+            isLightSensorLocked = false
+        )
+    )
+    private var brightnessComposeUiState by mutableStateOf(
+        BrightnessComposeUiState(
+            brightnessPercentage = 50,
+            hasSystemBrightnessPermission = false,
+            isExtraDimEnabled = false,
+            extraDimIntensityPercentage = 35
+        )
+    )
+    private var wellnessComposeUiState by mutableStateOf(
+        WellnessComposeUiState(
+            isBatteryOptimizationEnabled = true,
+            isEyeStrainReminderEnabled = false,
+            notificationStyle = "sound"
+        )
+    )
+    private var overlayVisibilityComposeUiState by mutableStateOf(
+        OverlayVisibilityComposeUiState(
+            hideOnLockScreen = false,
+            hideOnHomeScreen = false
+        )
+    )
+    private var analyticsComposeUiState by mutableStateOf(
+        AnalyticsComposeUiState(
+            selectedPeriod = AnalyticsPeriod.TODAY,
+            subtitle = "",
+            usageTime = "00:00:00",
+            usageLabel = "",
+            usageProgress = 0,
+            averageOpacityText = "0%",
+            mostUsedPreset = "N/A",
+            currentStreakText = "0",
+            totalEventsText = "0",
+            isLoading = false,
+            hasError = false
+        )
+    )
+    private var appExemptionComposeUiState by mutableStateOf(
+        AppExemptionComposeUiState(
+            query = "",
+            isLoading = false,
+            apps = emptyList(),
+            hasUsageStatsPermission = true
+        )
+    )
+    private var selectedRootTab by mutableStateOf(RootTab.SETTINGS)
+    private var selectedSettingsTab by mutableStateOf(0)
+
+    private enum class RootTab { SETTINGS, ANALYTICS, EXEMPTIONS }
     
     // Location permission launcher
     private val locationPermissionLauncher = registerForActivityResult(
@@ -141,11 +186,8 @@ class MainActivity : AppCompatActivity() {
             requestLocationAndUpdate()
         } else {
             Log.w(TAG, "Location permission denied")
-            Snackbar.make(
-                findViewById(android.R.id.content),
-                R.string.location_permission_required,
-                Snackbar.LENGTH_LONG
-            ).show()
+            isLocationLoading = false
+            refreshAutomationComposeUiState()
         }
     }
 
@@ -164,64 +206,61 @@ class MainActivity : AppCompatActivity() {
             if (preferencesManager.isLightSensorEnabled()) {
                 val lightSensorManager = LightSensorManager.getInstance(this@MainActivity)
                 val currentLux = lightSensorManager.getCurrentLux()
-                textCurrentLux.text = getString(R.string.current_lux_label).replace("--", currentLux.toInt().toString())
-                luxUpdateHandler.postDelayed(this, 500) // Update every 500ms
+                val luxLabel = getString(R.string.current_lux_label).replace("--", currentLux.toInt().toString())
+                refreshAutomationComposeUiState(luxOverride = luxLabel)
+                luxUpdateHandler.postDelayed(this, 500)
             }
         }
     }
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
         
-        Log.d(TAG, "onCreate: Activity starting")
-        
-        // Initialize PreferencesManager
         preferencesManager = PreferencesManager.getInstance(this)
-        
-        // Initialize SchedulingManager
         schedulingManager = SchedulingManager.getInstance(this)
-        
-        // Initialize LocationManager
         locationManager = LocationManager.getInstance(this)
-
-        // Initialize AnalyticsRepository
         analyticsRepository = AnalyticsRepository.getInstance(this)
-        
-        // Initialize UI components
-        initializeViews()
-        
-        // Load saved settings
-        loadSettings()
-        
-        // Setup listeners
-        setupListeners()
+        exemptedAppsManager = ExemptedAppsManager.getInstance(this)
 
-        // Setup segmented sections
-        setupSectionTabs()
+        displaySettingsViewModel = DisplaySettingsViewModel(preferencesManager)
+        brightnessSettingsViewModel = BrightnessSettingsViewModel(preferencesManager)
+        automationSettingsViewModel = AutomationSettingsViewModel(schedulingManager, preferencesManager)
+        wellnessSettingsViewModel = WellnessSettingsViewModel(preferencesManager)
+        permissionCoordinator = PermissionCoordinator()
+        overlayControlCoordinator = OverlayControlCoordinator(this)
+        scheduleCoordinator = ScheduleCoordinator(
+            overlayControlCoordinator = overlayControlCoordinator,
+            permissionCoordinator = permissionCoordinator,
+            automationSettingsViewModel = automationSettingsViewModel
+        )
         
-        // Setup bottom navigation
-        setupBottomNavigation()
+        loadSettings()
+        loadAnalyticsData()
+        loadApps()
+
+        setContent {
+            RedScreenFilterTheme {
+                MainActivityComposeRoot()
+            }
+        }
 
         requestRuntimePermissions()
         
-        // Schedule reminder worker if enabled
         if (preferencesManager.isEyeStrainReminderEnabled()) {
             scheduleEyeStrainReminder()
         }
-
-        animateSettingsEntrance()
-        
-        Log.d(TAG, "onCreate: Activity initialized")
     }
     
     override fun onResume() {
         super.onResume()
-        Log.d(TAG, "onResume: Checking permission status")
-        // Check permission status when returning to app
         updatePermissionUI()
+        refreshDisplayComposeUiState()
+        refreshBrightnessComposeUiState()
+        refreshAutomationComposeUiState()
+        refreshWellnessComposeUiState()
+        refreshOverlayVisibilityComposeUiState()
+        refreshAppExemptionUiState()
         
-        // Start lux update loop if light sensor is enabled
         if (preferencesManager.isLightSensorEnabled()) {
             luxUpdateHandler.post(luxUpdateRunnable)
         }
@@ -229,414 +268,225 @@ class MainActivity : AppCompatActivity() {
     
     override fun onPause() {
         super.onPause()
-        Log.d(TAG, "onPause: Cleaning up")
-        // Stop lux update loop
         luxUpdateHandler.removeCallbacks(luxUpdateRunnable)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         luxUpdateHandler.removeCallbacksAndMessages(null)
-        if (::bottomNavigation.isInitialized) {
-            bottomNavigation.setOnItemSelectedListener { false }
+    }
+
+    @Composable
+    private fun MainActivityComposeRoot() {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            RsfTheme.colors.surface,
+                            RsfTheme.colors.onError.copy(alpha = 0.15f),
+                            RsfTheme.colors.primary.copy(alpha = 0.2f)
+                        )
+                    )
+                )
+        ) {
+            Scaffold(
+                containerColor = Color.Transparent,
+                bottomBar = {
+                    NavigationBar(
+                        containerColor = Color.Transparent,
+                        tonalElevation = 0.dp
+                    ) {
+                        NavigationBarItem(
+                            selected = selectedRootTab == RootTab.SETTINGS,
+                            onClick = { selectedRootTab = RootTab.SETTINGS },
+                            icon = { Icon(Icons.Default.Settings, contentDescription = getString(R.string.settings_label)) },
+                            label = { Text(getString(R.string.settings_label)) },
+                            colors = NavigationBarItemDefaults.colors(
+                                indicatorColor = RsfTheme.colors.primary.copy(alpha = 0.2f)
+                            )
+                        )
+                        NavigationBarItem(
+                            selected = selectedRootTab == RootTab.ANALYTICS,
+                            onClick = {
+                                selectedRootTab = RootTab.ANALYTICS
+                                loadAnalyticsData()
+                            },
+                            icon = { Icon(Icons.Default.BarChart, contentDescription = getString(R.string.analytics_title)) },
+                            label = { Text(getString(R.string.analytics_title)) },
+                            colors = NavigationBarItemDefaults.colors(
+                                indicatorColor = RsfTheme.colors.primary.copy(alpha = 0.2f)
+                            )
+                        )
+                        NavigationBarItem(
+                            selected = selectedRootTab == RootTab.EXEMPTIONS,
+                            onClick = {
+                                selectedRootTab = RootTab.EXEMPTIONS
+                                loadApps()
+                            },
+                            icon = { Icon(Icons.Default.Apps, contentDescription = getString(R.string.app_exemptions)) },
+                            label = { Text(getString(R.string.app_exemptions)) },
+                            colors = NavigationBarItemDefaults.colors(
+                                indicatorColor = RsfTheme.colors.primary.copy(alpha = 0.2f)
+                            )
+                        )
+                    }
+                }
+            ) { paddingValues ->
+                when (selectedRootTab) {
+                    RootTab.SETTINGS -> SettingsComposeScreen(paddingValues)
+                    RootTab.ANALYTICS -> AnalyticsComposeScreen(
+                        uiState = analyticsComposeUiState,
+                        onPeriodSelected = { period -> loadPeriodStats(period) },
+                        modifier = Modifier.padding(paddingValues)
+                    )
+                    RootTab.EXEMPTIONS -> AppExemptionComposeScreen(
+                        uiState = appExemptionComposeUiState,
+                        onQueryChanged = { query ->
+                            appExemptionComposeUiState = appExemptionComposeUiState.copy(query = query)
+                            if (query.isBlank()) loadApps() else searchApps(query)
+                        },
+                        onExemptionChanged = { packageName, isExempt ->
+                            exemptedAppsManager.toggleAppExemption(packageName, isExempt)
+                            val updated = appExemptionComposeUiState.apps.map {
+                                if (it.packageName == packageName) it.copy(isExempted = isExempt) else it
+                            }
+                            appExemptionComposeUiState = appExemptionComposeUiState.copy(apps = updated)
+                        },
+                        onRequestPermission = { permissionCoordinator.requestUsageStatsPermission(this@MainActivity) },
+                        modifier = Modifier.padding(paddingValues)
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun SettingsComposeScreen(paddingValues: PaddingValues) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            com.redscreenfilter.core.designsystem.RsfSegmentedTabs(
+                options = listOf(
+                    getString(R.string.tab_display),
+                    getString(R.string.tab_automation),
+                    getString(R.string.tab_wellness),
+                    getString(R.string.tab_visibility)
+                ),
+                selectedIndex = selectedSettingsTab,
+                onSelectionChanged = { selectedSettingsTab = it }
+            )
+
+            when (selectedSettingsTab) {
+                0 -> DisplaySettingsSectionCompose(
+                    uiState = displayComposeUiState,
+                    onOverlayToggle = { isEnabled -> handleOverlayToggle(isEnabled) },
+                    onOpacityChanged = { progress -> onDisplayOpacityChanged(progress) },
+                    onOpacityChangeFinished = { progress -> onDisplayOpacityChangeFinished(progress) },
+                    onColorVariantSelected = { variant -> handleColorVariantChange(variant) },
+                    isExtraDimEnabled = brightnessComposeUiState.isExtraDimEnabled,
+                    extraDimIntensityPercentage = brightnessComposeUiState.extraDimIntensityPercentage,
+                    onExtraDimToggle = { isEnabled -> handleExtraDimToggle(isEnabled) },
+                    onExtraDimIntensityChanged = { value -> handleExtraDimIntensityChanged(value) },
+                    onRequestPermission = { requestOverlayPermission() }
+                )
+                1 -> AutomationSettingsSectionCompose(
+                    uiState = automationComposeUiState,
+                    onSchedulingToggle = { isEnabled -> handleSchedulingToggle(isEnabled) },
+                    onStartTimeClick = { showStartTimePicker() },
+                    onEndTimeClick = { showEndTimePicker() },
+                    onLocationSchedulingToggle = { isEnabled -> handleLocationSchedulingToggle(isEnabled) },
+                    onRequestLocation = { requestLocationPermissionAndUpdate() },
+                    onLocationOffsetChanged = { offsetMinutes -> handleLocationOffsetChange(offsetMinutes) },
+                    onLightSensorToggle = { isEnabled -> handleLightSensorToggle(isEnabled) },
+                    onLightSensitivityChanged = { value -> handleLightSensitivityChange(value) },
+                    onLightSensorLockToggle = { isLocked -> handleLightSensorLockToggle(isLocked) }
+                )
+                2 -> WellnessSettingsSectionCompose(
+                    uiState = wellnessComposeUiState,
+                    onBatteryOptimizationToggle = { isEnabled -> handleBatteryOptimizationToggle(isEnabled) },
+                    onEyeStrainReminderToggle = { isEnabled -> handleEyeStrainReminderToggle(isEnabled) },
+                    onNotificationStyleSelected = { style -> handleNotificationStyleChangeByValue(style) }
+                )
+                else -> OverlayVisibilitySettingsSectionCompose(
+                    uiState = overlayVisibilityComposeUiState,
+                    onHideOnLockScreenChanged = { isEnabled -> handleHideOverlayOnLockScreenToggle(isEnabled) },
+                    onHideOnHomeScreenChanged = { isEnabled -> handleHideOverlayOnHomeScreenToggle(isEnabled) }
+                )
+            }
         }
     }
     
-    private fun initializeViews() {
-        switchOverlay = findViewById(R.id.switch_overlay)
-        seekbarOpacity = findViewById(R.id.seekbar_opacity)
-        textOpacityValue = findViewById(R.id.text_opacity_value)
-        cardPermission = findViewById(R.id.card_permission)
-        buttonRequestPermission = findViewById(R.id.button_request_permission)
-        
-        // Scheduling UI
-        switchScheduling = findViewById(R.id.switch_scheduling)
-        layoutTimePickers = findViewById(R.id.layout_time_pickers)
-        buttonStartTime = findViewById(R.id.button_start_time)
-        buttonEndTime = findViewById(R.id.button_end_time)
-        
-        // Location Scheduling UI
-        switchLocationScheduling = findViewById(R.id.switch_location_scheduling)
-        layoutLocationSettings = findViewById(R.id.layout_location_settings)
-        buttonGetLocation = findViewById(R.id.button_get_location)
-        textSunsetTime = findViewById(R.id.text_sunset_time)
-        textSunriseTime = findViewById(R.id.text_sunrise_time)
-        sliderLocationOffset = findViewById(R.id.slider_location_offset)
-        textLocationOffsetValue = findViewById(R.id.text_location_offset_value)
-        
-        // Color Variant UI
-        radioGroupColorVariant = findViewById(R.id.radio_group_color_variant)
-        radioRedStandard = findViewById(R.id.radio_red_standard)
-        radioRedOrange = findViewById(R.id.radio_red_orange)
-        radioRedPink = findViewById(R.id.radio_red_pink)
-        radioHighContrast = findViewById(R.id.radio_high_contrast)
-        colorPreviewBox = findViewById(R.id.color_preview_box)
-        
-        // Battery Optimization UI
-        switchBatteryOptimization = findViewById(R.id.switch_battery_optimization)
-        
-        // Light Sensor UI
-        switchLightSensor = findViewById(R.id.switch_light_sensor)
-        layoutLightSensorSettings = findViewById(R.id.layout_light_sensor_settings)
-        sliderLightSensitivity = findViewById(R.id.slider_light_sensitivity)
-        textLightSensitivityValue = findViewById(R.id.text_light_sensitivity_value)
-        switchLightSensorLocked = findViewById(R.id.switch_light_sensor_locked)
-        textCurrentLux = findViewById(R.id.text_current_lux)
-        
-        // Eye Strain Reminder UI
-        switchEyeStrainReminder = findViewById(R.id.switch_eye_strain_reminder)
-        layoutEyeStrainSettings = findViewById(R.id.layout_eye_strain_settings)
-        radioGroupNotificationStyle = findViewById(R.id.radio_group_notification_style)
-        radioNotificationSound = findViewById(R.id.radio_notification_sound)
-        radioNotificationVibration = findViewById(R.id.radio_notification_vibration)
-        radioNotificationSilent = findViewById(R.id.radio_notification_silent)
-        
-        // Navigation UI
-        bottomNavigation = findViewById(R.id.bottom_navigation)
-        scrollSettings = findViewById(R.id.scroll_settings)
-        fragmentContainer = findViewById(R.id.fragment_container)
-        settingsTabs = findViewById(R.id.group_settings_tabs)
-        sectionDisplay = findViewById(R.id.section_display)
-        sectionAutomation = findViewById(R.id.section_automation)
-        sectionWellness = findViewById(R.id.section_wellness)
-    }
-    
     private fun loadSettings() {
-        // Load overlay enabled state
-        val isEnabled = preferencesManager.isOverlayEnabled()
-        switchOverlay.isChecked = isEnabled
-        
-        // Load opacity (convert 0.0-1.0 to 0-100)
-        val opacity = preferencesManager.getOpacity()
-        val opacityPercentage = (opacity * 100).toInt()
-        seekbarOpacity.progress = opacityPercentage
-        updateOpacityText(opacityPercentage)
-        
-        // Load scheduling settings
         loadSchedulingSettings()
-        
-        // Load location scheduling settings
         loadLocationSchedulingSettings()
         
-        // Load color variant settings
-        loadColorVariantSettings()
-        
-        // Load battery optimization settings
-        loadBatteryOptimizationSettings()
-        
-        // Load light sensor settings
-        loadLightSensorSettings()
-        
-        // Load eye strain reminder settings
-        loadEyeStrainReminderSettings()
+        // Load initial state for Extra Dim controls
+        brightnessSettingsViewModel.loadState()
+
+        refreshDisplayComposeUiState()
+        refreshBrightnessComposeUiState()
+        refreshAutomationComposeUiState()
+        refreshWellnessComposeUiState()
+        refreshOverlayVisibilityComposeUiState()
     }
     
     private fun loadSchedulingSettings() {
-        val isSchedulingEnabled = schedulingManager.isScheduleEnabled()
-        switchScheduling.isChecked = isSchedulingEnabled
-        
-        // Show/hide time pickers based on scheduling state
-        layoutTimePickers.visibility = if (isSchedulingEnabled) View.VISIBLE else View.GONE
-        
-        // Load and display times
-        val (startHour, startMinute) = schedulingManager.getStartTimeComponents()
-        val (endHour, endMinute) = schedulingManager.getEndTimeComponents()
-        
-        buttonStartTime.text = schedulingManager.formatTime(startHour, startMinute)
-        buttonEndTime.text = schedulingManager.formatTime(endHour, endMinute)
-        
-        // Ensure WorkManager is scheduled if scheduling is enabled
-        if (isSchedulingEnabled) {
-            Log.d(TAG, "loadSchedulingSettings: Scheduling is enabled, ensuring WorkManager is scheduled")
+        val automationState = automationSettingsViewModel.loadState()
+        if (automationState.isSchedulingEnabled) {
             WorkScheduler.schedulePeriodicWork(this)
         }
     }
     
     private fun loadLocationSchedulingSettings() {
-        val isLocationSchedulingEnabled = schedulingManager.isLocationScheduleEnabled()
-        switchLocationScheduling.isChecked = isLocationSchedulingEnabled
-        
-        // Show/hide location settings based on state
-        layoutLocationSettings.visibility = if (isLocationSchedulingEnabled) View.VISIBLE else View.GONE
-        
-        // Load and display offset
-        val offset = schedulingManager.getLocationOffset()
-        sliderLocationOffset.value = offset.toFloat()
-        updateLocationOffsetText(offset)
-        
-        // Update calculated times if location is available
         updateCalculatedTimes()
     }
     
-    private fun loadColorVariantSettings() {
-        val colorVariantString = preferencesManager.getColorVariant()
-        val colorVariant = ColorVariant.fromString(colorVariantString)
-        
-        // Select the appropriate radio button
-        when (colorVariant) {
-            ColorVariant.RED_STANDARD -> radioRedStandard.isChecked = true
-            ColorVariant.RED_ORANGE -> radioRedOrange.isChecked = true
-            ColorVariant.RED_PINK -> radioRedPink.isChecked = true
-            ColorVariant.HIGH_CONTRAST -> radioHighContrast.isChecked = true
-        }
-        
-        // Update preview color
-        updateColorPreview(colorVariant)
-    }
-    
-    private fun updateColorPreview(variant: ColorVariant) {
-        colorPreviewBox.setBackgroundColor(variant.colorValue)
-    }
-    
-    private fun loadBatteryOptimizationSettings() {
-        val isBatteryOptimizationEnabled = preferencesManager.getBatteryOptimizationEnabled()
-        switchBatteryOptimization.isChecked = isBatteryOptimizationEnabled
-        Log.d(TAG, "loadBatteryOptimizationSettings: Battery optimization enabled = $isBatteryOptimizationEnabled")
-    }
-    
-    private fun loadLightSensorSettings() {
-        val isLightSensorEnabled = preferencesManager.isLightSensorEnabled()
-        switchLightSensor.isChecked = isLightSensorEnabled
-        
-        // Show/hide light sensor settings based on state
-        layoutLightSensorSettings.visibility = if (isLightSensorEnabled) View.VISIBLE else View.GONE
-        
-        // Load sensitivity level
-        val sensitivity = preferencesManager.getLightSensorSensitivity()
-        val sensitivityValue = when (sensitivity) {
-            "low" -> 0f
-            "medium" -> 1f
-            "high" -> 2f
-            else -> 1f // default to medium
-        }
-        sliderLightSensitivity.value = sensitivityValue
-        updateLightSensitivityText(sensitivityValue)
-        
-        // Load lock state
-        val isLocked = preferencesManager.isLightSensorLocked()
-        switchLightSensorLocked.isChecked = isLocked
-        
-        Log.d(TAG, "loadLightSensorSettings: Light sensor enabled = $isLightSensorEnabled, sensitivity = $sensitivity, locked = $isLocked")
-    }
-    
-    private fun loadEyeStrainReminderSettings() {
-        val isRemindersEnabled = preferencesManager.isEyeStrainReminderEnabled()
-        switchEyeStrainReminder.isChecked = isRemindersEnabled
-        
-        // Show/hide eye strain settings based on state
-        layoutEyeStrainSettings.visibility = if (isRemindersEnabled) View.VISIBLE else View.GONE
-        
-        // Load notification style
-        val style = preferencesManager.getEyeStrainNotificationStyle()
-        when (style) {
-            "vibration" -> radioNotificationVibration.isChecked = true
-            "silent" -> radioNotificationSilent.isChecked = true
-            else -> radioNotificationSound.isChecked = true // default to sound
-        }
-        
-        Log.d(TAG, "loadEyeStrainReminderSettings: Reminders enabled = $isRemindersEnabled, style = $style")
-    }
-    
-    private fun setupListeners() {
-        // Overlay toggle switch
-        switchOverlay.setOnCheckedChangeListener { _, isChecked ->
-            handleOverlayToggle(isChecked)
-        }
-        
-        // Opacity seekbar
-        seekbarOpacity.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) {
-                    updateOpacityText(progress)
-                    
-                    // Convert percentage (0-100) to opacity (0.0-1.0)
-                    val opacity = progress / 100f
-                    preferencesManager.setOpacity(opacity)
-                    
-                    // Update overlay in real-time if it's running
-                    if (preferencesManager.isOverlayEnabled() && hasOverlayPermission()) {
-                        updateOverlayOpacity(opacity)
-                    }
-                }
-            }
-            
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                val finalOpacity = (seekBar?.progress ?: 0) / 100f
-                logAnalyticsSafely { repository ->
-                    repository.logOpacityChanged(finalOpacity)
-                }
-            }
-        })
-        
-        // Permission request button
-        buttonRequestPermission.setOnClickListener {
-            requestOverlayPermission()
-        }
-        
-        // Scheduling toggle switch
-        switchScheduling.setOnCheckedChangeListener { _, isChecked ->
-            handleSchedulingToggle(isChecked)
-        }
-        
-        // Start time button
-        buttonStartTime.setOnClickListener {
-            showStartTimePicker()
-        }
-        
-        // End time button
-        buttonEndTime.setOnClickListener {
-            showEndTimePicker()
-        }
-        
-        // Location scheduling toggle switch
-        switchLocationScheduling.setOnCheckedChangeListener { _, isChecked ->
-            handleLocationSchedulingToggle(isChecked)
-        }
-        
-        // Get location button
-        buttonGetLocation.setOnClickListener {
-            requestLocationPermissionAndUpdate()
-        }
-        
-        // Location offset slider
-        sliderLocationOffset.addOnChangeListener { _, value, _ ->
-            val offsetMinutes = value.toInt()
-            schedulingManager.setLocationOffset(offsetMinutes)
-            updateLocationOffsetText(offsetMinutes)
-            updateCalculatedTimes()
-        }
-        
-        // Color variant radio group
-        radioGroupColorVariant.setOnCheckedChangeListener { _, checkedId ->
-            val selectedVariant = when (checkedId) {
-                R.id.radio_red_standard -> ColorVariant.RED_STANDARD
-                R.id.radio_red_orange -> ColorVariant.RED_ORANGE
-                R.id.radio_red_pink -> ColorVariant.RED_PINK
-                R.id.radio_high_contrast -> ColorVariant.HIGH_CONTRAST
-                else -> ColorVariant.RED_STANDARD
-            }
-            handleColorVariantChange(selectedVariant)
-        }
-        
-        // Battery optimization switch
-        switchBatteryOptimization.setOnCheckedChangeListener { _, isChecked ->
-            handleBatteryOptimizationToggle(isChecked)
-        }
-        
-        // Light sensor toggle switch
-        switchLightSensor.setOnCheckedChangeListener { _, isChecked ->
-            handleLightSensorToggle(isChecked)
-        }
-        
-        // Light sensor sensitivity slider
-        sliderLightSensitivity.addOnChangeListener { _, value, _ ->
-            handleLightSensitivityChange(value)
-        }
-        
-        // Light sensor lock switch
-        switchLightSensorLocked.setOnCheckedChangeListener { _, isChecked ->
-            handleLightSensorLockToggle(isChecked)
-        }
-        
-        // Eye strain reminder toggle
-        switchEyeStrainReminder.setOnCheckedChangeListener { _, isChecked ->
-            handleEyeStrainReminderToggle(isChecked)
-        }
-        
-        // Notification style radio group
-        radioGroupNotificationStyle.setOnCheckedChangeListener { _, checkedId ->
-            handleNotificationStyleChange(checkedId)
-        }
-    }
-    
     private fun handleOverlayToggle(isEnabled: Boolean) {
-        Log.d(TAG, "handleOverlayToggle: isEnabled=$isEnabled")
-        
         if (isEnabled) {
-            // Check permission before enabling
-            val hasPermission = hasOverlayPermission()
-            Log.d(TAG, "handleOverlayToggle: hasPermission=$hasPermission")
-            
+            val hasPermission = permissionCoordinator.hasOverlayPermission(this)
             if (hasPermission) {
-                Log.d(TAG, "handleOverlayToggle: Starting overlay service")
-                startOverlayService()
-                preferencesManager.setOverlayEnabled(true)
+                overlayControlCoordinator.startOverlayService()
+                val displayState = displaySettingsViewModel.onOverlayToggled(true)
                 logAnalyticsSafely { repository ->
-                    repository.logOverlayToggled(true, preferencesManager.getOpacity())
+                    repository.logOverlayToggled(true, displayState.opacity)
                 }
                 updatePermissionUI()
             } else {
-                // Permission not granted, revert toggle and show permission UI
-                Log.w(TAG, "handleOverlayToggle: Permission not granted, reverting toggle")
-                switchOverlay.isChecked = false
-                cardPermission.visibility = View.VISIBLE
+                setPermissionCardVisible(true)
             }
         } else {
-            Log.d(TAG, "handleOverlayToggle: Stopping overlay service")
-            stopOverlayService()
-            preferencesManager.setOverlayEnabled(false)
-            logAnalyticsSafely { repository ->
-                repository.logOverlayToggled(false, preferencesManager.getOpacity())
-            }
-        }
-    }
-    
-    private fun startOverlayService() {
-        Log.d(TAG, "startOverlayService: Creating intent")
-        val intent = Intent(this, RedOverlayService::class.java)
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                Log.d(TAG, "startOverlayService: Starting foreground service (Android O+)")
-                startForegroundService(intent)
+            if (!preferencesManager.isExtraDimEnabled()) {
+                overlayControlCoordinator.stopOverlayService()
             } else {
-                Log.d(TAG, "startOverlayService: Starting service")
-                startService(intent)
+                overlayControlCoordinator.updateExtraDim(
+                    enabled = true,
+                    intensity = preferencesManager.getExtraDimIntensity()
+                )
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "startOverlayService: Error starting service", e)
+            val displayState = displaySettingsViewModel.onOverlayToggled(false)
+            logAnalyticsSafely { repository ->
+                repository.logOverlayToggled(false, displayState.opacity)
+            }
         }
-    }
-    
-    private fun stopOverlayService() {
-        Log.d(TAG, "stopOverlayService: Stopping service")
-        val intent = Intent(this, RedOverlayService::class.java)
-        try {
-            stopService(intent)
-        } catch (e: Exception) {
-            Log.e(TAG, "stopOverlayService: Error stopping service", e)
-        }
-    }
-    
-    private fun updateOverlayOpacity(opacity: Float) {
-        val intent = Intent(this, RedOverlayService::class.java).apply {
-            action = RedOverlayService.ACTION_UPDATE_OPACITY
-            putExtra(RedOverlayService.EXTRA_OPACITY, opacity)
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
-        }
+        refreshDisplayComposeUiState()
     }
     
     private fun handleColorVariantChange(variant: ColorVariant) {
-        Log.d(TAG, "handleColorVariantChange: variant=$variant")
-        
-        // Save color variant to preferences
-        preferencesManager.setColorVariant(variant.name)
-        
-        // Update preview color
-        updateColorPreview(variant)
-        
-        // Update overlay if it's running
-        if (preferencesManager.isOverlayEnabled() && hasOverlayPermission()) {
-            updateOverlayColor(variant)
+        val displayState = displaySettingsViewModel.onColorVariantChanged(variant)
+        if (displayState.isOverlayEnabled && permissionCoordinator.hasOverlayPermission(this)) {
+            overlayControlCoordinator.updateOverlayColor(variant)
         }
-
         logAnalyticsSafely { repository ->
-            repository.logPresetApplied(variant.name, preferencesManager.getOpacity())
+            repository.logPresetApplied(variant.name, displayState.opacity)
         }
+        refreshDisplayComposeUiState()
     }
 
     private fun logAnalyticsSafely(action: suspend (AnalyticsRepository) -> Unit) {
@@ -649,88 +499,49 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
-    private fun updateOverlayColor(variant: ColorVariant) {
-        val intent = Intent(this, RedOverlayService::class.java).apply {
-            action = RedOverlayService.ACTION_UPDATE_COLOR
-            putExtra(RedOverlayService.EXTRA_COLOR_VARIANT, variant.name)
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
-        }
-    }
-    
     private fun handleBatteryOptimizationToggle(isEnabled: Boolean) {
-        Log.d(TAG, "handleBatteryOptimizationToggle: isEnabled=$isEnabled")
-        preferencesManager.setBatteryOptimizationEnabled(isEnabled)
+        wellnessSettingsViewModel.onBatteryOptimizationToggled(isEnabled)
+        refreshWellnessComposeUiState()
     }
     
     private fun handleLightSensorToggle(isEnabled: Boolean) {
-        Log.d(TAG, "handleLightSensorToggle: isEnabled=$isEnabled")
-        preferencesManager.setLightSensorEnabled(isEnabled)
-        
-        // Show/hide light sensor settings
-        layoutLightSensorSettings.visibility = if (isEnabled) View.VISIBLE else View.GONE
-        
-        // Start or stop lux update loop
-        if (isEnabled) {
+        val wellnessState = wellnessSettingsViewModel.onLightSensorToggled(isEnabled)
+        if (wellnessState.isLightSensorEnabled) {
             luxUpdateHandler.post(luxUpdateRunnable)
         } else {
             luxUpdateHandler.removeCallbacks(luxUpdateRunnable)
         }
-        
-        // Notify the service
-        val intent = Intent(this, RedOverlayService::class.java)
-        intent.action = "com.redscreenfilter.LIGHT_SENSOR_CHANGED"
-        startService(intent)
+        overlayControlCoordinator.notifyLightSensorChanged()
+        refreshAutomationComposeUiState()
     }
     
     private fun handleLightSensitivityChange(value: Float) {
-        val sensitivity = when (value.toInt()) {
-            0 -> "low"
-            1 -> "medium"
-            else -> "high"
-        }
-        Log.d(TAG, "handleLightSensitivityChange: sensitivity=$sensitivity")
-        preferencesManager.setLightSensorSensitivity(sensitivity)
-        updateLightSensitivityText(value)
+        wellnessSettingsViewModel.onLightSensitivityChanged(value)
+        refreshAutomationComposeUiState()
     }
     
     private fun handleLightSensorLockToggle(isLocked: Boolean) {
-        Log.d(TAG, "handleLightSensorLockToggle: isLocked=$isLocked")
-        preferencesManager.setLightSensorLocked(isLocked)
+        wellnessSettingsViewModel.onLightSensorLockToggled(isLocked)
+        refreshAutomationComposeUiState()
     }
     
     private fun handleEyeStrainReminderToggle(isEnabled: Boolean) {
-        Log.d(TAG, "handleEyeStrainReminderToggle: isEnabled=$isEnabled")
-        preferencesManager.setEyeStrainReminderEnabled(isEnabled)
-        
-        // Show/hide eye strain settings
-        layoutEyeStrainSettings.visibility = if (isEnabled) View.VISIBLE else View.GONE
-        
-        // Schedule or cancel the reminder worker
-        if (isEnabled) {
+        val wellnessState = wellnessSettingsViewModel.onEyeStrainReminderToggled(isEnabled)
+        if (wellnessState.isEyeStrainReminderEnabled) {
             scheduleEyeStrainReminder()
         } else {
             cancelEyeStrainReminder()
         }
+        refreshWellnessComposeUiState()
     }
     
-    private fun handleNotificationStyleChange(checkedId: Int) {
-        val style = when (checkedId) {
-            R.id.radio_notification_vibration -> "vibration"
-            R.id.radio_notification_silent -> "silent"
-            else -> "sound" // default to sound
-        }
-        Log.d(TAG, "handleNotificationStyleChange: style=$style")
-        preferencesManager.setEyeStrainNotificationStyle(style)
+    private fun handleNotificationStyleChange(style: String) {
+        wellnessSettingsViewModel.onNotificationStyleChanged(style)
+        refreshWellnessComposeUiState()
     }
     
     private fun scheduleEyeStrainReminder() {
-        Log.d(TAG, "scheduleEyeStrainReminder: Scheduling 20-minute reminder worker")
         try {
-            // Schedule a periodic work that runs every 20 minutes
             val reminderWorker = androidx.work.PeriodicWorkRequestBuilder<com.redscreenfilter.worker.EyeStrainReminder>(
                 20, java.util.concurrent.TimeUnit.MINUTES
             ).build()
@@ -741,85 +552,33 @@ class MainActivity : AppCompatActivity() {
                 reminderWorker
             )
         } catch (e: Exception) {
-            Log.e(TAG, "scheduleEyeStrainReminder: Error scheduling worker", e)
+            Log.e(TAG, "scheduleEyeStrainReminder: Error", e)
         }
     }
     
     private fun cancelEyeStrainReminder() {
-        Log.d(TAG, "cancelEyeStrainReminder: Cancelling reminder worker")
         try {
             androidx.work.WorkManager.getInstance(this).cancelUniqueWork("eye_strain_reminder")
         } catch (e: Exception) {
-            Log.e(TAG, "cancelEyeStrainReminder: Error cancelling worker", e)
+            Log.e(TAG, "cancelEyeStrainReminder: Error", e)
         }
     }
     
-    private fun updateLightSensitivityText(value: Float) {
-        val sensitivity = when (value.toInt()) {
-            0 -> getString(R.string.light_sensitivity_low)
-            1 -> getString(R.string.light_sensitivity_medium)
-            else -> getString(R.string.light_sensitivity_high)
-        }
-        textLightSensitivityValue.text = sensitivity
-    }
+    private fun hasOverlayPermission(): Boolean = permissionCoordinator.hasOverlayPermission(this)
     
-    private fun updateOpacityText(percentage: Int) {
-        textOpacityValue.text = getString(R.string.opacity_value_format, percentage)
-    }
+    private fun requestOverlayPermission() = permissionCoordinator.requestOverlayPermission(this)
     
-    private fun hasOverlayPermission(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Settings.canDrawOverlays(this)
-        } else {
-            true // Permission not required on Android < M
-        }
-    }
-    
-    private fun requestOverlayPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val intent = Intent(
-                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                Uri.parse("package:$packageName")
-            )
-            startActivity(intent)
-        }
-    }
-    
-    private fun updatePermissionUI() {
-        if (hasOverlayPermission()) {
-            cardPermission.visibility = View.GONE
-        } else {
-            cardPermission.visibility = View.VISIBLE
-        }
-    }
+    private fun updatePermissionUI() = setPermissionCardVisible(!hasOverlayPermission())
 
     private fun requestRuntimePermissions() {
-        if (!hasOverlayPermission()) {
-            requestOverlayPermission()
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if (!hasOverlayPermission()) requestOverlayPermission()
+        if (permissionCoordinator.shouldRequestPostNotifications(this)) {
             postNotificationsPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
 
     private fun requestLocationPermissionsIfNeeded() {
-        val fineLocationGranted = ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-
-        val coarseLocationGranted = ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-
-        if (!fineLocationGranted || !coarseLocationGranted) {
+        if (!permissionCoordinator.hasLocationPermissions(this)) {
             locationPermissionLauncher.launch(
                 arrayOf(
                     Manifest.permission.ACCESS_FINE_LOCATION,
@@ -831,269 +590,242 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
-    // ========== Scheduling Methods ==========
-    
     private fun handleSchedulingToggle(isEnabled: Boolean) {
-        Log.d(TAG, "handleSchedulingToggle: isEnabled=$isEnabled")
-        schedulingManager.setScheduleEnabled(isEnabled)
-        
-        // Show/hide time pickers
-        layoutTimePickers.visibility = if (isEnabled) View.VISIBLE else View.GONE
-        
-        // Schedule or cancel WorkManager periodic work
-        if (isEnabled) {
-            Log.d(TAG, "handleSchedulingToggle: Scheduling WorkManager periodic work")
-            WorkScheduler.schedulePeriodicWork(this)
-            checkAndApplySchedule()
+        val automationState = automationSettingsViewModel.onSchedulingToggled(isEnabled)
+        if (automationState.isSchedulingEnabled) {
+            scheduleCoordinator.onSchedulingToggled(this, true)
         } else {
-            Log.d(TAG, "handleSchedulingToggle: Cancelling WorkManager periodic work")
-            WorkScheduler.cancelPeriodicWork(this)
+            scheduleCoordinator.onSchedulingToggled(this, false)
         }
+        refreshAutomationComposeUiState()
     }
     
     private fun showStartTimePicker() {
         val (hour, minute) = schedulingManager.getStartTimeComponents()
-        
         TimePickerDialog(this, { _, selectedHour, selectedMinute ->
-            // Save the new time
-            val timeString = schedulingManager.formatTime(selectedHour, selectedMinute)
-            schedulingManager.setSchedule(timeString, preferencesManager.getScheduleEndTime())
-            
-            // Update button text
-            buttonStartTime.text = timeString
-            
-            // Check if schedule state changed
+            automationSettingsViewModel.onStartTimeChanged(selectedHour, selectedMinute)
             checkAndApplySchedule()
-            
-            Log.d(TAG, "showStartTimePicker: Start time set to $timeString")
+            refreshAutomationComposeUiState()
         }, hour, minute, true).show()
     }
     
     private fun showEndTimePicker() {
         val (hour, minute) = schedulingManager.getEndTimeComponents()
-        
         TimePickerDialog(this, { _, selectedHour, selectedMinute ->
-            // Save the new time
-            val timeString = schedulingManager.formatTime(selectedHour, selectedMinute)
-            schedulingManager.setSchedule(preferencesManager.getScheduleStartTime(), timeString)
-            
-            // Update button text
-            buttonEndTime.text = timeString
-            
-            // Check if schedule state changed
+            automationSettingsViewModel.onEndTimeChanged(selectedHour, selectedMinute)
             checkAndApplySchedule()
-            
-            Log.d(TAG, "showEndTimePicker: End time set to $timeString")
+            refreshAutomationComposeUiState()
         }, hour, minute, true).show()
     }
     
     private fun checkAndApplySchedule() {
-        if (!schedulingManager.isScheduleEnabled()) {
-            return
-        }
-        
-        val shouldBeActive = schedulingManager.getScheduledState()
-        val isCurrentlyActive = preferencesManager.isOverlayEnabled()
-        
-        Log.d(TAG, "checkAndApplySchedule: shouldBeActive=$shouldBeActive, isCurrentlyActive=$isCurrentlyActive")
-        
-        if (shouldBeActive && !isCurrentlyActive && hasOverlayPermission()) {
-            // Schedule says overlay should be active, but it's not
-            Log.d(TAG, "checkAndApplySchedule: Activating overlay per schedule")
-            switchOverlay.isChecked = true
-            startOverlayService()
-            preferencesManager.setOverlayEnabled(true)
-        } else if (!shouldBeActive && isCurrentlyActive) {
-            // Schedule says overlay should be inactive, but it's active
-            Log.d(TAG, "checkAndApplySchedule: Deactivating overlay per schedule")
-            switchOverlay.isChecked = false
-            stopOverlayService()
-            preferencesManager.setOverlayEnabled(false)
-        }
+        val automationState = automationSettingsViewModel.loadState()
+        if (!automationState.isSchedulingEnabled) return
+        scheduleCoordinator.applyScheduleNow(this)
+        refreshDisplayComposeUiState()
+        refreshAutomationComposeUiState()
     }
-    
-    // ========== Location Scheduling Methods ==========
+
+    private fun onDisplayOpacityChanged(progress: Int) {
+        val displayState = displaySettingsViewModel.onOpacityChanged(progress)
+        if (displayState.isOverlayEnabled && permissionCoordinator.hasOverlayPermission(this)) {
+            overlayControlCoordinator.updateOverlayOpacity(displayState.opacity)
+        }
+        refreshDisplayComposeUiState()
+    }
+
+    private fun onDisplayOpacityChangeFinished(progress: Int) {
+        val finalOpacity = progress / 100f
+        logAnalyticsSafely { repository -> repository.logOpacityChanged(finalOpacity) }
+    }
+
+    private fun setPermissionCardVisible(visible: Boolean) {}
+
+    private fun refreshDisplayComposeUiState() {
+        val displayState = displaySettingsViewModel.loadState()
+        displayComposeUiState = DisplayComposeUiState(
+            isOverlayEnabled = displayState.isOverlayEnabled,
+            opacityPercentage = displayState.opacityPercentage,
+            selectedColorVariant = displayState.colorVariant,
+            showPermissionCard = !permissionCoordinator.hasOverlayPermission(this)
+        )
+    }
+
+    private fun refreshAutomationComposeUiState(luxOverride: String? = null) {
+        val automationState = automationSettingsViewModel.loadState()
+        val wellnessState = wellnessSettingsViewModel.loadState()
+        val luxLabel = luxOverride ?: getString(R.string.current_lux_label).replace("--", LightSensorManager.getInstance(this).getCurrentLux().toInt().toString())
+        automationComposeUiState = AutomationComposeUiState(
+            isSchedulingEnabled = automationState.isSchedulingEnabled,
+            startTime = automationState.scheduleStartLabel,
+            endTime = automationState.scheduleEndLabel,
+            isLocationSchedulingEnabled = automationState.isLocationSchedulingEnabled,
+            isLocationLoading = isLocationLoading,
+            sunsetTime = automationState.sunsetTime ?: "--:--",
+            sunriseTime = automationState.sunriseTime ?: "--:--",
+            locationOffsetMinutes = automationState.locationOffsetMinutes,
+            isLightSensorEnabled = wellnessState.isLightSensorEnabled,
+            lightSensitivityValue = wellnessState.lightSensitivityValue,
+            lightSensitivityLabel = getLightSensitivityLabel(wellnessState.lightSensitivityValue),
+            currentLuxLabel = luxLabel,
+            isLightSensorLocked = wellnessState.isLightSensorLocked
+        )
+    }
+
+    private fun refreshBrightnessComposeUiState() {
+        val brightnessState = brightnessSettingsViewModel.loadState()
+        brightnessComposeUiState = BrightnessComposeUiState(
+            brightnessPercentage = brightnessState.brightnessPercentage,
+            hasSystemBrightnessPermission = true,
+            isExtraDimEnabled = brightnessState.isExtraDimEnabled,
+            extraDimIntensityPercentage = brightnessState.extraDimIntensityPercentage
+        )
+    }
+
+    private fun handleExtraDimToggle(isEnabled: Boolean) {
+        val brightnessState = brightnessSettingsViewModel.onExtraDimToggled(isEnabled)
+        if (isEnabled) {
+            if (permissionCoordinator.hasOverlayPermission(this)) {
+                overlayControlCoordinator.startOverlayService()
+            } else {
+                requestOverlayPermission()
+            }
+        } else if (!preferencesManager.isOverlayEnabled()) {
+            overlayControlCoordinator.stopOverlayService()
+        }
+        overlayControlCoordinator.updateExtraDim(isEnabled, brightnessState.extraDimIntensity)
+        refreshBrightnessComposeUiState()
+    }
+
+    private fun handleExtraDimIntensityChanged(percentage: Int) {
+        val brightnessState = brightnessSettingsViewModel.onExtraDimIntensityChanged(percentage)
+        if (brightnessState.isExtraDimEnabled) {
+            overlayControlCoordinator.updateExtraDim(true, brightnessState.extraDimIntensity)
+        }
+        refreshBrightnessComposeUiState()
+    }
+
+    private fun refreshWellnessComposeUiState() {
+        val wellnessState = wellnessSettingsViewModel.loadState()
+        wellnessComposeUiState = WellnessComposeUiState(
+            isBatteryOptimizationEnabled = wellnessState.isBatteryOptimizationEnabled,
+            isEyeStrainReminderEnabled = wellnessState.isEyeStrainReminderEnabled,
+            notificationStyle = wellnessState.notificationStyle
+        )
+    }
+
+    private fun refreshOverlayVisibilityComposeUiState() {
+        overlayVisibilityComposeUiState = OverlayVisibilityComposeUiState(
+            hideOnLockScreen = preferencesManager.shouldHideOverlayOnLockScreen(),
+            hideOnHomeScreen = preferencesManager.shouldHideOverlayOnHomeScreen()
+        )
+    }
+
+    private fun handleHideOverlayOnLockScreenToggle(isEnabled: Boolean) {
+        preferencesManager.setHideOverlayOnLockScreen(isEnabled)
+        refreshOverlayVisibilityComposeUiState()
+        overlayControlCoordinator.startOverlayService()
+    }
+
+    private fun handleHideOverlayOnHomeScreenToggle(isEnabled: Boolean) {
+        preferencesManager.setHideOverlayOnHomeScreen(isEnabled)
+        refreshOverlayVisibilityComposeUiState()
+        overlayControlCoordinator.startOverlayService()
+    }
+
+    private fun refreshAppExemptionUiState() {
+        appExemptionComposeUiState = appExemptionComposeUiState.copy(
+            hasUsageStatsPermission = permissionCoordinator.hasUsageStatsPermission(this)
+        )
+    }
+
+    private fun handleLocationOffsetChange(offsetMinutes: Int) {
+        automationSettingsViewModel.onLocationOffsetChanged(offsetMinutes)
+        updateCalculatedTimes()
+        refreshAutomationComposeUiState()
+    }
+
+    private fun handleNotificationStyleChangeByValue(style: String) = handleNotificationStyleChange(style)
+
+    private fun getLightSensitivityLabel(value: Float): String = when (value.toInt()) {
+        0 -> getString(R.string.light_sensitivity_low)
+        1 -> getString(R.string.light_sensitivity_medium)
+        else -> getString(R.string.light_sensitivity_high)
+    }
     
     private fun handleLocationSchedulingToggle(isEnabled: Boolean) {
-        Log.d(TAG, "handleLocationSchedulingToggle: isEnabled=$isEnabled")
-        schedulingManager.setLocationScheduleEnabled(isEnabled)
-        
-        // Show/hide location settings
-        layoutLocationSettings.visibility = if (isEnabled) View.VISIBLE else View.GONE
-        
-        // If enabled, ensure we have location data
-        if (isEnabled) {
-            val cachedLocation = locationManager.getCachedLocation()
-            if (cachedLocation == null) {
-                Log.d(TAG, "handleLocationSchedulingToggle: No cached location, requesting new location")
-                requestLocationPermissionsIfNeeded()
-            } else {
-                updateCalculatedTimes()
-            }
+        val automationState = automationSettingsViewModel.onLocationSchedulingToggled(isEnabled)
+        if (automationState.isLocationSchedulingEnabled) {
+            if (locationManager.getCachedLocation() == null) requestLocationPermissionsIfNeeded()
+            else updateCalculatedTimes()
         }
+        refreshAutomationComposeUiState()
     }
     
-    private fun requestLocationPermissionAndUpdate() {
-        requestLocationPermissionsIfNeeded()
-    }
+    private fun requestLocationPermissionAndUpdate() = requestLocationPermissionsIfNeeded()
     
     private fun requestLocationAndUpdate() {
-        Log.d(TAG, "requestLocationAndUpdate: Requesting location")
-        
-        buttonGetLocation.isEnabled = false
-        buttonGetLocation.text = "Getting location..."
-        
+        isLocationLoading = true
+        refreshAutomationComposeUiState()
         locationManager.requestLocation(
-            onSuccess = { latitude, longitude ->
-                Log.d(TAG, "requestLocationAndUpdate: Success - lat=$latitude, lon=$longitude")
+            onSuccess = { _, _ ->
                 runOnUiThread {
-                    buttonGetLocation.isEnabled = true
-                    buttonGetLocation.text = getString(R.string.location_get_location)
+                    isLocationLoading = false
                     updateCalculatedTimes()
-                    
-                    Snackbar.make(
-                        findViewById(android.R.id.content),
-                        "Location updated successfully",
-                        Snackbar.LENGTH_SHORT
-                    ).show()
+                    refreshAutomationComposeUiState()
                 }
             },
-            onError = { error ->
-                Log.e(TAG, "requestLocationAndUpdate: Error - $error")
+            onError = { _ ->
                 runOnUiThread {
-                    buttonGetLocation.isEnabled = true
-                    buttonGetLocation.text = getString(R.string.location_get_location)
-                    
-                    Snackbar.make(
-                        findViewById(android.R.id.content),
-                        "Failed to get location: $error",
-                        Snackbar.LENGTH_LONG
-                    ).show()
+                    isLocationLoading = false
+                    refreshAutomationComposeUiState()
                 }
             }
         )
     }
     
     private fun updateCalculatedTimes() {
-        val sunsetTime = schedulingManager.getCalculatedSunsetTime()
-        val sunriseTime = schedulingManager.getCalculatedSunriseTime()
-        
-        if (sunsetTime != null && sunriseTime != null) {
-            textSunsetTime.text = sunsetTime
-            textSunriseTime.text = sunriseTime
-        } else {
-            textSunsetTime.text = "--:--"
-            textSunriseTime.text = "--:--"
-        }
+        automationSettingsViewModel.loadState()
+        refreshAutomationComposeUiState()
     }
     
-    private fun updateLocationOffsetText(offsetMinutes: Int) {
-        textLocationOffsetValue.text = getString(R.string.location_offset_value, offsetMinutes)
-    }
-    
-    private fun setupSectionTabs() {
-        val sections = listOf(sectionDisplay, sectionAutomation, sectionWellness)
-        settingsTabs.addOnButtonCheckedListener { _, checkedId, isChecked ->
-            if (!isChecked) return@addOnButtonCheckedListener
-            val target = when (checkedId) {
-                R.id.tab_automation -> sectionAutomation
-                R.id.tab_wellness -> sectionWellness
-                else -> sectionDisplay
-            }
-            switchToSection(target, sections)
-        }
-
-        settingsTabs.check(R.id.tab_display)
-        switchToSection(sectionDisplay, sections)
-    }
-
-    private fun switchToSection(target: View, sections: List<View>) {
-        sections.forEach { section ->
-            if (section == target) {
-                if (!section.isVisible) {
-                    section.alpha = 0f
-                    section.visibility = View.VISIBLE
-                }
-                section.animate()
-                    .alpha(1f)
-                    .setDuration(240)
-                    .setInterpolator(sectionInterpolator)
-                    .start()
-            } else if (section.isVisible) {
-                section.animate()
-                    .alpha(0f)
-                    .setDuration(200)
-                    .setInterpolator(sectionInterpolator)
-                    .withEndAction { section.visibility = View.GONE }
-                    .start()
+    private fun loadAnalyticsData() {
+        analyticsComposeUiState = analyticsComposeUiState.copy(isLoading = true, hasError = false)
+        lifecycleScope.launch {
+            try {
+                val period = analyticsComposeUiState.selectedPeriod
+                val periodStats = analyticsRepository.getPeriodStats(period)
+                analyticsComposeUiState = analyticsComposeUiState.copy(
+                    usageTime = periodStats.usageTime,
+                    averageOpacityText = getString(R.string.opacity_percent, (periodStats.averageOpacity * 100).toInt()),
+                    mostUsedPreset = periodStats.mostUsedPreset,
+                    currentStreakText = getString(R.string.streak_days, periodStats.currentStreak),
+                    totalEventsText = getString(R.string.total_events_count, periodStats.totalEvents),
+                    isLoading = false
+                )
+            } catch (e: Exception) {
+                analyticsComposeUiState = analyticsComposeUiState.copy(isLoading = false, hasError = true)
             }
         }
     }
 
-    private fun animateSettingsEntrance() {
-        scrollSettings.alpha = 0f
-        scrollSettings.translationY = 36f
-        scrollSettings.animate()
-            .alpha(1f)
-            .translationY(0f)
-            .setDuration(420)
-            .setInterpolator(sectionInterpolator)
-            .start()
+    private fun loadPeriodStats(period: AnalyticsPeriod) {
+        analyticsComposeUiState = analyticsComposeUiState.copy(selectedPeriod = period)
+        loadAnalyticsData()
     }
 
-    private fun setupBottomNavigation() {
-        // Set settings as default selected item
-        bottomNavigation.selectedItemId = R.id.menu_settings
-        
-        // Handle navigation item selection
-        bottomNavigation.setOnItemSelectedListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.menu_settings -> {
-                    Log.d(TAG, "Settings tab selected")
-                    showSettingsFragment()
-                    true
-                }
-                R.id.menu_analytics -> {
-                    Log.d(TAG, "Analytics tab selected")
-                    showAnalyticsFragment()
-                    true
-                }
-                else -> false
-            }
+    private fun loadApps() {
+        lifecycleScope.launch {
+            appExemptionComposeUiState = appExemptionComposeUiState.copy(isLoading = true)
+            val apps = exemptedAppsManager.getInstalledApps()
+            appExemptionComposeUiState = appExemptionComposeUiState.copy(isLoading = false, apps = apps)
         }
     }
-    
-    private fun showSettingsFragment() {
-        // Show settings ScrollView
-        scrollSettings.visibility = View.VISIBLE
-        fragmentContainer.visibility = View.GONE
-        // Hide analytics fragment if visible
-        supportFragmentManager.findFragmentByTag("analytics_fragment")?.let {
-            supportFragmentManager.beginTransaction()
-                .hide(it)
-                .commit()
-        }
-        animateSettingsEntrance()
-    }
-    
-    private fun showAnalyticsFragment() {
-        // Hide settings ScrollView
-        scrollSettings.visibility = View.GONE
-        fragmentContainer.visibility = View.VISIBLE
-        
-        // Create or show analytics fragment
-        val fragmentManager = supportFragmentManager
-        val existingFragment = fragmentManager.findFragmentByTag("analytics_fragment")
-        
-        if (existingFragment != null) {
-            fragmentManager.beginTransaction()
-                .show(existingFragment)
-                .commit()
-        } else {
-            val analyticsFragment = AnalyticsFragment()
-            fragmentManager.beginTransaction()
-                .add(R.id.fragment_container, analyticsFragment, "analytics_fragment")
-                .commit()
+
+    private fun searchApps(query: String) {
+        lifecycleScope.launch {
+            val results = exemptedAppsManager.searchApps(query)
+            appExemptionComposeUiState = appExemptionComposeUiState.copy(apps = results)
         }
     }
 }

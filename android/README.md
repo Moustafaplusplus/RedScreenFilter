@@ -81,7 +81,7 @@ app/src/main/
 - AndroidX libraries (core, appcompat)
 - Material Components
 - WorkManager (for scheduling)
-- Jetpack Compose or XML layouts (TBD)
+- Jetpack Compose + Material 3 (Compose-first UI)
 
 ## Build & Run
 
@@ -105,6 +105,13 @@ cd android
 - **DozeMode**: WorkManager handles scheduling across doze states
 - **Memory**: Overlay is lightweight canvas-based rendering, not resource-intensive
 - **Battery**: Service is disabled when app backgrounded (unless scheduled active)
+
+## UI Architecture Status
+
+- Compose-first UI is active for settings sections, analytics, and app exemption screens.
+- Legacy XML fallback for analytics/app exemption has been decommissioned.
+- `viewBinding`/`dataBinding` generation has been removed from the app module.
+- Remaining XML in `activity_main.xml` and included settings layouts is retained as host structure for in-place Compose sections.
 
 ## Testing
 

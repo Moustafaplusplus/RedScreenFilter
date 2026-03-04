@@ -2,11 +2,10 @@ package com.redscreenfilter.service
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.util.Log
 import android.view.View
-import com.redscreenfilter.data.ColorVariant
+import com.redscreenfilter.core.model.ColorVariant
 
 /**
  * OverlayView - Custom View for Red Screen Overlay
@@ -19,10 +18,16 @@ class OverlayView(context: Context) : View(context) {
     
     private val TAG = "OverlayView"
     
-    private val paint = Paint().apply {
-        color = ColorVariant.RED_STANDARD.colorValue
+    private val redPaint = Paint().apply {
         style = Paint.Style.FILL
-        alpha = 128 // Default 50% opacity (128/255)
+        color = ColorVariant.RED_STANDARD.colorValue
+        alpha = 128
+    }
+
+    private val dimPaint = Paint().apply {
+        style = Paint.Style.FILL
+        color = 0xFF000000.toInt()
+        alpha = 0
     }
     
     init {
@@ -36,9 +41,17 @@ class OverlayView(context: Context) : View(context) {
     fun setOpacity(opacity: Float) {
         val clampedOpacity = opacity.coerceIn(0.0f, 1.0f)
         val alphaValue = (clampedOpacity * 255).toInt()
-        paint.alpha = alphaValue
-        Log.d(TAG, "setOpacity: opacity=$opacity, alpha=$alphaValue")
+        redPaint.alpha = alphaValue
+        Log.d(TAG, "setOpacity: opacity=$opacity, clampedOpacity=$clampedOpacity, alpha=$alphaValue, paintAlpha=${redPaint.alpha}")
         invalidate() // Request redraw
+    }
+
+    fun setDimOpacity(opacity: Float) {
+        val clampedOpacity = opacity.coerceIn(0.0f, 1.0f)
+        val alphaValue = (clampedOpacity * 255).toInt()
+        dimPaint.alpha = alphaValue
+        Log.d(TAG, "setDimOpacity: opacity=$opacity, clampedOpacity=$clampedOpacity, alpha=$alphaValue, paintAlpha=${dimPaint.alpha}")
+        invalidate()
     }
     
     /**
@@ -46,8 +59,10 @@ class OverlayView(context: Context) : View(context) {
      * @param color Integer color value (e.g., Color.RED, Color.argb(...))
      */
     fun setOverlayColor(color: Int) {
-        paint.color = color
-        Log.d(TAG, "setOverlayColor: color=$color")
+        val currentAlpha = redPaint.alpha
+        redPaint.color = color
+        redPaint.alpha = currentAlpha
+        Log.d(TAG, "setOverlayColor: color=$color, preservedAlpha=$currentAlpha")
         invalidate()
     }
     
@@ -56,15 +71,19 @@ class OverlayView(context: Context) : View(context) {
      * @param variant ColorVariant enum value
      */
     fun setColorVariant(variant: ColorVariant) {
-        paint.color = variant.colorValue
-        Log.d(TAG, "setColorVariant: variant=${variant.displayName}, color=${variant.colorValue}")
+        val currentAlpha = redPaint.alpha
+        // Extract RGB and set alpha to 255 so paint.alpha controls transparency
+        val colorWithFullAlpha = (variant.colorValue and 0x00FFFFFF) or 0xFF000000.toInt()
+        redPaint.color = colorWithFullAlpha
+        redPaint.alpha = currentAlpha
+        Log.d(TAG, "setColorVariant: variant=${variant.displayName}, color=${String.format("0x%08X", colorWithFullAlpha)}, paintAlpha=${redPaint.alpha}")
         invalidate()
     }
     
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        // Draw full-screen red rectangle
-        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
-        Log.d(TAG, "onDraw: width=$width, height=$height, alpha=${paint.alpha}")
+        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), redPaint)
+        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), dimPaint)
+        Log.d(TAG, "onDraw: width=$width, height=$height, redAlpha=${redPaint.alpha}, dimAlpha=${dimPaint.alpha}")
     }
 }

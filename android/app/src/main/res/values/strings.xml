@@ -18,6 +18,14 @@
     <string name="opacity_max">100%</string>
     <string name="opacity_value_default">Current Opacity: 50%</string>
     <string name="opacity_value_format">Current Opacity: %d%%</string>
+    <string name="brightness_title">Device Brightness</string>
+    <string name="brightness_value_format">%d%%</string>
+    <string name="brightness_permission_required">To control system brightness across the device, grant Modify system settings permission.</string>
+    <string name="grant_brightness_permission">Grant Brightness Permission</string>
+    <string name="extra_dim_title">Extra Dim Mode</string>
+    <string name="extra_dim_subtitle">Add a dark overlay for deeper dimming</string>
+    <string name="extra_dim_intensity_title">Extra Dim Intensity</string>
+    <string name="extra_dim_intensity_value_format">%d%%</string>
     
     <!-- Permission Strings -->
     <string name="permission_required">Permission Required</string>
@@ -27,8 +35,10 @@
     <!-- Info Strings -->
     <string name="info_message">Red screen filter helps reduce blue light and eye strain during night time usage</string>
     <string name="tab_display">Display</string>
+    <string name="tab_brightness">Brightness</string>
     <string name="tab_automation">Automation</string>
     <string name="tab_wellness">Wellness</string>
+    <string name="tab_visibility">Visibility</string>
     <string name="hero_hint">Night comfort profiles switch automatically when you change sections.</string>
     
     <!-- Scheduling Strings -->
@@ -60,9 +70,17 @@
     <string name="color_variant_subtitle">Choose the color variant that works best for you</string>
     <string name="color_red_standard">Red Standard - For standard vision</string>
     <string name="color_red_orange">Red-Orange - Better for protanopia</string>
+    <string name="color_amber_warm">Amber Warm - Softer for long reading</string>
     <string name="color_red_pink">Red-Pink - Better for deuteranopia</string>
     <string name="color_high_contrast">High Contrast - Maximum visibility</string>
+    <string name="color_deep_maroon">Deep Maroon - Reduced glare at night</string>
     <string name="color_preview">Color Preview:</string>
+
+    <!-- Overlay Visibility Strings -->
+    <string name="hide_overlay_lockscreen_title">Hide Overlay on Lock Screen</string>
+    <string name="hide_overlay_lockscreen_subtitle">Temporarily disable overlay when the device is locked</string>
+    <string name="hide_overlay_homescreen_title">Hide Overlay on Home Screen</string>
+    <string name="hide_overlay_homescreen_subtitle">Disable overlay while viewing the launcher home screen</string>
     
     <!-- Battery Optimization Strings -->
     <string name="battery_optimization_title">Battery Awareness</string>

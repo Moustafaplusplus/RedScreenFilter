@@ -64,14 +64,18 @@ class SchedulingManager private constructor(private val context: Context) {
         
         // Check if using location-based scheduling
         if (isLocationScheduleEnabled()) {
-            return getLocationBasedScheduledState()
+            val locationInRange = getLocationBasedScheduledState()
+            Log.d(TAG, "getScheduledState: Location-based state: $locationInRange")
+            return locationInRange
         }
         
         // Use manual time-based scheduling
         val startTime = preferencesManager.getScheduleStartTime()
         val endTime = preferencesManager.getScheduleEndTime()
         
-        return isCurrentTimeInRange(startTime, endTime)
+        val timeInRange = isCurrentTimeInRange(startTime, endTime)
+        Log.d(TAG, "getScheduledState: Manual time-based state: $timeInRange")
+        return timeInRange
     }
     
     /**
@@ -97,7 +101,10 @@ class SchedulingManager private constructor(private val context: Context) {
         val location = locationManager.getCachedLocation()
         if (location == null) {
             Log.w(TAG, "getLocationBasedScheduledState: No cached location, falling back to manual schedule")
-            return false
+            // Fallback to manual schedule if location is enabled but not available
+            val startTime = preferencesManager.getScheduleStartTime()
+            val endTime = preferencesManager.getScheduleEndTime()
+            return isCurrentTimeInRange(startTime, endTime)
         }
         
         val (latitude, longitude) = location
@@ -118,16 +125,19 @@ class SchedulingManager private constructor(private val context: Context) {
         // Get current time
         val currentMillis = System.currentTimeMillis()
         
-        // Check if current time is between sunset and sunrise
-        val isInRange = if (adjustedSunriseMillis > adjustedSunsetMillis) {
-            // Normal case: sunset is before sunrise (same day)
-            currentMillis >= adjustedSunsetMillis && currentMillis < adjustedSunriseMillis
+        // If adjusted sunrise is after adjusted sunset, it means the period is within the SAME day
+        // (e.g. 18:00 to 06:00 where 06:00 is next day)
+        // Correct logic for "Night" (between sunset and sunrise):
+        val isInRange = if (adjustedSunriseMillis < adjustedSunsetMillis) {
+            // Sunrise is earlier in the day than sunset (Normal day)
+            // Night is BEFORE sunrise OR AFTER sunset
+            currentMillis < adjustedSunriseMillis || currentMillis >= adjustedSunsetMillis
         } else {
-            // Sunset is after sunrise (crosses midnight)
-            currentMillis >= adjustedSunsetMillis || currentMillis < adjustedSunriseMillis
+            // Sunrise is later than sunset (Shouldn't normally happen for same-day calc unless polar)
+            currentMillis >= adjustedSunsetMillis && currentMillis < adjustedSunriseMillis
         }
         
-        Log.d(TAG, "getLocationBasedScheduledState: sunset=${sunsetMillis}, sunrise=${sunriseMillis}, offset=${offsetMinutes}min, inRange=$isInRange")
+        Log.d(TAG, "getLocationBasedScheduledState: current=$currentMillis, sunset=$adjustedSunsetMillis, sunrise=$adjustedSunriseMillis, inRange=$isInRange")
         
         return isInRange
     }

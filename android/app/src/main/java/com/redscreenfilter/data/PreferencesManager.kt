@@ -31,6 +31,11 @@ class PreferencesManager private constructor(context: Context) {
         private const val KEY_BATTERY_OPTIMIZATION = "battery_optimization"
         private const val KEY_ORIGINAL_OPACITY_PRE_BATTERY = "original_opacity_pre_battery"
         private const val KEY_IS_BATTERY_REDUCED = "is_battery_reduced"
+        private const val KEY_SCREEN_BRIGHTNESS = "screen_brightness"
+        private const val KEY_EXTRA_DIM_ENABLED = "extra_dim_enabled"
+        private const val KEY_EXTRA_DIM_INTENSITY = "extra_dim_intensity"
+        private const val KEY_HIDE_OVERLAY_ON_LOCKSCREEN = "hide_overlay_on_lockscreen"
+        private const val KEY_HIDE_OVERLAY_ON_HOMESCREEN = "hide_overlay_on_homescreen"
         
         // Light sensor keys
         private const val KEY_LIGHT_SENSOR_ENABLED = "light_sensor_enabled"
@@ -105,6 +110,48 @@ class PreferencesManager private constructor(context: Context) {
 
     fun getOpacity(): Float {
         return sharedPreferences.getFloat(KEY_OPACITY, 0.5f)
+    }
+
+    fun setScreenBrightness(brightness: Float) {
+        val clampedBrightness = brightness.coerceIn(0.01f, 1.0f)
+        sharedPreferences.edit().putFloat(KEY_SCREEN_BRIGHTNESS, clampedBrightness).apply()
+    }
+
+    fun getScreenBrightness(): Float {
+        return sharedPreferences.getFloat(KEY_SCREEN_BRIGHTNESS, 0.5f)
+    }
+
+    fun setExtraDimEnabled(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_EXTRA_DIM_ENABLED, enabled).apply()
+    }
+
+    fun isExtraDimEnabled(): Boolean {
+        return sharedPreferences.getBoolean(KEY_EXTRA_DIM_ENABLED, false)
+    }
+
+    fun setExtraDimIntensity(intensity: Float) {
+        val clampedIntensity = intensity.coerceIn(0.0f, 1.0f)
+        sharedPreferences.edit().putFloat(KEY_EXTRA_DIM_INTENSITY, clampedIntensity).apply()
+    }
+
+    fun getExtraDimIntensity(): Float {
+        return sharedPreferences.getFloat(KEY_EXTRA_DIM_INTENSITY, 0.35f)
+    }
+
+    fun setHideOverlayOnLockScreen(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_HIDE_OVERLAY_ON_LOCKSCREEN, enabled).apply()
+    }
+
+    fun shouldHideOverlayOnLockScreen(): Boolean {
+        return sharedPreferences.getBoolean(KEY_HIDE_OVERLAY_ON_LOCKSCREEN, false)
+    }
+
+    fun setHideOverlayOnHomeScreen(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_HIDE_OVERLAY_ON_HOMESCREEN, enabled).apply()
+    }
+
+    fun shouldHideOverlayOnHomeScreen(): Boolean {
+        return sharedPreferences.getBoolean(KEY_HIDE_OVERLAY_ON_HOMESCREEN, false)
     }
     
     // ========== Scheduling Settings ==========

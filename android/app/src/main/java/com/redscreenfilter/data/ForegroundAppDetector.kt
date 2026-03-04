@@ -48,10 +48,11 @@ class ForegroundAppDetector(private val context: Context) {
             }
             
             val currentTime = System.currentTimeMillis()
-            val timeRange = TimeUnit.MINUTES.toMillis(1)
+            // Increase range slightly for better reliability if no recent events
+            val timeRange = TimeUnit.MINUTES.toMillis(2)
             val startTime = currentTime - timeRange
             
-            // Query usage stats for the last minute
+            // Query usage stats for the last 2 minutes
             val usageEvents = usageStatsManager?.queryEvents(startTime, currentTime)
             
             var lastEventTime = 0L
@@ -72,6 +73,15 @@ class ForegroundAppDetector(private val context: Context) {
                 }
             }
             
+            // Fallback: If no RESUMED events found in the window, use queryUsageStats
+            if (foregroundPackage == null) {
+                val stats = usageStatsManager?.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, currentTime)
+                if (stats != null && stats.isNotEmpty()) {
+                    foregroundPackage = stats.maxByOrNull { it.lastTimeUsed }?.packageName
+                    Log.d(TAG, "getForegroundAppPackage: Fallback to queryUsageStats found: $foregroundPackage")
+                }
+            }
+            
             Log.d(TAG, "getForegroundAppPackage: Foreground app=$foregroundPackage")
             foregroundPackage
         } catch (e: Exception) {
@@ -83,7 +93,7 @@ class ForegroundAppDetector(private val context: Context) {
     /**
      * Check if we have permission to access usage stats
      */
-    private fun hasUsageStatsPermission(): Boolean {
+    fun hasUsageStatsPermission(): Boolean {
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 appOpsManager?.unsafeCheckOpNoThrow(

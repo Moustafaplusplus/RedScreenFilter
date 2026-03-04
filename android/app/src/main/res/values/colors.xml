@@ -21,6 +21,11 @@
     <color name="surface_tint">#26FFFFFF</color>
     <color name="divider_dim">#19FFFFFF</color>
     <color name="nav_outline">#40FFFFFF</color>
+    
+    <!-- Border colors for 3D effects -->
+    <color name="border_highlight">#50FFFFFF</color>
+    <color name="border_shadow">#30000000</color>
+    <color name="card_border_glow">#40FF1B3C</color>
 
     <!-- Overlay tint -->
     <color name="red_overlay">#B0FF1B3C</color>
