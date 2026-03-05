@@ -2,7 +2,13 @@
 
 ## Overview
 
-Red Screen Filter includes a comprehensive set of features focused on health, accessibility, and smart automation. All features listed below are cross-platform supported (Android & iOS).
+Red Screen Filter includes a comprehensive set of features focused on health, accessibility, and smart automation.
+
+### ⚠️ Platform Differences
+
+**Android**: Full-featured system-wide red screen overlay using native system overlay capabilities.
+
+**iOS**: In-app red overlay with scheduling reminders, smart features, and analytics. System-wide overlay not possible due to iOS sandbox architecture. See [iOS Limitations](../ios/IMPLEMENTATION_PLAN.md#ios-limitations) for details.
 
 ## Feature Catalog
 
@@ -10,13 +16,13 @@ Red Screen Filter includes a comprehensive set of features focused on health, ac
 
 Essential functionality for the app's primary purpose.
 
-| Feature | Description | Android | iOS | Status |
-|---------|-------------|---------|-----|--------|
-| **Red Screen Overlay** | Customizable red-tinted overlay with opacity control | ✅ | ✅ | Core |
-| **Quick Toggle** | One-tap on/off from home screen | ✅ | ✅ | Core |
-| **Settings UI** | Intuitive settings interface for configuration | ✅ | ✅ | Core |
-| **Basic Scheduling** | Manual time-based start/end scheduling | ✅ | ✅ | Phase 1 |
-| **Persistence** | Settings saved across sessions and app backgrounding | ✅ | ✅ | Core |
+| Feature | Description | Android | iOS | Status | Notes |
+|---------|-------------|---------|-----|--------|-------|
+| **Red Screen Overlay** | Customizable red-tinted overlay with opacity control | ✅ System-wide | ✅ In-app only | Core | iOS overlay appears only within the app; disappears when switching apps |
+| **Quick Toggle** | One-tap on/off from home screen | ✅ Quick Tile | ⚠ Widget/Shortcut | Core | iOS can open app or use Siri Shortcut |
+| **Settings UI** | Intuitive settings interface for configuration | ✅ | ✅ | Core | - |
+| **Basic Scheduling** | Manual time-based start/end scheduling | ✅ | ⚠ Notifications only | Phase 1 | iOS sends reminders at scheduled times; requires manual app opening |
+| **Persistence** | Settings saved across sessions | ✅ | ✅ | Core | iOS persists user settings, but in-app overlay doesn't persist across app backgrounding |
 
 ---
 
@@ -31,10 +37,10 @@ Essential functionality for the app's primary purpose.
 - Users can cycle through presets
 - Accessibility-focused feature
 
-| | Android | iOS |
-|---|---------|-----|
-| **Implementation** | Presets stored in `OverlaySettings` | SwiftUI color picker integration |
-| **Persistence** | SharedPreferences | UserDefaults |
+| | Android | iOS | Notes |
+|---|---------|-----|-------|
+| **Implementation** | Presets stored in `OverlaySettings` | SwiftUI color picker integration | Both platforms support color variants |
+| **Persistence** | SharedPreferences (encrypted) | UserDefaults | iOS variants apply in-app only |
 
 **Activity Presets** ⭐ *Low Complexity*
 - Pre-configured profiles for different scenarios:
@@ -45,9 +51,9 @@ Essential functionality for the app's primary purpose.
   - **Custom**: User-defined settings
 - One-tap activation from main UI
 
-| | Android | iOS |
-|---|---------|-----|
-| **Data Storage** | `PreferencesManager` with profile serialization | Codable structs in UserDefaults |
+| | Android | iOS | Notes |
+|---|---------|-----|-------|
+| **Data Storage** | `PreferencesManager` with profile serialization | Codable structs in UserDefaults | Both support identical preset model |
 | **UI Pattern** | Horizontal carousel or tab-based | SwiftUI segmented picker |
 
 ---
@@ -67,8 +73,9 @@ Essential functionality for the app's primary purpose.
   - Service scheduled with `WorkManager`
 - **iOS**:
   - `CoreLocation` for coordinates
-  - `SunriseSunset` API or local calculation library
-  - Background task scheduling
+  - Local calculation library for solar equations
+  - Sends `UNUserNotificationCenter` reminders at calculated time
+  - ⚠ No automatic UI overlay at sunset (sends notification only)
 
 | Setting | Default | Range |
 |---------|---------|-------|
@@ -89,6 +96,10 @@ Essential functionality for the app's primary purpose.
 **Implementation**:
 - **Android**: `AlarmManager` + `BroadcastReceiver` for precise 20-min intervals
 - **iOS**: `UNUserNotificationCenter` scheduled notifications
+
+**Platform Differences**:
+- Android overlay automatically hides for calls via TelecomManager
+- iOS notifications may be delivered during calls (user can snooze)
 
 **Configuration**:
 ```
@@ -203,14 +214,15 @@ Essential functionality for the app's primary purpose.
 
 ### 🔒 Privacy & Control (Phase 1-2)
 
-**Selective App Exemptions** ⭐ *Medium Complexity*
-- Disable overlay for specific apps:
-  - Camera app (avoid color issues with photos)
-  - Banking apps (security reasons)
-  - Photography/editing apps
-  - Video streaming (optional)
-- Toggle per-app exemptions in settings
-- List of installed apps with checkboxes
+**Selective App Exemptions** ⚠ *Android Only*
+- **Android**: ✅ Fully supported
+  - Disable overlay for specific apps (Camera, Banking, etc.)
+  - Uses `UsageStatsManager` + `PACKAGE_USAGE_STATS` permission
+  - Toggle per-app exemptions in settings
+- **iOS**: ❌ Not Possible
+  - iOS prevents apps from detecting which app is currently active
+  - No method to hide overlay for specific apps
+  - App Store policy prohibits this anyway
 
 **Do Not Disturb Integration** ⭐ *Low Complexity*
 - Respect system DND mode by default
@@ -265,8 +277,8 @@ Essential functionality for the app's primary purpose.
 | Sunset/Sunrise | Medium | 2 | ✅ | ✅ | 12h |
 | Ambient Light Sensing | Medium | 2 | ✅ | ✅ | 10h |
 | Voice Commands | Medium | 2 | ✅ | ✅ | 8h |
-| Selective App Exemptions | Medium | 2 | ✅ | ✅ | 12h |
-| Daily/Weekly Reports | Medium | 2 | ✅ | ✅ | 16h |
+| Selective App Exemptions | Medium | 2 | ✅ Android | ❌ iOS | 12h | iOS cannot detect active app |
+| Daily/Weekly Reports | Medium | 2 | ✅ | ✅ | 16h | Both support analytics |
 
 ---
 

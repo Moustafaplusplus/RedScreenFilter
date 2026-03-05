@@ -4,12 +4,23 @@ Complete step-by-step implementation roadmap for Red Screen Filter iOS app (Swif
 
 ## Project Overview
 
-**Target**: Full-featured red screen overlay app with health-focused features
+**Target**: Eye health companion app combining in-app red overlay + system-wide color filtering via iOS native features
 **Language**: Swift 5.9+
 **Framework**: SwiftUI + Combine
 **Min OS**: iOS 14.0+
 **Architecture**: MVVM with reactive state management
-**App Groups**: group.com.redscreenfilter (for background persistence)
+**App Groups**: group.com.redscreenfilter (for session persistence)
+
+### 🎯 System-Wide Filtering Strategy
+**Approach**: Siri Shortcuts wrapper around iOS's built-in accessibility features
+- iOS provides system-wide **Color Filters** (native accessibility feature)
+- We create **convenient Siri Shortcuts** that trigger these filters
+- Users can add shortcuts to Control Center for one-tap access
+- Result: System-wide color filtering without custom overlay limitations
+- See [Siri Shortcuts Integration](#phase-65-75---siri-shortcuts-for-system-wide-control) and [iOS Limitations](#ios-limitations) for details
+
+### ⚠️ iOS Limitation (In-App Overlay)
+**iOS does NOT support custom system-wide overlays** that appear over other apps (unlike Android's `SYSTEM_ALERT_WINDOW`). The in-app overlay works **only while the user is within the RedScreenFilter app**. When user switches to Safari, Messages, Camera, etc., the overlay disappears. For system-wide filtering, use the Siri Shortcuts approach (see above).
 
 ---
 
@@ -75,37 +86,33 @@ Complete step-by-step implementation roadmap for Red Screen Filter iOS app (Swif
 
 ---
 
-### Phase 10-30% - Core Overlay Window Layer
-**Objective**: Functional red overlay that can be toggled on/off using UIWindow
+### Phase 10-20% - In-App Red Overlay & Main UI
+**Objective**: Functional red overlay that works within the app (when user is in RedScreenFilter)
 
-#### 10-15% - UIWindow Overlay Base
-- [ ] Create `OverlayWindowManager.swift`
-  - Class manages overlay UIWindow lifecycle
-  - Creates `UIWindow` with `UIWindowLevelStatusBar + 1` window level
-  - Overlay view controller with red background view
+#### 10-15% - In-App Overlay Implementation
+- [ ] Create `OverlayView.swift` (SwiftUI)
+  - Full-screen red rectangle with configurable opacity
+  - Overlay appears only while in the app
   - Methods:
     - `showOverlay(opacity: Float)`
     - `hideOverlay()`
     - `updateOpacity(Float)`
-    - Properties: `isVisible: Bool`, `currentOpacity: Float`
+  - Properties: `isVisible: Bool`, `currentOpacity: Float`
+  - Uses ZStack to layer overlay above content
+  - Color variants: Red Standard, Red-Orange, Red-Pink, High Contrast
 
-- [ ] Create `OverlayViewController.swift`
-  - UIViewController subclass
-  - Root view is red rectangle view
-  - `isUserInteractionEnabled = false` on overlay view (passes touches through)
-  - Updates color with alpha based on opacity parameter
-  - Color: `UIColor(red: 1.0, green: 0, blue: 0, alpha: opacity)`
+- [ ] Implement overlay in MainView
+  - Root view with overlay as top layer
+  - Allow interaction with controls beneath overlay
+  - Smooth transitions on toggle
 
-- [ ] Ensure overlay appears across all screens
-  - Set window's `windowScene`
-  - Make window `keyWindow` and visible
-  - Correct z-ordering
+**Note**: Overlay **does NOT persist** when user switches to other apps. This is an iOS architectural limitation, not a bug.
 
-**Deliverable**: Red overlay appears on screen when toggled
+**Deliverable**: Red overlay appears on screen within app, opacity adjustable
 
-#### 15-20% - Reactive ViewModel & PreferencesManager
+#### 15-20% - Reactive State Management & Settings UI
 - [ ] Create `PreferencesManager.swift`
-  - Uses UserDefaults with App Groups container
+  - Uses UserDefaults (standard, not App Groups - UI-only)
   - Methods:
     - `setOverlayEnabled(_ enabled: Bool)`
     - `isOverlayEnabled() -> Bool`
@@ -113,7 +120,7 @@ Complete step-by-step implementation roadmap for Red Screen Filter iOS app (Swif
     - `getOpacity() -> Float`
     - Observes changes for reactive updates
   - Implement as singleton
-  - Use `@Published` properties if Combine integration
+  - Use `@Published` properties for Combine integration
 
 - [ ] Create `OverlaySettings.swift` Codable model
   ```swift
@@ -131,47 +138,41 @@ Complete step-by-step implementation roadmap for Red Screen Filter iOS app (Swif
 
 - [ ] Create `OverlayViewModel.swift` (MVVM ViewModel)
   - Manages overlay state with @Published properties
-  - Properties: `isEnabled`, `opacity`, `settings`
-  - Methods: `toggleOverlay()`, `updateOpacity(Float)`
+  - Properties: `isEnabled`, `opacity`, `settings`, `currentPreset`
+  - Methods: `toggleOverlay()`, `updateOpacity(Float)`, `applyPreset(PresetProfile)`
   - Observes PreferencesManager changes
-  - Coordinates with OverlayWindowManager
+  - Reactive UI updates
 
-**Deliverable**: Reactive state management working, preferences persist
-
-#### 20-30% - SwiftUI MainView & Settings
-- [ ] Create `MainView.swift` (SwiftUI root view)
-  - Tab-based navigation (or NavigationStack)
+- [ ] Create `MainView.swift` (SwiftUI root)
+  - Tab-based navigation
   - Tab 1: Main overlay control
-  - Tab 2: Settings
-  - Tab 3: Analytics (placeholder)
+  - Tab 2: Presets
+  - Tab 3: Settings
+  - Tab 4: Analytics
 
 - [ ] Create main overlay control view
   - Large toggle button (on/off)
-  - OpenActivity slider for opacity (0-100%)
+  - Opacity slider (0-100%)
   - Current opacity display
   - Quick preset buttons
-  - Visual feedback
+  - In-app red overlay preview
 
 - [ ] Create `SettingsView.swift`
-  - Basic settings form
-  - Toggle for overlay enable/disable
-  - Opacity slider duplication
-  - Placeholder sections for future features
-  - Linked to OverlayViewModel
+  - Schedule settings (time-based)
+  - Location-based scheduling (sunset/sunrise)
+  - Battery optimization toggle
+  - Ambient light sensing toggle
+  - 20-20-20 reminder settings
+  - Color variant picker
 
-- [ ] Implement app lifecycle
-  - `@UIApplicationDelegateAdaptor` in RedScreenFilterApp
-  - Initialize OverlayWindowManager on app launch
-  - Restore overlay state on comeback from background
-
-**Deliverable**: Full UI for toggle and settings, all connected to state
+**Deliverable**: Full UI for toggle, settings, presets all connected to reactive state
 
 ---
 
-### Phase 30-50% - Background Scheduling Engine
-**Objective**: Automatic on/off based on time, with persistence across app backgrounding
+### Phase 20-35% - Scheduling & Location Services
+**Objective**: Time-based and sunset/sunrise scheduling with notifications
 
-#### 30-35% - Basic Time-Based Scheduling
+#### 20-25% - Basic Time-Based Scheduling
 - [ ] Create `SchedulingService.swift`
   - Methods:
     - `determineOverlayState() -> Bool` - checks if overlay should be active
@@ -249,14 +250,14 @@ Complete step-by-step implementation roadmap for Red Screen Filter iOS app (Swif
   - Display calculated times (e.g., "Sunset: 6:15 PM")
   - Button to manually refresh location
 
-**Deliverable**: Overlay schedules based on device location's sunset/sunrise
+**Deliverable**: Time and location-based scheduling logic complete
 
 ---
 
-### Phase 50-65% - Customization & Presets
+### Phase 35-50% - Customization & Presets
 **Objective**: Multiple screen modes and color variants
 
-#### 50-55% - Activity Presets System
+#### 35-40% - Activity Presets System
 - [ ] Create `PresetProfile.swift` model
   ```swift
   struct PresetProfile: Identifiable, Codable {
@@ -297,7 +298,7 @@ Complete step-by-step implementation roadmap for Red Screen Filter iOS app (Swif
 
 **Deliverable**: Users can switch between and customize presets
 
-#### 55-65% - Color Blindness Presets
+#### 40-50% - Color Blindness Presets
 - [ ] Define ColorVariant enum with values:
   ```swift
   enum ColorVariant: String, Codable {
@@ -339,10 +340,10 @@ Complete step-by-step implementation roadmap for Red Screen Filter iOS app (Swif
 
 ---
 
-### Phase 65-80% - Smart Features with Sensors & Battery
+### Phase 50-65% - Smart Features with Sensors & Battery
 **Objective**: Battery awareness, light sensing, health reminders
 
-#### 65-70% - Battery Awareness
+#### 50-55% - Battery Awareness
 - [ ] Enable battery monitoring
   - `UIDevice.current.isBatteryMonitoringEnabled = true`
   - Read `UIDevice.current.batteryLevel` (0.0-1.0)
@@ -369,9 +370,9 @@ Complete step-by-step implementation roadmap for Red Screen Filter iOS app (Swif
   - Threshold slider: 10-30%
   - Status indicator: "Battery: 15% (optimized)"
 
-**Deliverable**: Overlay reduces intensity automatically on low battery
+**Deliverable**: Notifications warn user on low battery
 
-#### 70-75% - Ambient Light Sensing with AVFoundation
+#### 55-60% - Ambient Light Sensing with AVFoundation
 - [ ] Create `LightSensorManager.swift`
   - Uses `AVCaptureDevice` to read ambient light level
   - Alternative: Use `ARKit` for light estimation (more reliable)
@@ -401,9 +402,9 @@ Complete step-by-step implementation roadmap for Red Screen Filter iOS app (Swif
   - Current lux reading display (debug)
   - Manual override to lock current opacity
 
-**Deliverable**: Overlay auto-adjusts based on ambient light
+**Deliverable**: Notifications adjust based on ambient light sensor
 
-#### 75-80% - 20-20-20 Eye Strain Reminders
+#### 60-65% - 20-20-20 Eye Strain Reminders
 - [ ] Create `EyeStrainReminderService.swift`
   - Uses `UNUserNotificationCenter` for scheduling notifications
   - Schedule notifications every 20 minutes
@@ -434,10 +435,10 @@ Complete step-by-step implementation roadmap for Red Screen Filter iOS app (Swif
 
 ---
 
-### Phase 80-92% - User Experience & Accessibility
+### Phase 65-80% - User Experience & Accessibility
 **Objective**: Quick access, voice control, widgets
 
-#### 80-85% - Lock Screen Widget with WidgetKit
+#### 65-70% - Lock Screen Widget with WidgetKit
 - [ ] Create new Widget Extension target
   - File > New > Target > Widget Extension
   - Widget name: "Red Screen Control"
@@ -458,63 +459,91 @@ Complete step-by-step implementation roadmap for Red Screen Filter iOS app (Swif
 - [ ] Implement widget configuration (optional)
   - Allow user to choose between minimal/detailed view
 
-**Deliverable**: Lock screen widget shows status and allows quick toggle
+**Deliverable**: Lock screen widget shows status and opens app
 
-#### 85-90% - Siri Shortcuts Integration
-- [ ] Create Siri Shortcuts via Intent Framework
-  - Define custom intents in `Intents.intentdefinition` file
-  - Intent: "Toggle Red Screen Filter"
-  - Intent: "Set Red Filter Opacity"
-  - Intent: "Apply Red Filter Preset"
+#### 70-75% - Siri Shortcuts for System-Wide Control
+**Objective**: Enable system-wide color filtering via iOS native accessibility features
 
-- [ ] Implement intent handler in main app
-  - Handle intent execution
-  - Update overlay state
-  - Return confirmation message
+- [ ] Understand iOS Color Filters architecture
+  - Built-in system accessibility feature (Settings → Accessibility → Display & Text Size → Color Filters)
+  - Already system-wide (appears over all apps)
+  - Pre-configured color options: Protanopia, Deuteranopia, Tritanopia, etc.
+  - Our app creates **shortcuts that trigger these native filters**
 
-- [ ] Create app shortcuts (iOS 17.1+)
-  - Available through Settings > Siri & Search
-  - "Turn on red screen filter"
-  - "Set opacity to 50%"
-  - "Apply sleep mode"
+- [ ] Create Siri Shortcuts for color filter control
+  - **Shortcut 1: "Enable Red Filter Sleep Mode"**
+    - Opens iOS Settings app
+    - Navigates to Accessibility → Display & Text Size → Color Filters
+    - Enables Color Tint with warm/red settings
+    - Returns to RedScreenFilter app
+  - **Shortcut 2: "Disable Color Filter"**
+    - Opens Settings
+    - Disables active color filter
+    - Returns to app
+  - **Shortcut 3: "Enable Color Filter - Work Mode"** (softer variant)
+    - Similar but with professional/neutral tint
+
+- [ ] Create launcher UI in MainView
+  - **"Enable System-Wide Red Filter"** button
+    - Taps shortcut to enable OS Color Filters
+    - Shows user instructions first time
+    - One-tap system-wide red tinting
+  - **"Add to Control Center"** button
+    - Instructions to add shortcuts to iOS Control Center
+    - Users can then toggle with one tap from anywhere
+    - Works from lock screen
+  - **Tutorial section**
+    - Step-by-step with screenshots
+    - How to use shortcuts from Control Center
+    - How to set automation (time-based triggers)
+
+- [ ] Implement shortcut launcher in code
+  ```swift
+  // When user taps "Enable Red Filter" button
+  func triggerColorFilterShortcut() {
+      guard let url = URL(string: "shortcuts://run-shortcut/?name=Enable%20Red%20Filter%20Sleep%20Mode") else { return }
+      UIApplication.shared.open(url)
+  }
+  ```
+
+- [ ] Handle shortcut automation
+  - iOS Shortcuts app supports **Automation** triggers
+  - User can set: "At 9 PM, run shortcut to enable red filter"
+  - User can set: "At 7 AM, run shortcut to disable red filter"
+  - All handled by iOS Shortcuts app, not our app
+
+- [ ] Provide shareable shortcuts (iCloud)
+  - Generate **iCloud links** to pre-configured shortcuts
+  - Users tap link → Adds shortcut to their Shortcuts app
+  - One-tap addition (no manual configuration needed)
+
+**Key Advantage**: 
+- ✅ System-wide (works over all apps)
+- ✅ On lock screen (one-tap from anywhere)
+- ✅ Can be automated with iOS Shortcuts automation
+- ✅ No custom overlay limitations
+- ⚠️ Requires user action to add shortcut to Control Center first
+
+**Deliverable**: Users can enable system-wide red filtering with one tap via Control Center shortcut
+
+#### 75-80% - Additional Siri Voice Commands (Optional)
+- [ ] Create custom Intent handlers for voice control of in-app features
+  - Intent: "Set red filter opacity to 50%" (controls in-app overlay)
+  - Intent: "Apply sleep preset" (controls in-app overlay settings)
+  - These are app-level shortcuts, not system-wide
 
 - [ ] Test with voice
-  - "Hey Siri, turn on red screen filter"
-  - "Hey Siri, red screen to 80%"
+  - "Hey Siri, red filter 80%"
+  - "Hey Siri, apply movie mode"
 
-**Deliverable**: Users can control via Siri voice commands
-
-#### 90-92% - Selective App Exemptions
-- [ ] Create `ExemptedAppsManager.swift`
-  - Maintain list of bundle IDs to exempt
-  - Serialize to JSON in UserDefaults (App Groups)
-  - CRUD operations
-
-- [ ] Create exemption UI
-  - Query installed apps via `LSApplicationWorkspace` (limited in iOS)
-  - Alternative: Hardcoded list of common apps (Camera, Photos, Banking apps)
-  - RecyclerView-like UI with toggle switches
-  - Search functionality to filter apps
-
-- [ ] Detect foreground app (limited iOS options)
-  - Use `UsageStatsManager` equivalent (Scene Delegate + UIWindow observation)
-  - Monitor active scene to detect app changes
-  - iOS limitations: Cannot access other apps' lifecycles directly
-  - Fallback: Manual app blacklist
-
-- [ ] Integrate with overlay service
-  - Before showing overlay, check if current app is exempted
-  - Skip overlay display for exempted apps
-  - Resume overlay after app changes
-
-**Deliverable**: Overlay can be disabled for specific apps
+**Deliverable**: Voice control for in-app overlay features
 
 ---
 
-### Phase 92-98% - Analytics & Persistence
+### Phase 75-85% - Analytics & Persistence
 **Objective**: Usage tracking with local database, insights dashboard
 
-#### 92-95% - Core Data Database Setup
+#### 80-85% - Core Data Database Setup
 - [ ] Create Core Data model (`RedScreenFilter.xcdatamodeld`)
   - Entity: `UsageEvent`
     - Properties: `timestamp: Date`, `overlayEnabled: Bool`, `opacity: Float`, `preset: String`
@@ -544,7 +573,7 @@ Complete step-by-step implementation roadmap for Red Screen Filter iOS app (Swif
 
 **Deliverable**: All usage tracked in local database with query support
 
-#### 95-98% - Analytics Dashboard UI
+#### 85-90% - Analytics Dashboard UI
 - [ ] Create `AnalyticsView.swift`
   - Tab-based view: Today / Week / Month
   - Display statistics:
@@ -623,11 +652,10 @@ Complete step-by-step implementation roadmap for Red Screen Filter iOS app (Swif
   - iOS 14.0, 15.0, 16.0, 17.0+
   - Test on physical device (iPhone 12+ recommended)
 
-- [ ] Verify background behavior
-  - Kill app from app switcher
-  - Verify overlay persists via App Groups
-  - Verify scheduling works without app running
-  - Restart device and check state restoration
+- [ ] Test notification and reminder behavior
+  - Verify scheduled notifications fire at correct times
+  - Verify scheduling continues when app backgrounded
+  - Test location-based reminders work
 
 - [ ] UI/UX Polish
   - Ensure responsive animations
@@ -645,71 +673,113 @@ Complete step-by-step implementation roadmap for Red Screen Filter iOS app (Swif
 
 ---
 
-## Implementation Timeline
+---
 
-| Phase | % | Tasks | Est. Time | Priority |
-|-------|---|-------|-----------|----------|
-| 0-5% | 5 | Xcode project creation | 20 min | CRITICAL |
-| 5-10% | 5 | Structure & entitlements | 1.5 hours | CRITICAL |
-| 10-15% | 5 | UIWindow overlay base | 2 hours | CRITICAL |
-| 15-20% | 5 | ViewModel & preferences | 1.5 hours | CRITICAL |
-| 20-30% | 10 | SwiftUI MainView & settings | 2.5 hours | CRITICAL |
-| 30-35% | 5 | Basic scheduling logic | 1 hour | HIGH |
-| 35-40% | 5 | Background task scheduling | 1.5 hours | HIGH |
-| 40-50% | 10 | Sunrise/sunset with CoreLocation | 3 hours | HIGH |
-| 50-55% | 5 | Preset system | 1.5 hours | HIGH |
-| 55-65% | 10 | Color blindness variants | 2 hours | MEDIUM |
-| 65-70% | 5 | Battery awareness | 1 hour | MEDIUM |
-| 70-75% | 5 | Ambient light sensing | 1.5 hours | MEDIUM |
-| 75-80% | 5 | 20-20-20 reminders | 1.5 hours | MEDIUM |
-| 80-85% | 5 | Lock screen widget | 1.5 hours | LOW |
-| 85-90% | 5 | Siri Shortcuts | 1.5 hours | LOW |
-| 90-92% | 2 | App exemptions | 1.5 hours | MEDIUM |
-| 92-95% | 3 | Core Data setup & logging | 2 hours | LOW |
-| 95-98% | 3 | Analytics dashboard UI | 2 hours | LOW |
-| 98-100% | 2 | Permissions & final polish | 1.5 hours | CRITICAL |
-| **TOTAL** | **100%** | **32 tasks** | **~31 hours** | — |
+## iOS Limitations
+
+**⚠️ Critical Architectural Differences from Android**
+
+### System-Wide Overlay: NOT POSSIBLE
+- **Android**: `SYSTEM_ALERT_WINDOW` permission allows overlay above all apps
+- **iOS**: Apps are sandboxed; cannot draw outside their window hierarchy
+- **Reality**: Red overlay appears **only while user is in RedScreenFilter app**
+- **When user switches apps**: Overlay disappears immediately (Safari, Camera, Messages, etc.)
+- **App Store Policy**: Explicitly prohibits interfering with other apps' UI
+
+### Foreground App Detection: NOT POSSIBLE  
+- **Android**: `UsageStatsManager` + `PACKAGE_USAGE_STATS` permission enables app exemptions
+- **iOS**: No public API to detect which app is currently active
+- **Reality**: Cannot distinguish between apps or hide overlay for specific apps
+- **Feature Impact**: App exemption feature impossible on iOS
+
+### Background Overlay: NOT POSSIBLE
+- **Android**: Foreground service maintains overlay while app backgrounded
+- **iOS**: All UI rendering suspended when app backgrounded
+- **Reality**: Overlay only exists while user is actively in the app
+- **Background Tasks**: Can run scheduled work (notifications, API calls) but **cannot** display visual overlays
+
+### Programmatic System Settings: NOT POSSIBLE
+- **What works**: User can manually enable iOS built-in Color Filters (Settings → Accessibility → Display & Text Size → Color Filters)
+- **What doesn't work**: App **cannot** automatically toggle system settings
+- **Workaround**: Provide Siri Shortcuts that users manually add to Control Center (requires user tap each time)
+- **Our approach**: Educational guide directing users to native iOS accessibility features
+
+### App Groups Limitations
+- Uses standard UserDefaults (not encrypted like EncryptedSharedPreferences on Android)
+- Cannot share overlay window state across processes
+- Useful only for widget timeline data exchange
+
+---
+
+## Implementation Timeline (Revised)
+
+| Phase | % | Tasks | Est. Time | Priority | Notes |
+|-------|---|-------|-----------|----------|-------|
+| 0-5% | 5 | Xcode project creation | 20 min | CRITICAL | - |
+| 5-10% | 5 | Project structure & entitlements | 1 hour | CRITICAL | Simpler setup (no background modes) |
+| 10-15% | 5 | In-app overlay implementation | 2 hours | CRITICAL | Overlay works only within app |
+| 15-20% | 5 | ViewModel & settings UI | 1.5 hours | CRITICAL | - |
+| 20-25% | 5 | Time-based scheduling logic | 1 hour | HIGH | Sends notifications at scheduled times |
+| 25-35% | 10 | Location & sunset/sunrise scheduling | 3 hours | HIGH | Uses CoreLocation + astronomy calculations |
+| 35-40% | 5 | Preset system (Work, Gaming, Movie, Sleep) | 1.5 hours | HIGH | - |
+| 40-50% | 10 | Color variants & accessibility presets | 2 hours | MEDIUM | 6 color variants for different needs |
+| 50-55% | 5 | Battery awareness & notifications | 1 hour | MEDIUM | Warns user on low battery |
+| 55-60% | 5 | Ambient light sensing | 1.5 hours | MEDIUM | Uses AVCaptureDevice or ARKit |
+| 60-65% | 5 | 20-20-20 eye strain reminders | 1.5 hours | MEDIUM | Scheduled notifications |
+| 65-70% | 5 | Lock screen widget | 1.5 hours | LOW | Status display + open app |
+| 70-75% | 5 | Siri Shortcuts for system-wide control | 2 hours | **HIGH** | Shortcuts + iOS Color Filters |
+| 75-80% | 5 | Optional: Voice commands | 1 hour | LOW | Voice control for in-app features |
+| 80-85% | 5 | Core Data setup & event logging | 2 hours | MEDIUM | Local analytics database |
+| 85-90% | 5 | Analytics dashboard UI | 2 hours | MEDIUM | Usage charts & statistics |
+| 90-100% | 10 | Polish, testing, accessibility | 3 hours | CRITICAL | Dark mode, VoiceOver, performance |
+| **TOTAL** | **100%** | **17 phases** | **~29 hours** | — | Includes system-wide filter control via Shortcuts |
 
 ---
 
 ## Key Milestones & Architecture Decisions
 
-### Milestone 1: MVP (10-30%)
-- ✅ UIWindow overlay appearing
-- ✅ SwiftUI UI responsive
+### Milestone 1: MVP (10-20%)
+- ✅ In-app red overlay working
+- ✅ SwiftUI UI responsive  
 - ✅ Toggle and opacity control working
 - ✅ Settings persist via UserDefaults
-- **Go/No-Go**: Can install, toggle overlay, adjust opacity
+- **Go/No-Go**: Can install, toggle overlay within app, adjust opacity
+- **Important**: Overlay disappears when user leaves the app (this is expected iOS behavior)
 
-### Milestone 2: Background Scheduling (30-50%)
-- ✅ Time-based scheduling works
-- ✅ BGProcessingTask scheduling enabled
-- ✅ Sunrise/sunset auto-calculated
-- **Go/No-Go**: Overlay persists after app backgrounding, auto-toggles
+### Milestone 2: Scheduling & Location (20-35%)
+- ✅ Time-based scheduling sends notifications at scheduled times
+- ✅ Location services work, sunset/sunrise calculated
+- ✅ Notifications appear at schedule time
+- **Go/No-Go**: Scheduling logic works, reminders functional
 
-### Milestone 3: Customization (50-65%)
-- ✅ Multiple presets switchable
-- ✅ Color blindness variants display correctly
-- ✅ All variants apply properly
+### Milestone 3: Customization (35-50%)
+- ✅ Multiple presets selectable
+- ✅ Color variants display with visual preview
+- ✅ Accessible for color-blind users
 - **Go/No-Go**: User experience personalized
 
-### Milestone 4: Smart Features (65-80%)
-- ✅ Battery monitoring active, opacity reduced on low battery
-- ✅ Light sensor reading illuminance correctly
-- ✅ 20-20-20 reminders notifying user
+### Milestone 4: Smart Features (50-65%)
+- ✅ Battery monitoring works, notifications sent on low battery
+- ✅ Ambient light sensor reads lux values
+- ✅ 20-20-20 reminders notify user
 - **Go/No-Go**: Smart automation features working
 
-### Milestone 5: Widgets & Voice (80-92%)
-- ✅ Lock screen widget displaying and toggling
-- ✅ Siri Shortcuts callable and functional
-- ✅ App exemptions list populated
-- **Go/No-Go**: Quick access methods working
+### Milestone 5: System-Wide Control & Shortcuts (65-75%)
+- ✅ Lock screen widget displays app status
+- ✅ Siri Shortcuts launcher created for iOS native Color Filters
+- ✅ Users can add shortcuts to Control Center
+- ✅ System-wide red filtering available via shortcuts
+- **Go/No-Go**: System-wide color filtering working
+- **Capability**: Users get one-tap system-wide red filter from Control Center (via iOS native Color Filters)
 
-### Milestone 6: Analytics & Final (92-100%)
+### Milestone 6: Analytics & Polish (75-100%)
 - ✅ Core Data logging usage events
 - ✅ Analytics dashboard displaying stats
+- ✅ In-app voice commands (optional, for overlay control)
 - ✅ All permissions requested gracefully
-- **Go/No-Go**: Ready for use
+- ✅ Accessibility (VoiceOver) tested
+- ✅ App ready for production
+- **Go/No-Go**: Ready for App Store submission
 
 ---
 
@@ -727,16 +797,44 @@ Complete step-by-step implementation roadmap for Red Screen Filter iOS app (Swif
 - Custom publishers for sensor data (battery, light)
 
 ### Service Layer Pattern
-- `PreferencesManager`: Handles persistence
-- `SchedulingService`: Business logic for scheduling
-- `OverlayWindowManager`: Overlay UI management
+- `PreferencesManager`: Handles persistence (standard UserDefaults)
+- `SchedulingService`: Business logic for scheduling, sends notifications
+- `OverlayView`: Manages in-app red overlay (no system-wide overlay possible)
 - `AnalyticsService`: Data aggregation
 
-### App Groups for Background Persistence
-- Shared container: `group.com.redscreenfilter`
-- UserDefaults reads/writes to shared container
-- CoreData store in App Groups directory
-- Allows background tasks to access app state
+### In-App Overlay vs System-Wide Filtering
+
+**In-App Overlay** (SwiftUI ZStack)
+- Overlay implemented as SwiftUI ZStack layer
+- RED FILTER: Only visible while user is IN RedScreenFilter app
+- Disappears immediately when user switches to other apps (iOS sandbox)
+- Use case: Reading content within the app
+- Advantage: Real-time opacity adjustments, color previews
+- Limitation: Not persistent across apps
+
+**System-Wide Filtering via Siri Shortcuts** (iOS Native Color Filters)
+- RED FILTER: Implemented using iOS's built-in accessibility Color Filters
+- Triggered by Siri Shortcuts launcher in our app
+- System-wide: Appears over ALL apps once enabled
+- User adds shortcut to Control Center for one-tap access
+- Use case: Eye protection across entire device usage
+- Advantage: True system-wide persistence
+- Limitation: Requires user to tap shortcut/Control Center button
+
+**Result**: Users get BOTH capabilities
+1. In-app overlay for quick preview/testing
+2. System-wide red filter via shortcuts for actual use
+
+### Siri Shortcuts for System Accessibility
+- **iOS Color Filters**: Built-in accessibility feature (system-wide)
+- **Shortcut Launcher**: Our app creates shortcuts that trigger iOS Color Filters
+- **User Workflow**: 
+  1. User taps "Enable System Red Filter" in our app
+  2. Shortcut runs → Opens iOS Settings → Navigates to Color Filters → Enables filter → Returns to app
+  3. Red filter now active system-wide
+  4. User can add shortcut to Control Center for faster access
+- **Automation**: iOS Shortcuts app supports time-based automation ("At 9 PM, run shortcut")
+- **No Custom Overlay Required**: Leverages iOS native capabilities instead
 
 ---
 
@@ -751,10 +849,16 @@ Complete step-by-step implementation roadmap for Red Screen Filter iOS app (Swif
 - WidgetKit (lock screen widget)
 - CoreData (database)
 - AVFoundation (light sensing)
+- UserNotifications (scheduled reminders)
+
+**Encrypted Storage Not Available**
+- iOS doesn't provide encrypted UserDefaults equivalent like Android's EncryptedSharedPreferences
+- Consider using Keychain for sensitive data (optional)
+- For this app's non-sensitive settings, standard UserDefaults is appropriate
 
 **Optional External**:
 ```swift
-// Charts for analytics visualization
+// Charts for analytics visualization (same as Android)
 .package(url: "https://github.com/danielgindi/Charts.git", from: "4.0.0")
 
 // Or simpler alternative

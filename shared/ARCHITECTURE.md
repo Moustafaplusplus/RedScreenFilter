@@ -24,49 +24,64 @@ OverlaySettings {
 ```
 
 ### 2. Overlay Rendering
-Both platforms render a red-tinted layer:
+**Android**: Full-screen system overlay
+- Uses `WindowManager` to draw above all apps
 - **Color**: RGB(255, 0, 0) with configurable alpha
-- **Touch Passthrough**: Overlay doesn't block user interaction
-- **Performance**: Minimal CPU/GPU usage with hardware acceleration
+- **Touch Passthrough**: FLAG_NOT_FOCUSABLE, FLAG_NOT_TOUCHABLE
+- **Performance**: Hardware-accelerated, minimal CPU/GPU usage
+- **Behavior**: Updates in real-time, persists across app backgrounding
 
-**Behavior**:
-- Overlay updates in real-time when settings change
-- No flicker or visual glitches
-- Persists across app backgrounding
+**iOS**: In-app overlay only (architectural limitation)
+- Red overlay appears only while user is in RedScreenFilter app
+- Implemented as SwiftUI ZStack layer on top of content
+- Disappears immediately when user switches to other apps
+- This is iOS sandbox security (not a bug or limitation to work around)
 
 ### 3. Scheduling Engine
-Both platforms support automated on/off scheduling:
-- **Time-based**: User sets start/end times (e.g., 9 PM to 7 AM)
-- **Automatic Transitions**: Overlay toggles at configured times
+**Android**: Automated on/off scheduling with system integration
+- **Time-based**: `WorkManager` automatically toggles overlay at configured times
+- **Automatic Transitions**: Overlay turns on/off without user action
 - **Manual Override**: User can manually toggle regardless of schedule
+- **Background Execution**: Works even when app is backgrounded
+
+**iOS**: Notification-based scheduling (reminder approach)
+- **Time-based**: `UNUserNotificationCenter` sends reminders to open the app
+- **User Action Required**: Overlay won't turn on automatically; user must open app
+- **Location-based**: CoreLocation calculates sunset/sunrise, triggers reminders
+- **Manual Toggle**: User opens app and toggles overlay manually
 
 ### 4. Background Persistence
-Both apps maintain overlay state in background:
-- **Android**: `WorkManager` schedules tasks across doze states
-- **iOS**: `BGProcessingTaskRequest` + App Groups for state sharing
-- **Result**: Overlay persists even when app is backgrounded or phone is locked
+**Android**: True background persistence
+- `WorkManager` maintains scheduling across doze states
+- Foreground service keeps overlay active while device in use
+- `WorkManager` survives app kills and device reboots
+- **Result**: Overlay works even with app backgrounded or not running
+
+**iOS**: Limited background capabilities
+- Cannot maintain visual overlay when app backgrounded
+- Can schedule notifications that persist in background
+- `BGProcessingTaskRequest` runs but cannot display UI
+- **Result**: Reminders work in background, but overlay only visible in-app
 
 ## Feature Parity Matrix
 
-| Feature | Android | iOS | Status |
-|---------|---------|-----|---------|
-| Toggle on/off | ✅ | ✅ | Core |
-| Opacity control | ✅ | ✅ | Core |
-| Time-based scheduling | ✅ | ✅ | Phase 1 |
-| Background persistence | ✅ | ✅ | Core |
-| Sunset/sunrise scheduling | ✅ | ✅ | Phase 2 |
-| Activity presets | ✅ | ✅ | Phase 1 |
-| Color blindness presets | ✅ | ✅ | Phase 1 |
-| 20-20-20 reminders | ✅ | ✅ | Phase 2 |
-| Ambient light sensing | ✅ | ✅ | Phase 2 |
-| Battery awareness | ✅ | ✅ | Phase 2 |
-| Quick tile / widget | ✅ | ✅ | Phase 1 |
-| Voice commands | ✅ | ✅ | Phase 2 |
-| Streak tracking | ✅ | ✅ | Phase 2 |
-| Daily/weekly reports | ✅ | ✅ | Phase 2 |
-| Selective app exemptions | ✅ | ✅ | Phase 2 |
-
-**Full feature list available in [FEATURES.md](./FEATURES.md)**
+| Feature | Android | iOS | Status | Notes |
+|---------|---------|-----|---------|-------|
+| Toggle on/off | ✅ | ✅ | Core | Android: persistent; iOS: in-app only |
+| Opacity control | ✅ | ✅ | Core | Both support 0-100% opacity |
+| Time-based scheduling | ✅ | ⚠ | Phase 1 | Android: auto on/off; iOS: reminders to open app |
+| Background persistence | ✅ | ❌ | Core | Android only (foreground service) |
+| Sunset/sunrise scheduling | ✅ | ✅ | Phase 2 | Both use CoreLocation + solar calculations |
+| Activity presets | ✅ | ✅ | Phase 1 | Identical feature set |
+| Color blindness presets | ✅ | ✅ | Phase 1 | 6 variants on both platforms |
+| 20-20-20 reminders | ✅ | ✅ | Phase 2 | Both via notifications |
+| Ambient light sensing | ✅ | ✅ | Phase 2 | Android: SensorManager; iOS: AVCaptureDevice |
+| Battery awareness | ✅ | ✅ | Phase 2 | Both monitor device battery |
+| Quick tile / widget | ✅ | ⚠ | Phase 1 | Android: Quick Settings; iOS: Lock Screen widget (limited) |
+| Voice commands | ✅ | ✅ | Phase 2 | Android: Google Assistant; iOS: Siri |
+| Streak tracking | ✅ | ✅ | Phase 2 | Both support gamification |
+| Daily/weekly reports | ✅ | ✅ | Phase 2 | CoreData (both platforms) |
+| Selective app exemptions | ✅ | ❌ | Phase 2 | iOS cannot detect foreground app |
 
 ## Development Workflow
 
