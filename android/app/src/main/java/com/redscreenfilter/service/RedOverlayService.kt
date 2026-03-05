@@ -407,7 +407,8 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
         }
 
         val redOpacity = if (preferencesManager.isOverlayEnabled()) preferencesManager.getOpacity() else 0f
-        val colorVariant = ColorVariant.fromString(preferencesManager.getColorVariant())
+        val colorVariantString = preferencesManager.getColorVariant()
+        val colorVariant = ColorVariant.fromString(colorVariantString)
         val dimOpacity = if (preferencesManager.isExtraDimEnabled()) preferencesManager.getExtraDimIntensity() else 0f
 
         overlayView?.setColorVariant(colorVariant)
@@ -421,6 +422,7 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
      */
     private fun updateOpacity(opacity: Float) {
         Log.d(TAG, "updateOpacity: Setting opacity to $opacity")
+        preferencesManager.setOpacity(opacity)
         applyCurrentOverlayState()
     }
     
@@ -429,6 +431,7 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
      */
     private fun updateColorVariant(variant: ColorVariant) {
         Log.d(TAG, "updateColorVariant: Setting color to $variant")
+        preferencesManager.setColorVariant(variant.name.lowercase())
         applyCurrentOverlayState()
     }
 
@@ -471,9 +474,9 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
     /**
      * Create persistent notification for foreground service
      */
-    private fun createNotification() = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+    private fun createNotification(statusText: String? = null) = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
         .setContentTitle("Red Screen Filter Active")
-        .setContentText("Tap to open settings")
+        .setContentText(statusText ?: "Tap to open settings")
         .setSmallIcon(R.mipmap.ic_launcher)
         .setContentIntent(
             PendingIntent.getActivity(
@@ -523,15 +526,16 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
         
         val isBatteryReduced = preferencesManager.isBatteryReduced()
         
-        if ((isLow || isCritical) && !isCharging && !isBatteryReduced) {
-            // Battery is low and not charging, reduce opacity
-            reduceBatteryOpacity()
-        } else if (!isLow && !isCritical && isCharging && isBatteryReduced) {
-            // Battery recovered or charging started, restore opacity
-            restoreBatteryOpacity()
-        } else if (!isLow && !isCritical && !isCharging && isBatteryReduced) {
-            // Battery recovered above threshold, restore opacity
-            restoreBatteryOpacity()
+        if ((isLow || isCritical) && !isCharging) {
+            if (!isBatteryReduced) {
+                // Battery is low and not charging, reduce opacity
+                reduceBatteryOpacity()
+            }
+        } else {
+            if (isBatteryReduced) {
+                // Battery recovered or charging started, restore opacity
+                restoreBatteryOpacity()
+            }
         }
         
         // Update notification with battery status
@@ -585,22 +589,7 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
             else -> "Battery: $level%"
         }
         
-        val notification = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-            .setContentTitle("Red Screen Filter Active")
-            .setContentText(statusText)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setContentIntent(
-                PendingIntent.getActivity(
-                    this,
-                    0,
-                    Intent(this, MainActivity::class.java),
-                    PendingIntent.FLAG_IMMUTABLE
-                )
-            )
-            .setOngoing(true)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .build()
-        
+        val notification = createNotification(statusText)
         notificationManager.notify(NOTIFICATION_ID, notification)
     }
     

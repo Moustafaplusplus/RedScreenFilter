@@ -58,7 +58,16 @@ class PermissionCoordinator {
         try {
             activity.startActivity(intent)
         } catch (e: Exception) {
-            activity.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+            // Fallback: Try opening usage access settings without package filter
+            try {
+                activity.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+            } catch (e2: Exception) {
+                // Last resort: Open app settings
+                val appSettingsIntent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = Uri.parse("package:${activity.packageName}")
+                }
+                activity.startActivity(appSettingsIntent)
+            }
         }
     }
 

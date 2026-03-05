@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.redscreenfilter.core.designsystem"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 28

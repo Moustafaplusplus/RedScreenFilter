@@ -449,11 +449,13 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun handleOverlayToggle(isEnabled: Boolean) {
+        // Update preference FIRST to avoid race condition with service start
+        val displayState = displaySettingsViewModel.onOverlayToggled(isEnabled)
+        
         if (isEnabled) {
             val hasPermission = permissionCoordinator.hasOverlayPermission(this)
             if (hasPermission) {
                 overlayControlCoordinator.startOverlayService()
-                val displayState = displaySettingsViewModel.onOverlayToggled(true)
                 logAnalyticsSafely { repository ->
                     repository.logOverlayToggled(true, displayState.opacity)
                 }
@@ -465,12 +467,10 @@ class MainActivity : AppCompatActivity() {
             if (!preferencesManager.isExtraDimEnabled()) {
                 overlayControlCoordinator.stopOverlayService()
             } else {
-                overlayControlCoordinator.updateExtraDim(
-                    enabled = true,
-                    intensity = preferencesManager.getExtraDimIntensity()
-                )
+                // Just update the service to reflect that Red Filter is now OFF (opacity 0)
+                // but keep it running for Extra Dim
+                overlayControlCoordinator.updateOverlayOpacity(0f)
             }
-            val displayState = displaySettingsViewModel.onOverlayToggled(false)
             logAnalyticsSafely { repository ->
                 repository.logOverlayToggled(false, displayState.opacity)
             }

@@ -13,6 +13,9 @@ import java.util.concurrent.TimeUnit
  * 
  * Detects the currently active foreground app using UsageStatsManager.
  * Requires PACKAGE_USAGE_STATS permission.
+ * 
+ * Note: Some devices (particularly Samsung) may restrict this permission
+ * for security/privacy reasons.
  */
 class ForegroundAppDetector(private val context: Context) {
     
@@ -36,6 +39,14 @@ class ForegroundAppDetector(private val context: Context) {
     }
     
     /**
+     * Check if device is Samsung (known to have stricter permission restrictions)
+     */
+    private fun isSamsungDevice(): Boolean {
+        return Build.MANUFACTURER.lowercase().contains("samsung") ||
+               Build.BRAND.lowercase().contains("samsung")
+    }
+    
+    /**
      * Get the currently active foreground app's package name
      * Returns null if unable to determine or if permission is not granted
      */
@@ -43,7 +54,12 @@ class ForegroundAppDetector(private val context: Context) {
         return try {
             // Check if we have permission to access usage stats
             if (!hasUsageStatsPermission()) {
-                Log.w(TAG, "getForegroundAppPackage: No PACKAGE_USAGE_STATS permission")
+                val isSamsung = isSamsungDevice()
+                if (isSamsung) {
+                    Log.w(TAG, "getForegroundAppPackage: No PACKAGE_USAGE_STATS permission (Samsung device with stricter restrictions)")
+                } else {
+                    Log.w(TAG, "getForegroundAppPackage: No PACKAGE_USAGE_STATS permission")
+                }
                 return null
             }
             
@@ -84,6 +100,9 @@ class ForegroundAppDetector(private val context: Context) {
             
             Log.d(TAG, "getForegroundAppPackage: Foreground app=$foregroundPackage")
             foregroundPackage
+        } catch (e: SecurityException) {
+            Log.e(TAG, "getForegroundAppPackage: SecurityException (permission denied by system)", e)
+            null
         } catch (e: Exception) {
             Log.e(TAG, "getForegroundAppPackage: Error detecting foreground app", e)
             null

@@ -57,8 +57,13 @@ fun AppExemptionComposeScreen(
                     verticalArrangement = Arrangement.spacedBy(RsfTheme.spacing.Sm)
                 ) {
                     Text(
-                        text = "Usage Access permission is required to detect the foreground app and hide the overlay automatically.",
-                        style = RsfTheme.typography.bodyMedium,
+                        text = "Usage Access Permission Required",
+                        style = RsfTheme.typography.titleMedium,
+                        color = RsfTheme.colors.onSurface
+                    )
+                    Text(
+                        text = "To automatically hide the overlay when you switch to exempted apps, the app needs 'Usage Access' permission.\n\nOn Samsung devices: If you see 'Access Denied' due to financial info protection, you can manually add apps to the exemption list below instead, or grant the permission in Settings > Apps > Special App Access > Usage Access.",
+                        style = RsfTheme.typography.bodySmall,
                         color = RsfTheme.colors.onSurface
                     )
                     Button(

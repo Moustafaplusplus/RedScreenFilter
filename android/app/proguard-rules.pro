@@ -208,6 +208,9 @@
 # ================================================================================================
 
 -keep class androidx.security.crypto.** { *; }
+-dontwarn com.google.crypto.tink.util.KeysDownloader
+-dontwarn com.google.api.client.http.**
+-dontwarn org.joda.time.Instant
 
 # ================================================================================================
 # REMOVE LOGGING IN RELEASE
