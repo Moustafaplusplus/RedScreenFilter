@@ -56,8 +56,14 @@ class ScheduleWorker(
                 preferencesManager.setOverlayEnabled(true)
             } else if (!shouldBeActive && isCurrentlyActive) {
                 // Schedule says overlay should be inactive, but it's active
-                Log.d(TAG, "doWork: Stopping overlay service per schedule")
-                stopOverlayService()
+                // Only stop if Extra Dim is also disabled
+                val isExtraDimEnabled = preferencesManager.isExtraDimEnabled()
+                if (!isExtraDimEnabled) {
+                    Log.d(TAG, "doWork: Stopping overlay service per schedule")
+                    stopOverlayService()
+                } else {
+                    Log.d(TAG, "doWork: Not stopping service - Extra Dim is enabled")
+                }
                 preferencesManager.setOverlayEnabled(false)
             } else {
                 Log.d(TAG, "doWork: Overlay state matches schedule, no action needed")

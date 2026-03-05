@@ -4,10 +4,16 @@ import androidx.lifecycle.ViewModel
 import com.redscreenfilter.core.model.ColorVariant
 import com.redscreenfilter.data.PreferencesManager
 import com.redscreenfilter.feature.settings.model.DisplaySettingsState
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 
 class DisplaySettingsViewModel(
     private val preferencesManager: PreferencesManager
 ) : ViewModel() {
+
+    // Expose reactive state flows from PreferencesManager
+    val overlayEnabledFlow: StateFlow<Boolean> = preferencesManager.overlayEnabledFlow
+    val opacityFlow: StateFlow<Float> = preferencesManager.opacityFlow
 
     fun loadState(): DisplaySettingsState {
         val opacity = preferencesManager.getOpacity()

@@ -78,6 +78,10 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
         const val ACTION_UPDATE_EXTRA_DIM = "com.redscreenfilter.UPDATE_EXTRA_DIM"
         const val EXTRA_EXTRA_DIM_ENABLED = "extra_dim_enabled"
         const val EXTRA_EXTRA_DIM_INTENSITY = "extra_dim_intensity"
+        const val ACTION_INCREASE_OPACITY = "com.redscreenfilter.INCREASE_OPACITY"
+        const val ACTION_DECREASE_OPACITY = "com.redscreenfilter.DECREASE_OPACITY"
+        const val ACTION_OVERLAY_OPACITY_CHANGED = "com.redscreenfilter.OVERLAY_OPACITY_CHANGED"
+        private const val OPACITY_STEP = 0.15f // 15% adjustment step
     }
     
     override fun onBind(intent: Intent?): IBinder? = null
@@ -147,7 +151,12 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
             Log.d(TAG, "onCreate: Service started successfully")
         } catch (e: Exception) {
             Log.e(TAG, "onCreate: FATAL ERROR during service creation", e)
-            // Stop the service if we can't initialize
+            // Clean up and stop the service if we can't initialize
+            try {
+                stopForeground(true)
+            } catch (ex: Exception) {
+                Log.e(TAG, "onCreate: Error stopping foreground", ex)
+            }
             stopSelf()
         }
     }
@@ -197,6 +206,20 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
             ACTION_STOP_SERVICE -> {
                 Log.d(TAG, "onStartCommand: Stop service action triggered")
                 stopSelf()
+            }
+            ACTION_INCREASE_OPACITY -> {
+                val currentOpacity = preferencesManager.getOpacity()
+                val newOpacity = (currentOpacity + OPACITY_STEP).coerceIn(0f, 1f)
+                Log.d(TAG, "onStartCommand: Increasing opacity from $currentOpacity to $newOpacity")
+                updateOpacity(newOpacity)
+                updateNotification()
+            }
+            ACTION_DECREASE_OPACITY -> {
+                val currentOpacity = preferencesManager.getOpacity()
+                val newOpacity = (currentOpacity - OPACITY_STEP).coerceIn(0f, 1f)
+                Log.d(TAG, "onStartCommand: Decreasing opacity from $currentOpacity to $newOpacity")
+                updateOpacity(newOpacity)
+                updateNotification()
             }
             else -> {
                 applyCurrentOverlayState()
@@ -255,9 +278,9 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
         )
         
         overlayView = OverlayView(this).apply {
-            setOpacity(if (preferencesManager.isOverlayEnabled()) savedOpacity else 0f)
+            setOpacity(if (preferencesManager.isOverlayEnabled()) savedOpacity else 0f, animate = false)
             setColorVariant(colorVariant)
-            setDimOpacity(if (extraDimEnabled) extraDimIntensity else 0f)
+            setDimOpacity(if (extraDimEnabled) extraDimIntensity else 0f, animate = false)
         }
         
         val layoutType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -412,8 +435,8 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
         val dimOpacity = if (preferencesManager.isExtraDimEnabled()) preferencesManager.getExtraDimIntensity() else 0f
 
         overlayView?.setColorVariant(colorVariant)
-        overlayView?.setOpacity(redOpacity)
-        overlayView?.setDimOpacity(dimOpacity)
+        overlayView?.setOpacity(redOpacity) // Animated by default
+        overlayView?.setDimOpacity(dimOpacity) // Animated by default
         overlayHiddenDueToExemption = false
     }
     
@@ -476,7 +499,7 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
      */
     private fun createNotification(statusText: String? = null) = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
         .setContentTitle("Red Screen Filter Active")
-        .setContentText(statusText ?: "Tap to open settings")
+        .setContentText(statusText ?: getCurrentStatusText())
         .setSmallIcon(R.mipmap.ic_launcher)
         .setContentIntent(
             PendingIntent.getActivity(
@@ -489,6 +512,26 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
         .setOngoing(true)
         .setPriority(NotificationCompat.PRIORITY_LOW)
         .addAction(
+            android.R.drawable.ic_menu_close_clear_cancel,
+            "−",
+            PendingIntent.getService(
+                this,
+                3,
+                Intent(this, RedOverlayService::class.java).apply { action = ACTION_DECREASE_OPACITY },
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+        )
+        .addAction(
+            android.R.drawable.ic_input_add,
+            "+",
+            PendingIntent.getService(
+                this,
+                4,
+                Intent(this, RedOverlayService::class.java).apply { action = ACTION_INCREASE_OPACITY },
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+        )
+        .addAction(
             R.drawable.ic_filter_inactive,
             "Stop",
             PendingIntent.getService(
@@ -498,17 +541,25 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
         )
-        .addAction(
-            R.drawable.ic_filter_active,
-            "Settings",
-            PendingIntent.getActivity(
-                this,
-                2,
-                Intent(this, MainActivity::class.java),
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-        )
         .build()
+    
+    /**
+     * Get current status text for notification
+     */
+    private fun getCurrentStatusText(): String {
+        val opacity = preferencesManager.getOpacity()
+        val percentage = (opacity * 100).toInt()
+        return "Opacity: $percentage% • Tap to adjust"
+    }
+    
+    /**
+     * Update the notification with current state
+     */
+    private fun updateNotification() {
+        val notificationManager = getSystemService(NotificationManager::class.java)
+        val notification = createNotification()
+        notificationManager.notify(NOTIFICATION_ID, notification)
+    }
     
     /**
      * Handle battery state changes
@@ -557,8 +608,12 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
         preferencesManager.setOpacity(reducedOpacity)
         preferencesManager.setIsBatteryReduced(true)
         
-        // Apply reduced opacity to overlay
-        overlayView?.setOpacity(reducedOpacity)
+        // Apply reduced opacity to overlay with smooth fade
+        overlayView?.setOpacity(reducedOpacity) // Animated by default
+        
+        // Broadcast opacity change to ensure UI is notified
+        broadcastOpacityChange()
+        
         Log.d(TAG, "reduceBatteryOpacity: Opacity reduced from $currentOpacity to $reducedOpacity")
     }
     
@@ -572,8 +627,12 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
         preferencesManager.setOpacity(originalOpacity)
         preferencesManager.setIsBatteryReduced(false)
         
-        // Apply restored opacity to overlay
-        overlayView?.setOpacity(originalOpacity)
+        // Apply restored opacity to overlay with smooth fade
+        overlayView?.setOpacity(originalOpacity) // Animated by default
+        
+        // Broadcast opacity change to ensure UI is notified
+        broadcastOpacityChange()
+        
         Log.d(TAG, "restoreBatteryOpacity: Opacity restored to $originalOpacity")
     }
     
@@ -607,8 +666,31 @@ class RedOverlayService : Service(), BatteryMonitor.BatteryStateListener, LightS
             return
         }
         
-        // Update opacity
+        // Update opacity with smooth fade
         preferencesManager.setOpacity(opacity)
-        overlayView?.setOpacity(opacity)
+        overlayView?.setOpacity(opacity) // Animated by default
+        
+        // Broadcast opacity change to ensure UI is notified
+        broadcastOpacityChange()
+    }
+    
+    /**
+     * Broadcast opacity change to MainActivity for UI sync.
+     * This ensures the opacity display updates when adjusted by service
+     * (battery optimization or light sensor).
+     */
+    private fun broadcastOpacityChange() {
+        try {
+            val intent = Intent(ACTION_OVERLAY_OPACITY_CHANGED)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                sendBroadcast(intent, null)
+            } else {
+                sendBroadcast(intent)
+            }
+            Log.d(TAG, "broadcastOpacityChange: Opacity change broadcasted")
+        } catch (e: Exception) {
+            Log.e(TAG, "broadcastOpacityChange: Error broadcasting opacity change", e)
+        }
     }
 }
+

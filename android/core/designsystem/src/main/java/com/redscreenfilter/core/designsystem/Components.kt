@@ -212,15 +212,6 @@ fun RsfSegmentedTabs(
                                     } else {
                                         RsfTheme.colors.surfaceVariant.copy(alpha = 0.15f)
                                     }
-                                )
-                                .border(
-                                    width = if (selectedIndex == index) RsfTheme.border.Medium else RsfTheme.border.Thin,
-                                    color = if (selectedIndex == index) {
-                                        RsfTheme.colors.primary.copy(alpha = 0.5f)
-                                    } else {
-                                        RsfColors.GlassStroke
-                                    },
-                                    shape = RoundedCornerShape(RsfTheme.radius.Md)
                                 ),
                             onClick = { onSelectionChanged(index) },
                             colors = ButtonDefaults.buttonColors(

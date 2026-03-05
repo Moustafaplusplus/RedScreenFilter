@@ -5,6 +5,9 @@ import android.content.SharedPreferences
 import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * Preferences Manager
@@ -15,6 +18,13 @@ class PreferencesManager private constructor(context: Context) {
     
     private val TAG = "PreferencesManager"
     private val sharedPreferences: SharedPreferences
+    
+    // Reactive state flows for overlay settings
+    private val _overlayEnabledFlow = MutableStateFlow(false)
+    val overlayEnabledFlow: StateFlow<Boolean> = _overlayEnabledFlow.asStateFlow()
+    
+    private val _opacityFlow = MutableStateFlow(0.5f)
+    val opacityFlow: StateFlow<Float> = _opacityFlow.asStateFlow()
     
     companion object {
         private const val PREFS_NAME = "red_screen_filter_prefs"
@@ -90,6 +100,11 @@ class PreferencesManager private constructor(context: Context) {
             // Fallback to regular SharedPreferences if encryption fails
             context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         }
+        
+        // Initialize StateFlows with current values from SharedPreferences
+        _overlayEnabledFlow.value = sharedPreferences.getBoolean(KEY_OVERLAY_ENABLED, false)
+        _opacityFlow.value = sharedPreferences.getFloat(KEY_OPACITY, 0.5f)
+        
         Log.d(TAG, "init: PreferencesManager ready")
     }
     
@@ -97,6 +112,8 @@ class PreferencesManager private constructor(context: Context) {
     
     fun setOverlayEnabled(enabled: Boolean) {
         sharedPreferences.edit().putBoolean(KEY_OVERLAY_ENABLED, enabled).apply()
+        _overlayEnabledFlow.value = enabled
+        Log.d(TAG, "setOverlayEnabled: State changed to $enabled")
     }
 
     fun isOverlayEnabled(): Boolean {
@@ -106,6 +123,8 @@ class PreferencesManager private constructor(context: Context) {
     fun setOpacity(opacity: Float) {
         val clampedOpacity = opacity.coerceIn(0.0f, 1.0f)
         sharedPreferences.edit().putFloat(KEY_OPACITY, clampedOpacity).apply()
+        _opacityFlow.value = clampedOpacity
+        Log.d(TAG, "setOpacity: State changed to $clampedOpacity")
     }
 
     fun getOpacity(): Float {

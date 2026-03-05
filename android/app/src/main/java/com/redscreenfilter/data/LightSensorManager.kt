@@ -204,6 +204,17 @@ class LightSensorManager(private val context: Context) : SensorEventListener {
         
         currentLux = smoothedLux
         Log.d(TAG, "onSensorChanged: lux=$currentLux")
+        
+        // Calculate opacity based on sensitivity and notify listeners
+        val prefsManager = PreferencesManager.getInstance(context)
+        val sensitivityStr = prefsManager.getLightSensorSensitivity()
+        val sensitivity = when (sensitivityStr.lowercase()) {
+            "low" -> LightSensitivity.LOW
+            "high" -> LightSensitivity.HIGH
+            else -> LightSensitivity.MEDIUM
+        }
+        val opacity = mapLuxToOpacity(currentLux, sensitivity)
+        notifyListeners(currentLux, opacity)
     }
     
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {

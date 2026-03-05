@@ -1,5 +1,6 @@
 package com.redscreenfilter.receiver
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Icon
 import android.os.Build
@@ -64,8 +65,11 @@ class OverlayQuickSettingsTile : TileService() {
                 stopOverlay()
             }
             
-            // Save preference
+            // Save preference (this will trigger StateFlow emission in PreferencesManager)
             preferencesManager.setOverlayEnabled(newState)
+            
+            // Broadcast state change to MainActivity
+            broadcastStateChange()
             
             // Update tile UI
             updateTileState()
@@ -160,4 +164,26 @@ class OverlayQuickSettingsTile : TileService() {
             Log.e(TAG, "stopOverlay: Error stopping overlay service", e)
         }
     }
-}
+    
+    /**
+     * Broadcast state change to MainActivity for UI sync.
+     * This ensures the button and other UI elements update immediately
+     * when the tile is toggled from Quick Settings.
+     */
+    private fun broadcastStateChange() {
+        try {
+            val intent = Intent(ACTION_OVERLAY_STATE_CHANGED)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                sendBroadcast(intent, null)
+            } else {
+                sendBroadcast(intent)
+            }
+            Log.d(TAG, "broadcastStateChange: State change broadcasted")
+        } catch (e: Exception) {
+            Log.e(TAG, "broadcastStateChange: Error broadcasting state change", e)
+        }
+    }
+    
+    companion object {
+        private const val ACTION_OVERLAY_STATE_CHANGED = "com.redscreenfilter.OVERLAY_STATE_CHANGED"
+    }

@@ -77,13 +77,15 @@ class BatteryMonitor(private val context: Context) {
     fun startMonitoring() {
         Log.d(TAG, "startMonitoring: Starting battery monitoring")
         if (batteryReceiver == null) {
-            batteryReceiver = BatteryReceiver()
             val intentFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
             try {
-                context.registerReceiver(batteryReceiver, intentFilter)
+                val receiver = BatteryReceiver()
+                context.registerReceiver(receiver, intentFilter)
+                batteryReceiver = receiver
                 Log.d(TAG, "startMonitoring: Battery receiver registered")
             } catch (e: Exception) {
                 Log.e(TAG, "startMonitoring: Failed to register battery receiver", e)
+                batteryReceiver = null
             }
         }
     }
@@ -96,10 +98,11 @@ class BatteryMonitor(private val context: Context) {
         batteryReceiver?.let {
             try {
                 context.unregisterReceiver(it)
-                batteryReceiver = null
                 Log.d(TAG, "stopMonitoring: Battery receiver unregistered")
             } catch (e: Exception) {
                 Log.e(TAG, "stopMonitoring: Failed to unregister battery receiver", e)
+            } finally {
+                batteryReceiver = null
             }
         }
     }

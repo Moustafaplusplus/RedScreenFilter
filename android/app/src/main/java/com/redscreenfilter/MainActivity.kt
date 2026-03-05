@@ -2,7 +2,10 @@ package com.redscreenfilter
 
 import android.Manifest
 import android.app.TimePickerDialog
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
@@ -78,6 +81,9 @@ import com.redscreenfilter.feature.settings.viewmodel.DisplaySettingsViewModel
 import com.redscreenfilter.feature.settings.viewmodel.WellnessSettingsViewModel
 import com.redscreenfilter.utils.WorkScheduler
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
 
 /**
  * MainActivity - Main UI for Red Screen Filter
@@ -174,6 +180,9 @@ class MainActivity : AppCompatActivity() {
 
     private enum class RootTab { SETTINGS, ANALYTICS, EXEMPTIONS }
     
+    // Coroutine job for lux updates
+    private var luxUpdateJob: Job? = null
+    
     // Location permission launcher
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -199,18 +208,29 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
-    // Handler for updating lux display
-    private val luxUpdateHandler = Handler(Looper.getMainLooper())
-    private val luxUpdateRunnable = object : Runnable {
-        override fun run() {
-            if (preferencesManager.isLightSensorEnabled()) {
-                val lightSensorManager = LightSensorManager.getInstance(this@MainActivity)
-                val currentLux = lightSensorManager.getCurrentLux()
-                val luxLabel = getString(R.string.current_lux_label).replace("--", currentLux.toInt().toString())
-                refreshAutomationComposeUiState(luxOverride = luxLabel)
-                luxUpdateHandler.postDelayed(this, 500)
+    // State change receiver - listens for external state changes from service, tiles, etc.
+    private val stateChangeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                ACTION_OVERLAY_STATE_CHANGED -> {
+                    Log.d(TAG, "stateChangeReceiver: Overlay state changed externally")
+                    refreshDisplayComposeUiState()
+                }
+                ACTION_OVERLAY_OPACITY_CHANGED -> {
+                    Log.d(TAG, "stateChangeReceiver: Overlay opacity changed externally")
+                    refreshDisplayComposeUiState()
+                    refreshBrightnessComposeUiState()
+                }
             }
         }
+    }
+    
+    // Coroutine job for collecting state flows
+    private var stateCollectionJob: Job? = null
+    
+    companion object {
+        const val ACTION_OVERLAY_STATE_CHANGED = "com.redscreenfilter.OVERLAY_STATE_CHANGED"
+        const val ACTION_OVERLAY_OPACITY_CHANGED = "com.redscreenfilter.OVERLAY_OPACITY_CHANGED"
     }
     
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -249,6 +269,20 @@ class MainActivity : AppCompatActivity() {
         if (preferencesManager.isEyeStrainReminderEnabled()) {
             scheduleEyeStrainReminder()
         }
+        
+        // Register broadcast receiver for external state changes
+        val intentFilter = IntentFilter().apply {
+            addAction(ACTION_OVERLAY_STATE_CHANGED)
+            addAction(ACTION_OVERLAY_OPACITY_CHANGED)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(stateChangeReceiver, intentFilter, Context.RECEIVER_EXPORTED)
+        } else {
+            registerReceiver(stateChangeReceiver, intentFilter)
+        }
+        
+        // Start collecting state flows
+        startCollectingStateFlows()
     }
     
     override fun onResume() {
@@ -262,18 +296,78 @@ class MainActivity : AppCompatActivity() {
         refreshAppExemptionUiState()
         
         if (preferencesManager.isLightSensorEnabled()) {
-            luxUpdateHandler.post(luxUpdateRunnable)
+            startLuxUpdates()
         }
     }
     
     override fun onPause() {
         super.onPause()
-        luxUpdateHandler.removeCallbacks(luxUpdateRunnable)
+        stopLuxUpdates()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        luxUpdateHandler.removeCallbacksAndMessages(null)
+        stopLuxUpdates()
+        // Stop collecting state flows
+        stateCollectionJob?.cancel()
+        stateCollectionJob = null
+        // Unregister broadcast receiver
+        try {
+            unregisterReceiver(stateChangeReceiver)
+        } catch (e: Exception) {
+            Log.w(TAG, "onDestroy: Error unregistering broadcast receiver", e)
+        }
+    }
+    
+    private fun startCollectingStateFlows() {
+        stateCollectionJob?.cancel()
+        stateCollectionJob = lifecycleScope.launch {
+            try {
+                // Collect overlay enabled state changes
+                displaySettingsViewModel.overlayEnabledFlow.collect { isEnabled ->
+                    Log.d(TAG, "startCollectingStateFlows: Overlay enabled state changed to $isEnabled")
+                    displayComposeUiState = displayComposeUiState.copy(isOverlayEnabled = isEnabled)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "startCollectingStateFlows: Error collecting overlay enabled state", e)
+            }
+        }
+        
+        lifecycleScope.launch {
+            try {
+                // Collect opacity value changes
+                displaySettingsViewModel.opacityFlow.collect { opacity ->
+                    Log.d(TAG, "startCollectingStateFlows: Opacity state changed to $opacity")
+                    val percentage = (opacity * 100).toInt()
+                    displayComposeUiState = displayComposeUiState.copy(opacityPercentage = percentage)
+                    brightnessComposeUiState = brightnessComposeUiState.copy()
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "startCollectingStateFlows: Error collecting opacity state", e)
+            }
+        }
+    }
+    
+    private fun startLuxUpdates() {
+        stopLuxUpdates()
+        luxUpdateJob = lifecycleScope.launch {
+            while (isActive && preferencesManager.isLightSensorEnabled()) {
+                try {
+                    val lightSensorManager = LightSensorManager.getInstance(this@MainActivity)
+                    val currentLux = lightSensorManager.getCurrentLux()
+                    val luxLabel = getString(R.string.current_lux_label).replace("--", currentLux.toInt().toString())
+                    refreshAutomationComposeUiState(luxOverride = luxLabel)
+                } catch (e: Exception) {
+                    Log.e(TAG, "startLuxUpdates: Error updating lux", e)
+                }
+                delay(500)
+            }
+        }
+    }
+    
+    private fun stopLuxUpdates() {
+        luxUpdateJob?.cancel()
+        luxUpdateJob = null
     }
 
     @Composable
@@ -507,9 +601,9 @@ class MainActivity : AppCompatActivity() {
     private fun handleLightSensorToggle(isEnabled: Boolean) {
         val wellnessState = wellnessSettingsViewModel.onLightSensorToggled(isEnabled)
         if (wellnessState.isLightSensorEnabled) {
-            luxUpdateHandler.post(luxUpdateRunnable)
+            startLuxUpdates()
         } else {
-            luxUpdateHandler.removeCallbacks(luxUpdateRunnable)
+            stopLuxUpdates()
         }
         overlayControlCoordinator.notifyLightSensorChanged()
         refreshAutomationComposeUiState()
