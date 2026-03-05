@@ -88,7 +88,7 @@ class SchedulingService {
             self.prefsManager.saveSettings(settings)
             
             // Cancel background task when schedule is disabled
-            BGTaskScheduler.shared.cancel(taskIdentifier: BackgroundScheduleTask.taskIdentifier)
+            BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: BackgroundScheduleTask.taskIdentifier)
         }
     }
     
@@ -155,7 +155,7 @@ class SchedulingService {
         guard let times = locationService.getSunriseSunsetWithOffset(offsetMinutes: 0) else {
             os_log("No location times available, falling back to manual schedule",
                    log: logger,
-                   type: .warning)
+                   type: .default)
             return false
         }
         

@@ -28,7 +28,7 @@ struct AnalyticsView: View {
                         Text("Month").tag(2)
                     }
                     .pickerStyle(.segmented)
-                    .tint(RsfTheme.colors.primary)
+                    .accentColor(RsfTheme.colors.primary)
                     .padding(RsfTheme.spacing.md)
                     
                     // Stats Cards

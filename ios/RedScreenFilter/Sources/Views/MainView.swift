@@ -49,7 +49,7 @@ struct MainView: View {
                     .tag(3)
             }
             .preferredColorScheme(nil)
-            .tint(RsfTheme.colors.primary)
+            .accentColor(RsfTheme.colors.primary)
             
             // In-App Red Overlay (appears on top when enabled)
             OverlayView(
@@ -66,6 +66,10 @@ struct MainView: View {
 struct MainControlView: View {
     @ObservedObject var viewModel: OverlayViewModel
     @StateObject private var presetsManager = PresetsManager.shared
+    @AppStorage("hasSeenSystemWideShortcutGuide") private var hasSeenSystemWideShortcutGuide: Bool = false
+    @State private var showShortcutsGuide: Bool = false
+    @State private var pendingShortcutToRun: SiriShortcutsLauncher.Shortcut?
+    @State private var shortcutStatusMessage: String?
     
     var body: some View {
         NavigationView {
@@ -145,7 +149,7 @@ struct MainControlView: View {
                                 }
                                 
                                 Slider(value: $viewModel.opacity, in: 0...1)
-                                    .tint(RsfTheme.colors.primary)
+                                    .accentColor(RsfTheme.colors.primary)
                                     .onChange(of: viewModel.opacity) { newValue in
                                         viewModel.updateOpacity(newValue)
                                     }
@@ -207,6 +211,69 @@ struct MainControlView: View {
                                 }
                             }
                         }
+
+                        // Siri Shortcuts launcher for system-wide iOS Color Filters
+                        RsfCard {
+                            VStack(alignment: .leading, spacing: RsfTheme.spacing.md) {
+                                Text("System-Wide Red Filter")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(RsfTheme.colors.onSurface)
+
+                                Text("Launch Siri Shortcuts that control iOS Color Filters across all apps.")
+                                    .font(.caption)
+                                    .foregroundColor(RsfTheme.colors.onSurfaceVariant)
+
+                                HStack(spacing: RsfTheme.spacing.sm) {
+                                    shortcutButton(
+                                        title: "Enable Sleep Mode",
+                                        icon: "moon.zzz.fill"
+                                    ) {
+                                        runSystemWideShortcut(.enableSleep)
+                                    }
+
+                                    shortcutButton(
+                                        title: "Disable Filter",
+                                        icon: "moon.slash.fill"
+                                    ) {
+                                        runSystemWideShortcut(.disableFilter)
+                                    }
+                                }
+
+                                shortcutButton(
+                                    title: "Enable Work Mode",
+                                    icon: "briefcase.fill"
+                                ) {
+                                    runSystemWideShortcut(.enableWork)
+                                }
+
+                                HStack(spacing: RsfTheme.spacing.sm) {
+                                    shortcutButton(
+                                        title: "Add to Control Center",
+                                        icon: "plus.rectangle.on.rectangle"
+                                    ) {
+                                        showShortcutsGuide = true
+                                    }
+
+                                    shortcutButton(
+                                        title: "Open Shortcuts App",
+                                        icon: "app.badge"
+                                    ) {
+                                        _ = SiriShortcutsLauncher.shared.openShortcutsApp()
+                                    }
+                                }
+
+                                Text("Automation tip: In Shortcuts > Automation, create time-based triggers (e.g. 9 PM enable, 7 AM disable).")
+                                    .font(.caption2)
+                                    .foregroundColor(RsfTheme.colors.onSurfaceVariant)
+
+                                if let shortcutStatusMessage {
+                                    Text(shortcutStatusMessage)
+                                        .font(.caption2)
+                                        .foregroundColor(RsfTheme.colors.warning)
+                                }
+                            }
+                        }
                         
                         Spacer()
                     }
@@ -215,12 +282,133 @@ struct MainControlView: View {
             }
             .navigationBarTitleDisplayMode(.inline)
         }
+        .sheet(isPresented: $showShortcutsGuide) {
+            SystemWideShortcutsGuideSheet(
+                runPendingShortcut: {
+                    hasSeenSystemWideShortcutGuide = true
+                    guard let pendingShortcutToRun else { return }
+                    _ = SiriShortcutsLauncher.shared.runShortcut(pendingShortcutToRun)
+                    self.pendingShortcutToRun = nil
+                }
+            )
+        }
     }
     
     private func applyPreset(_ preset: PresetProfile) {
         withAnimation {
             if let appliedPreset = presetsManager.applyPreset(byId: preset.id) {
                 viewModel.applyPreset(appliedPreset)
+            }
+        }
+    }
+
+    private func runSystemWideShortcut(_ shortcut: SiriShortcutsLauncher.Shortcut) {
+        shortcutStatusMessage = nil
+
+        if !hasSeenSystemWideShortcutGuide {
+            pendingShortcutToRun = shortcut
+            showShortcutsGuide = true
+            return
+        }
+
+        let didOpen = SiriShortcutsLauncher.shared.runShortcut(shortcut)
+        if !didOpen {
+            shortcutStatusMessage = "Unable to open Shortcuts URL. Please run it manually from the Shortcuts app."
+        }
+    }
+
+    private func shortcutButton(title: String, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: RsfTheme.spacing.xs) {
+                Image(systemName: icon)
+                Text(title)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            .font(.caption)
+            .fontWeight(.semibold)
+            .foregroundColor(RsfTheme.colors.onPrimary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, RsfTheme.spacing.sm)
+            .background(RsfTheme.colors.primary)
+            .cornerRadius(RsfTheme.radius.md)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct SystemWideShortcutsGuideSheet: View {
+    let runPendingShortcut: () -> Void
+    @Environment(\.presentationMode) private var presentationMode
+
+    private let launcher = SiriShortcutsLauncher.shared
+
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: RsfTheme.spacing.md) {
+                    Text("Use Siri Shortcuts For System-Wide Filters")
+                        .font(.headline)
+                        .foregroundColor(RsfTheme.colors.onSurface)
+
+                    Text("iOS Color Filters are built into Accessibility and work over all apps. This app launches helper shortcuts for faster control.")
+                        .font(.body)
+                        .foregroundColor(RsfTheme.colors.onSurfaceVariant)
+
+                    Text("Setup Steps")
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                        .foregroundColor(RsfTheme.colors.onSurface)
+
+                    Text("1. Tap a share link below to add each shortcut.\n2. Open Control Center settings and add Shortcuts.\n3. In Shortcuts app, create automations for bedtime/wakeup.\n4. Use widget or Control Center for one-tap access.")
+                        .font(.caption)
+                        .foregroundColor(RsfTheme.colors.onSurfaceVariant)
+
+                    VStack(alignment: .leading, spacing: RsfTheme.spacing.sm) {
+                        shareLinkRow(title: "Enable Red Filter Sleep Mode", shortcut: .enableSleep)
+                        shareLinkRow(title: "Disable Color Filter", shortcut: .disableFilter)
+                        shareLinkRow(title: "Enable Color Filter - Work Mode", shortcut: .enableWork)
+                    }
+
+                    Text("Replace placeholder iCloud links in `Constants.SiriShortcuts` with your published shortcut URLs.")
+                        .font(.caption2)
+                        .foregroundColor(RsfTheme.colors.warning)
+                }
+                .padding(RsfTheme.spacing.md)
+            }
+            .background(RsfTheme.colors.background.ignoresSafeArea())
+            .navigationTitle("Shortcut Guide")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Close") {
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                }
+
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Continue") {
+                        runPendingShortcut()
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func shareLinkRow(title: String, shortcut: SiriShortcutsLauncher.Shortcut) -> some View {
+        if let url = launcher.shareURL(for: shortcut) {
+            Link(destination: url) {
+                HStack {
+                    Text(title)
+                        .font(.caption)
+                    Spacer()
+                    Image(systemName: "square.and.arrow.up")
+                }
+                .padding(RsfTheme.spacing.sm)
+                .background(RsfTheme.colors.surfaceVariant)
+                .foregroundColor(RsfTheme.colors.primary)
+                .cornerRadius(RsfTheme.radius.md)
             }
         }
     }

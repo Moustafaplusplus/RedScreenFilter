@@ -15,6 +15,7 @@ class PreferencesManager: NSObject, ObservableObject {
     static let shared = PreferencesManager()
     
     private let defaults = UserDefaults.standard
+    private let appGroupDefaults = UserDefaults(suiteName: Constants.AppGroup.identifier)
     private var cancellables = Set<AnyCancellable>()
     
     // MARK: - @Published Properties for Combine
@@ -28,10 +29,13 @@ class PreferencesManager: NSObject, ObservableObject {
     @Published var useLocationSchedule: Bool = false
     @Published var sunsetOffsetMinutes: Int = 0
     @Published var useAmbientLight: Bool = false
+    @Published var ambientLightSensitivity: String = "medium"
     @Published var batteryOptimizationEnabled: Bool = true
     @Published var batteryOptimizationThreshold: Float = 0.2
     @Published var eyeStrainRemindersEnabled: Bool = true
     @Published var reminderInterval: Int = 20 // minutes
+    @Published var notificationStyle: String = "sound"
+    @Published var currentPreset: String = "Standard"
     
     // MARK: - UserDefaults Keys
     
@@ -44,10 +48,13 @@ class PreferencesManager: NSObject, ObservableObject {
     private let useLocationScheduleKey = "useLocationSchedule"
     private let sunsetOffsetMinutesKey = "sunsetOffsetMinutes"
     private let useAmbientLightKey = "useAmbientLight"
+    private let ambientLightSensitivityKey = "ambientLightSensitivity"
     private let batteryOptimizationKey = "batteryOptimization"
     private let batteryThresholdKey = "batteryThreshold"
     private let eyeStrainRemindersKey = "eyeStrainReminders"
     private let reminderIntervalKey = "reminderInterval"
+    private let notificationStyleKey = "notificationStyle"
+    private let currentPresetKey = "currentPreset"
     private let settingsKey = "overlaySettings"
     
     override init() {
@@ -61,6 +68,7 @@ class PreferencesManager: NSObject, ObservableObject {
     func setOverlayEnabled(_ enabled: Bool) {
         overlayEnabled = enabled
         defaults.set(enabled, forKey: overlayEnabledKey)
+        appGroupDefaults?.set(enabled, forKey: overlayEnabledKey)
     }
     
     func isOverlayEnabled() -> Bool {
@@ -70,6 +78,7 @@ class PreferencesManager: NSObject, ObservableObject {
     func setOpacity(_ opacity: Float) {
         self.opacity = max(0, min(1, opacity))
         defaults.set(self.opacity, forKey: opacityKey)
+        appGroupDefaults?.set(self.opacity, forKey: opacityKey)
     }
     
     func getOpacity() -> Float {
@@ -81,6 +90,7 @@ class PreferencesManager: NSObject, ObservableObject {
     func setColorVariant(_ variant: String) {
         colorVariant = variant
         defaults.set(variant, forKey: colorVariantKey)
+        appGroupDefaults?.set(variant, forKey: colorVariantKey)
     }
     
     func getColorVariant() -> String {
@@ -104,6 +114,7 @@ class PreferencesManager: NSObject, ObservableObject {
     func setScheduleEnabled(_ enabled: Bool) {
         scheduleEnabled = enabled
         defaults.set(enabled, forKey: scheduleEnabledKey)
+        appGroupDefaults?.set(enabled, forKey: scheduleEnabledKey)
     }
     
     func setScheduleTime(start: String, end: String) {
@@ -111,6 +122,20 @@ class PreferencesManager: NSObject, ObservableObject {
         scheduleEndTime = end
         defaults.set(start, forKey: scheduleStartTimeKey)
         defaults.set(end, forKey: scheduleEndTimeKey)
+        appGroupDefaults?.set(start, forKey: scheduleStartTimeKey)
+        appGroupDefaults?.set(end, forKey: scheduleEndTimeKey)
+    }
+
+    // MARK: - Preset Methods
+
+    func setCurrentPreset(_ preset: String) {
+        currentPreset = preset
+        defaults.set(preset, forKey: currentPresetKey)
+        appGroupDefaults?.set(preset, forKey: currentPresetKey)
+    }
+
+    func getCurrentPreset() -> String {
+        return currentPreset
     }
     
     func getScheduleTime() -> (start: String, end: String) {
@@ -148,6 +173,15 @@ class PreferencesManager: NSObject, ObservableObject {
         return useAmbientLight
     }
     
+    func setAmbientLightSensitivity(_ sensitivity: String) {
+        ambientLightSensitivity = sensitivity
+        defaults.set(sensitivity, forKey: ambientLightSensitivityKey)
+    }
+    
+    func getAmbientLightSensitivity() -> String {
+        return ambientLightSensitivity
+    }
+    
     // MARK: - Battery Optimization Methods
     
     func setBatteryOptimizationEnabled(_ enabled: Bool) {
@@ -180,12 +214,21 @@ class PreferencesManager: NSObject, ObservableObject {
     }
     
     func setReminderInterval(_ minutes: Int) {
-        reminderInterval = max(5, min(120, minutes))
+        reminderInterval = max(15, min(120, minutes))
         defaults.set(reminderInterval, forKey: reminderIntervalKey)
     }
     
     func getReminderInterval() -> Int {
         return reminderInterval
+    }
+    
+    func setNotificationStyle(_ style: String) {
+        notificationStyle = style
+        defaults.set(style, forKey: notificationStyleKey)
+    }
+    
+    func getNotificationStyle() -> String {
+        return notificationStyle
     }
     
     // MARK: - Settings Model Methods
@@ -224,6 +267,7 @@ class PreferencesManager: NSObject, ObservableObject {
         
         useLocationSchedule = defaults.bool(forKey: useLocationScheduleKey)
         useAmbientLight = defaults.bool(forKey: useAmbientLightKey)
+        ambientLightSensitivity = defaults.string(forKey: ambientLightSensitivityKey) ?? "medium"
         
         batteryOptimizationEnabled = defaults.object(forKey: batteryOptimizationKey) as? Bool ?? true
         let threshold = defaults.float(forKey: batteryThresholdKey)
@@ -234,6 +278,10 @@ class PreferencesManager: NSObject, ObservableObject {
         if reminderInterval == 0 {
             reminderInterval = 20
         }
+        notificationStyle = defaults.string(forKey: notificationStyleKey) ?? "sound"
+        currentPreset = defaults.string(forKey: currentPresetKey) ?? "Standard"
+
+        syncToAppGroup()
         
         return OverlaySettings(
             isEnabled: overlayEnabled,
@@ -255,6 +303,7 @@ class PreferencesManager: NSObject, ObservableObject {
             .dropFirst()
             .sink { [weak self] value in
                 self?.defaults.set(value, forKey: self?.overlayEnabledKey ?? "")
+                self?.appGroupDefaults?.set(value, forKey: self?.overlayEnabledKey ?? "")
             }
             .store(in: &cancellables)
         
@@ -262,6 +311,7 @@ class PreferencesManager: NSObject, ObservableObject {
             .dropFirst()
             .sink { [weak self] value in
                 self?.defaults.set(value, forKey: self?.opacityKey ?? "")
+                self?.appGroupDefaults?.set(value, forKey: self?.opacityKey ?? "")
             }
             .store(in: &cancellables)
         
@@ -269,6 +319,7 @@ class PreferencesManager: NSObject, ObservableObject {
             .dropFirst()
             .sink { [weak self] value in
                 self?.defaults.set(value, forKey: self?.colorVariantKey ?? "")
+                self?.appGroupDefaults?.set(value, forKey: self?.colorVariantKey ?? "")
             }
             .store(in: &cancellables)
         
@@ -276,7 +327,40 @@ class PreferencesManager: NSObject, ObservableObject {
             .dropFirst()
             .sink { [weak self] value in
                 self?.defaults.set(value, forKey: self?.scheduleEnabledKey ?? "")
+                self?.appGroupDefaults?.set(value, forKey: self?.scheduleEnabledKey ?? "")
             }
             .store(in: &cancellables)
+
+        $scheduleStartTime
+            .dropFirst()
+            .sink { [weak self] value in
+                self?.appGroupDefaults?.set(value, forKey: self?.scheduleStartTimeKey ?? "")
+            }
+            .store(in: &cancellables)
+
+        $scheduleEndTime
+            .dropFirst()
+            .sink { [weak self] value in
+                self?.appGroupDefaults?.set(value, forKey: self?.scheduleEndTimeKey ?? "")
+            }
+            .store(in: &cancellables)
+
+        $currentPreset
+            .dropFirst()
+            .sink { [weak self] value in
+                self?.defaults.set(value, forKey: self?.currentPresetKey ?? "")
+                self?.appGroupDefaults?.set(value, forKey: self?.currentPresetKey ?? "")
+            }
+            .store(in: &cancellables)
+    }
+
+    private func syncToAppGroup() {
+        appGroupDefaults?.set(overlayEnabled, forKey: overlayEnabledKey)
+        appGroupDefaults?.set(opacity, forKey: opacityKey)
+        appGroupDefaults?.set(colorVariant, forKey: colorVariantKey)
+        appGroupDefaults?.set(scheduleEnabled, forKey: scheduleEnabledKey)
+        appGroupDefaults?.set(scheduleStartTime, forKey: scheduleStartTimeKey)
+        appGroupDefaults?.set(scheduleEndTime, forKey: scheduleEndTimeKey)
+        appGroupDefaults?.set(currentPreset, forKey: currentPresetKey)
     }
 }

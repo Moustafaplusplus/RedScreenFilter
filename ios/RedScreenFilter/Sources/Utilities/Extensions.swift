@@ -63,6 +63,10 @@ extension Color {
             return .redStandard
         }
     }
+
+    static func fromVariant(_ variant: ColorVariant, opacity: Double = 1.0) -> Color {
+        fromVariant(variant.rawValue).opacity(opacity)
+    }
     
     // MARK: - RSF Theme Color Access (convenience aliases)
     

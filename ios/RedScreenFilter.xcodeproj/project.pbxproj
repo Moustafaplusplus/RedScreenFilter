@@ -7,6 +7,24 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BB2000001 /* WidgetActionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000017 /* WidgetActionCoordinator.swift */; };
+		BB2000002 /* RedScreenControlWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000011 /* RedScreenControlWidgetBundle.swift */; };
+		BB2000003 /* RedScreenControlWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000012 /* RedScreenControlWidget.swift */; };
+		BB2000004 /* WidgetSharedState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000013 /* WidgetSharedState.swift */; };
+		BB2000005 /* WidgetIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000014 /* WidgetIntents.swift */; };
+		BB2000006 /* RedScreenControlWidgetExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = BB2000010 /* RedScreenControlWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		BB2000007 /* BatteryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000018 /* BatteryMonitor.swift */; };
+		BB2000008 /* LightSensorManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000019 /* LightSensorManager.swift */; };
+		BB2000009 /* EyeStrainReminderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB200001A /* EyeStrainReminderService.swift */; };
+		CC1000001 /* SiriShortcutsLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1000002 /* SiriShortcutsLauncher.swift */; };
+		CC1000003 /* VoiceControlIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1000004 /* VoiceControlIntents.swift */; };
+		884B783E2F599A0500797F4A /* ColorVariant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884B783D2F599A0500797F4A /* ColorVariant.swift */; };
+		884B78402F599A0500797F4A /* PresetProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884B783F2F599A0500797F4A /* PresetProfile.swift */; };
+		884B78422F599A0600797F4A /* PresetsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884B78412F599A0600797F4A /* PresetsManager.swift */; };
+		884B78442F599A0600797F4A /* ColorUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884B78432F599A0600797F4A /* ColorUtility.swift */; };
+		884B78462F599A0600797F4A /* LocationCalculationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884B78452F599A0600797F4A /* LocationCalculationService.swift */; };
+		884B78482F599A3A00797F4A /* RsfTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884B78472F599A3A00797F4A /* RsfTheme.swift */; };
+		884B784A2F599A6700797F4A /* BackgroundScheduleTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884B78492F599A6700797F4A /* BackgroundScheduleTask.swift */; };
 		AA1000001 /* RedScreenFilterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000002 /* RedScreenFilterApp.swift */; };
 		AA1000003 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000004 /* AppDelegate.swift */; };
 		AA1000005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA1000006 /* Assets.xcassets */; };
@@ -23,13 +41,55 @@
 		AA100001B /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100001C /* Extensions.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		BB2000050 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AA1000140 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BB2000040;
+			remoteInfo = RedScreenControlWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		BB2000021 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				BB2000006 /* RedScreenControlWidgetExtension.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		BB2000010 /* RedScreenControlWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = RedScreenControlWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		BB2000011 /* RedScreenControlWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedScreenControlWidgetBundle.swift; sourceTree = "<group>"; };
+		BB2000012 /* RedScreenControlWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedScreenControlWidget.swift; sourceTree = "<group>"; };
+		BB2000013 /* WidgetSharedState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSharedState.swift; sourceTree = "<group>"; };
+		BB2000014 /* WidgetIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetIntents.swift; sourceTree = "<group>"; };
+		BB2000015 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		BB2000016 /* RedScreenControlWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RedScreenControlWidgetExtension.entitlements; sourceTree = "<group>"; };
+		BB2000017 /* WidgetActionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetActionCoordinator.swift; sourceTree = "<group>"; };
+		BB2000018 /* BatteryMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryMonitor.swift; sourceTree = "<group>"; };
+		BB2000019 /* LightSensorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LightSensorManager.swift; sourceTree = "<group>"; };
+		BB200001A /* EyeStrainReminderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EyeStrainReminderService.swift; sourceTree = "<group>"; };
+		CC1000002 /* SiriShortcutsLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiriShortcutsLauncher.swift; sourceTree = "<group>"; };
+		CC1000004 /* VoiceControlIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceControlIntents.swift; sourceTree = "<group>"; };
+		884B783D2F599A0500797F4A /* ColorVariant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorVariant.swift; sourceTree = "<group>"; };
+		884B783F2F599A0500797F4A /* PresetProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetProfile.swift; sourceTree = "<group>"; };
+		884B78412F599A0600797F4A /* PresetsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetsManager.swift; sourceTree = "<group>"; };
+		884B78432F599A0600797F4A /* ColorUtility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorUtility.swift; sourceTree = "<group>"; };
+		884B78452F599A0600797F4A /* LocationCalculationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationCalculationService.swift; sourceTree = "<group>"; };
+		884B78472F599A3A00797F4A /* RsfTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RsfTheme.swift; sourceTree = "<group>"; };
+		884B78492F599A6700797F4A /* BackgroundScheduleTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundScheduleTask.swift; sourceTree = "<group>"; };
 		AA1000000 /* RedScreenFilter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RedScreenFilter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA1000002 /* RedScreenFilterApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedScreenFilterApp.swift; sourceTree = "<group>"; };
 		AA1000004 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		AA1000006 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		AA1000020 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		AA1000021 /* RedScreenFilter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RedScreenFilter.entitlements; sourceTree = "<group>"; };
 		AA1000008 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		AA100000A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		AA100000C /* AnalyticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsView.swift; sourceTree = "<group>"; };
@@ -41,9 +101,18 @@
 		AA1000018 /* UsageEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageEvent.swift; sourceTree = "<group>"; };
 		AA100001A /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		AA100001C /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		AA1000020 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA1000021 /* RedScreenFilter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RedScreenFilter.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		BB2000020 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		AA1000030 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -58,6 +127,7 @@
 			isa = PBXGroup;
 			children = (
 				AA1000050 /* RedScreenFilter */,
+				BB2000030 /* RedScreenControlWidgetExtension */,
 				AA1000060 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -70,6 +140,15 @@
 				AA1000021 /* RedScreenFilter.entitlements */,
 			);
 			path = RedScreenFilter;
+			sourceTree = "<group>";
+		};
+		AA1000060 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AA1000000 /* RedScreenFilter.app */,
+				BB2000010 /* RedScreenControlWidgetExtension.appex */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		AA1000070 /* Sources */ = {
@@ -101,6 +180,7 @@
 				AA1000008 /* MainView.swift */,
 				AA100000A /* SettingsView.swift */,
 				AA100000C /* AnalyticsView.swift */,
+				884B78472F599A3A00797F4A /* RsfTheme.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -111,6 +191,13 @@
 				AA100000E /* OverlayWindowManager.swift */,
 				AA1000010 /* PreferencesManager.swift */,
 				AA1000012 /* SchedulingService.swift */,
+				CC1000002 /* SiriShortcutsLauncher.swift */,				CC1000004 /* VoiceControlIntents.swift */,				BB2000017 /* WidgetActionCoordinator.swift */,
+				BB2000018 /* BatteryMonitor.swift */,
+				BB2000019 /* LightSensorManager.swift */,
+				BB200001A /* EyeStrainReminderService.swift */,
+				884B78412F599A0600797F4A /* PresetsManager.swift */,
+				884B78452F599A0600797F4A /* LocationCalculationService.swift */,
+				884B78492F599A6700797F4A /* BackgroundScheduleTask.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -128,6 +215,8 @@
 			children = (
 				AA1000016 /* OverlaySettings.swift */,
 				AA1000018 /* UsageEvent.swift */,
+				884B783D2F599A0500797F4A /* ColorVariant.swift */,
+				884B783F2F599A0500797F4A /* PresetProfile.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -137,6 +226,7 @@
 			children = (
 				AA100001A /* Constants.swift */,
 				AA100001C /* Extensions.swift */,
+				884B78432F599A0600797F4A /* ColorUtility.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -149,17 +239,39 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
-		AA1000060 /* Products */ = {
+		BB2000030 /* RedScreenControlWidgetExtension */ = {
 			isa = PBXGroup;
 			children = (
-				AA1000000 /* RedScreenFilter.app */,
+				BB2000011 /* RedScreenControlWidgetBundle.swift */,
+				BB2000012 /* RedScreenControlWidget.swift */,
+				BB2000013 /* WidgetSharedState.swift */,
+				BB2000014 /* WidgetIntents.swift */,
+				BB2000015 /* Info.plist */,
+				BB2000016 /* RedScreenControlWidgetExtension.entitlements */,
 			);
-			name = Products;
+			path = RedScreenControlWidgetExtension;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		BB2000040 /* RedScreenControlWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BB2000072 /* Build configuration list for PBXNativeTarget "RedScreenControlWidgetExtension" */;
+			buildPhases = (
+				BB2000060 /* Sources */,
+				BB2000020 /* Frameworks */,
+				BB2000061 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = RedScreenControlWidgetExtension;
+			productName = RedScreenControlWidgetExtension;
+			productReference = BB2000010 /* RedScreenControlWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		AA1000100 /* RedScreenFilter */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = AA1000110 /* Build configuration list for PBXNativeTarget "RedScreenFilter" */;
@@ -167,10 +279,12 @@
 				AA1000120 /* Sources */,
 				AA1000030 /* Frameworks */,
 				AA1000130 /* Resources */,
+				BB2000021 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				BB2000051 /* PBXTargetDependency */,
 			);
 			name = RedScreenFilter;
 			productName = RedScreenFilter;
@@ -190,6 +304,9 @@
 					AA1000100 = {
 						CreatedOnToolsVersion = 15.0;
 					};
+					BB2000040 = {
+						CreatedOnToolsVersion = 15.0;
+					};
 				};
 			};
 			buildConfigurationList = AA1000150 /* Build configuration list for PBXProject "RedScreenFilter" */;
@@ -206,11 +323,19 @@
 			projectRoot = "";
 			targets = (
 				AA1000100 /* RedScreenFilter */,
+				BB2000040 /* RedScreenControlWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		BB2000061 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		AA1000130 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -222,27 +347,59 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		BB2000060 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BB2000002 /* RedScreenControlWidgetBundle.swift in Sources */,
+				BB2000003 /* RedScreenControlWidget.swift in Sources */,
+				BB2000004 /* WidgetSharedState.swift in Sources */,
+				BB2000005 /* WidgetIntents.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		AA1000120 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				884B78422F599A0600797F4A /* PresetsManager.swift in Sources */,
 				AA1000001 /* RedScreenFilterApp.swift in Sources */,
+				BB2000007 /* BatteryMonitor.swift in Sources */,
+				CC1000001 /* SiriShortcutsLauncher.swift in Sources */,
+				CC1000003 /* VoiceControlIntents.swift in Sources */,
 				AA1000003 /* AppDelegate.swift in Sources */,
+				884B784A2F599A6700797F4A /* BackgroundScheduleTask.swift in Sources */,
 				AA1000007 /* MainView.swift in Sources */,
+				BB2000008 /* LightSensorManager.swift in Sources */,
+				884B78462F599A0600797F4A /* LocationCalculationService.swift in Sources */,
+				BB2000009 /* EyeStrainReminderService.swift in Sources */,
 				AA1000009 /* SettingsView.swift in Sources */,
 				AA100000B /* AnalyticsView.swift in Sources */,
 				AA100000D /* OverlayWindowManager.swift in Sources */,
 				AA100000F /* PreferencesManager.swift in Sources */,
 				AA1000011 /* SchedulingService.swift in Sources */,
+				BB2000001 /* WidgetActionCoordinator.swift in Sources */,
 				AA1000013 /* OverlayViewModel.swift in Sources */,
 				AA1000015 /* OverlaySettings.swift in Sources */,
 				AA1000017 /* UsageEvent.swift in Sources */,
+				884B78442F599A0600797F4A /* ColorUtility.swift in Sources */,
 				AA1000019 /* Constants.swift in Sources */,
+				884B78482F599A3A00797F4A /* RsfTheme.swift in Sources */,
 				AA100001B /* Extensions.swift in Sources */,
+				884B78402F599A0500797F4A /* PresetProfile.swift in Sources */,
+				884B783E2F599A0500797F4A /* ColorVariant.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		BB2000051 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BB2000040 /* RedScreenControlWidgetExtension */;
+			targetProxy = BB2000050 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		AA1000200 /* Debug */ = {
@@ -426,6 +583,56 @@
 			};
 			name = Release;
 		};
+		BB2000070 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = RedScreenControlWidgetExtension/RedScreenControlWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = RedScreenControlWidgetExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.redscreenfilter.RedScreenControlWidgetExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BB2000071 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = RedScreenControlWidgetExtension/RedScreenControlWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = RedScreenControlWidgetExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.redscreenfilter.RedScreenControlWidgetExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -443,6 +650,15 @@
 			buildConfigurations = (
 				AA1000200 /* Debug */,
 				AA1000201 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BB2000072 /* Build configuration list for PBXNativeTarget "RedScreenControlWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BB2000070 /* Debug */,
+				BB2000071 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

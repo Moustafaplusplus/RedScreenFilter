@@ -49,7 +49,7 @@ struct SettingsView: View {
                                         Spacer()
                                         Text(viewModel.scheduleStartTime)
                                             .font(.body)
-                                            .fontWeight(.semibold)
+                                            .font(.body.weight(.semibold))
                                             .foregroundColor(RsfTheme.colors.primary)
                                     }
                                     .onTapGesture {
@@ -62,7 +62,7 @@ struct SettingsView: View {
                                         Spacer()
                                         Text(viewModel.scheduleEndTime)
                                             .font(.body)
-                                            .fontWeight(.semibold)
+                                            .font(.headline)
                                             .foregroundColor(RsfTheme.colors.primary)
                                     }
                                     .onTapGesture {
@@ -147,7 +147,7 @@ struct SettingsView: View {
                                             in: -60...60,
                                             step: 5
                                         )
-                                        .tint(RsfTheme.colors.primary)
+                                        .accentColor(RsfTheme.colors.primary)
                                         
                                         Text("Activate overlay earlier (-) or later (+) than actual sunset")
                                             .font(.caption2)
@@ -224,6 +224,64 @@ struct SettingsView: View {
                                 )
                                 
                                 if viewModel.batteryOptimizationEnabled {
+                                    Divider()
+                                        .background(RsfTheme.colors.glassStroke)
+                                    
+                                    // Current battery status
+                                    HStack(spacing: RsfTheme.spacing.md) {
+                                        VStack(alignment: .leading, spacing: RsfTheme.spacing.xs) {
+                                            Text("Battery Status")
+                                                .font(.caption)
+                                                .foregroundColor(RsfTheme.colors.onSurfaceVariant)
+                                            
+                                            HStack(spacing: RsfTheme.spacing.sm) {
+                                                Text(viewModel.batteryStatusIcon)
+                                                    .font(.system(size: 18))
+                                                
+                                                VStack(alignment: .leading, spacing: 2) {
+                                                    Text(String(format: "%.0f%%", viewModel.batteryLevel * 100))
+                                                        .font(.caption)
+                                                        .fontWeight(.semibold)
+                                                        .foregroundColor(RsfTheme.colors.primary)
+                                                    
+                                                    if viewModel.isBatteryCritical {
+                                                        Text("Ultra-critical")
+                                                            .font(.caption2)
+                                                            .foregroundColor(RsfTheme.colors.error)
+                                                    } else if viewModel.isBatteryLow {
+                                                        Text("Low battery")
+                                                            .font(.caption2)
+                                                            .foregroundColor(RsfTheme.colors.warning)
+                                                    } else {
+                                                        Text("Normal")
+                                                            .font(.caption2)
+                                                            .foregroundColor(RsfTheme.colors.onSurfaceVariant)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        // Battery indicator bar
+                                        VStack(spacing: RsfTheme.spacing.xs) {
+                                            ZStack(alignment: .leading) {
+                                                RoundedRectangle(cornerRadius: RsfTheme.radius.xs)
+                                                    .fill(RsfTheme.colors.surfaceVariant)
+                                                    .frame(height: 8)
+                                                
+                                                RoundedRectangle(cornerRadius: RsfTheme.radius.xs)
+                                                    .fill(batteryIndicatorColor())
+                                                    .frame(width: 60 * CGFloat(viewModel.batteryLevel), height: 8)
+                                            }
+                                            .frame(width: 60)
+                                        }
+                                    }
+                                    
+                                    Divider()
+                                        .background(RsfTheme.colors.glassStroke)
+                                    
+                                    // Threshold slider
                                     VStack(alignment: .leading, spacing: RsfTheme.spacing.sm) {
                                         HStack {
                                             Text("Threshold:")
@@ -238,9 +296,21 @@ struct SettingsView: View {
                                                 .foregroundColor(RsfTheme.colors.primary)
                                         }
                                         
-                                        Text("Reduces overlay opacity when battery is below threshold")
-                                            .font(.caption)
-                                            .foregroundColor(RsfTheme.colors.onSurfaceVariant)
+                                        Slider(
+                                            value: Binding(
+                                                get: { viewModel.batteryOptimizationThreshold },
+                                                set: { viewModel.setBatteryOptimizationThreshold($0) }
+                                            ),
+                                            in: 0.05...0.5,
+                                            step: 0.05
+                                        )
+                                        .accentColor(RsfTheme.colors.primary)
+                                        
+                                        HStack(spacing: RsfTheme.spacing.sm) {
+                                            Text("Reduce overlay opacity when battery drops below threshold")
+                                                .font(.caption2)
+                                                .foregroundColor(RsfTheme.colors.onSurfaceVariant)
+                                        }
                                     }
                                 }
                                 
@@ -258,12 +328,86 @@ struct SettingsView: View {
                                     )
                                     
                                     if viewModel.useAmbientLight {
-                                        HStack(spacing: RsfTheme.spacing.sm) {
-                                            Image(systemName: "lightbulb.fill")
-                                                .foregroundColor(RsfTheme.colors.secondary)
-                                            Text("Coming in Phase 55-60%")
-                                                .font(.caption)
-                                                .foregroundColor(RsfTheme.colors.secondary)
+                                        Divider()
+                                            .background(RsfTheme.colors.glassStroke)
+                                        
+                                        // Current light reading display
+                                        VStack(alignment: .leading, spacing: RsfTheme.spacing.sm) {
+                                            HStack(spacing: RsfTheme.spacing.md) {
+                                                VStack(alignment: .leading, spacing: RsfTheme.spacing.xs) {
+                                                    Text("Light Level")
+                                                        .font(.caption)
+                                                        .foregroundColor(RsfTheme.colors.onSurfaceVariant)
+                                                    
+                                                    HStack(spacing: RsfTheme.spacing.sm) {
+                                                        Text(viewModel.lightingCondition == "Very Dark" ? "🌙" :
+                                                             viewModel.lightingCondition == "Dim" ? "🌑" :
+                                                             viewModel.lightingCondition == "Bright" ? "☀️☀️" : "☀️")
+                                                            .font(.system(size: 18))
+                                                        
+                                                        VStack(alignment: .leading, spacing: 2) {
+                                                            Text(viewModel.lightingCondition)
+                                                                .font(.caption)
+                                                                .fontWeight(.semibold)
+                                                                .foregroundColor(RsfTheme.colors.primary)
+                                                            
+                                                            Text(String(format: "%.0f lux", viewModel.currentLux))
+                                                                .font(.caption2)
+                                                                .foregroundColor(RsfTheme.colors.onSurfaceVariant)
+                                                        }
+                                                    }
+                                                }
+                                                
+                                                Spacer()
+                                                
+                                                // Light indicator bar
+                                                VStack(spacing: RsfTheme.spacing.xs) {
+                                                    ZStack(alignment: .leading) {
+                                                        RoundedRectangle(cornerRadius: RsfTheme.radius.xs)
+                                                            .fill(RsfTheme.colors.surfaceVariant)
+                                                            .frame(height: 8)
+                                                        
+                                                        RoundedRectangle(cornerRadius: RsfTheme.radius.xs)
+                                                            .fill(lightConditionColor(viewModel.lightingCondition))
+                                                            .frame(width: 60 * CGFloat(min(viewModel.currentLux / 5000, 1.0)), height: 8)
+                                                    }
+                                                    .frame(width: 60)
+                                                }
+                                            }
+                                        }
+                                        
+                                        Divider()
+                                            .background(RsfTheme.colors.glassStroke)
+                                        
+                                        // Sensitivity slider
+                                        VStack(alignment: .leading, spacing: RsfTheme.spacing.sm) {
+                                            HStack {
+                                                Text("Sensitivity:")
+                                                    .font(.caption)
+                                                    .foregroundColor(RsfTheme.colors.onSurfaceVariant)
+                                                
+                                                Spacer()
+                                                
+                                                Text(viewModel.ambientLightSensitivity.capitalized)
+                                                    .font(.caption)
+                                                    .fontWeight(.bold)
+                                                    .foregroundColor(RsfTheme.colors.primary)
+                                            }
+                                            
+                                            Picker("Sensitivity", selection: $viewModel.ambientLightSensitivity) {
+                                                Text("Low").tag("low")
+                                                Text("Medium").tag("medium")
+                                                Text("High").tag("high")
+                                            }
+                                            .pickerStyle(.segmented)
+                                            .accentColor(RsfTheme.colors.primary)
+                                            .onChange(of: viewModel.ambientLightSensitivity) { sensitivity in
+                                                viewModel.setLightSensitivity(sensitivity)
+                                            }
+                                            
+                                            Text("Adjust how quickly overlay opacity changes with light conditions")
+                                                .font(.caption2)
+                                                .foregroundColor(RsfTheme.colors.onSurfaceVariant)
                                         }
                                     }
                                 }
@@ -282,31 +426,62 @@ struct SettingsView: View {
                                 )
                                 
                                 if viewModel.eyeStrainRemindersEnabled {
+                                    Divider()
+                                        .background(RsfTheme.colors.glassStroke)
+                                    
+                                    // Reminder interval picker
                                     VStack(alignment: .leading, spacing: RsfTheme.spacing.sm) {
                                         HStack {
-                                            Text("Remind me every")
+                                            Text("Frequency")
                                                 .font(.caption)
                                                 .foregroundColor(RsfTheme.colors.onSurfaceVariant)
                                             
                                             Spacer()
                                             
-                                            Picker("Minutes", selection: $viewModel.reminderInterval) {
-                                                Text("5 min").tag(5)
-                                                Text("10 min").tag(10)
+                                            Picker("Minutes", selection: Binding(
+                                                get: { viewModel.reminderInterval },
+                                                set: { viewModel.setReminderInterval($0) }
+                                            )) {
                                                 Text("15 min").tag(15)
                                                 Text("20 min").tag(20)
                                                 Text("25 min").tag(25)
                                                 Text("30 min").tag(30)
                                             }
                                             .pickerStyle(.menu)
-                                            .tint(RsfTheme.colors.primary)
-                                            .onChange(of: viewModel.reminderInterval) { value in
-                                                viewModel.setReminderInterval(value)
-                                            }
+                                            .accentColor(RsfTheme.colors.primary)
                                         }
                                         
-                                        Text("The 20-20-20 rule: Every 20 minutes, look at something 20 feet away for 20 seconds")
-                                            .font(.caption)
+                                        Text("The 20-20-20 rule: Every interval, look at something 20 feet away for 20 seconds")
+                                            .font(.caption2)
+                                            .foregroundColor(RsfTheme.colors.onSurfaceVariant)
+                                    }
+                                    
+                                    Divider()
+                                        .background(RsfTheme.colors.glassStroke)
+                                    
+                                    // Notification style selector
+                                    VStack(alignment: .leading, spacing: RsfTheme.spacing.sm) {
+                                        HStack {
+                                            Text("Notification Style")
+                                                .font(.caption)
+                                                .foregroundColor(RsfTheme.colors.onSurfaceVariant)
+                                            
+                                            Spacer()
+                                            
+                                            Picker("Style", selection: Binding(
+                                                get: { viewModel.notificationStyle },
+                                                set: { viewModel.setNotificationStyle($0) }
+                                            )) {
+                                                Text("🔇 Silent").tag("silent")
+                                                Text("🔊 Sound").tag("sound")
+                                                Text("📳 Vibration").tag("vibration")
+                                            }
+                                            .pickerStyle(.menu)
+                                            .accentColor(RsfTheme.colors.primary)
+                                        }
+                                        
+                                        Text("How you want to be reminded (requires notification permission)")
+                                            .font(.caption2)
                                             .foregroundColor(RsfTheme.colors.onSurfaceVariant)
                                     }
                                 }
@@ -423,6 +598,31 @@ struct SettingsView: View {
             return "\(minutes) min"
         }
     }
+    
+    /// Get battery indicator color based on battery level
+    private func batteryIndicatorColor() -> Color {
+        if viewModel.isBatteryCritical {
+            return RsfTheme.colors.error
+        } else if viewModel.isBatteryLow {
+            return RsfTheme.colors.warning
+        } else {
+            return RsfTheme.colors.primary
+        }
+    }
+    
+    /// Get light condition color based on lighting condition
+    private func lightConditionColor(_ condition: String) -> Color {
+        switch condition {
+        case "Very Dark":
+            return RsfTheme.colors.secondary
+        case "Dim":
+            return RsfTheme.colors.warning
+        case "Bright":
+            return RsfTheme.colors.error
+        default:  // Normal
+            return RsfTheme.colors.primary
+        }
+    }
 }
 
 // MARK: - Settings Section Card Helper
@@ -460,7 +660,7 @@ struct TimePickerSheet: View {
     let title: String
     @Binding var selectedTime: Date
     let onSave: () -> Void
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.presentationMode) private var presentationMode
     
     var body: some View {
         NavigationView {
@@ -487,7 +687,7 @@ struct TimePickerSheet: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
-                        dismiss()
+                        presentationMode.wrappedValue.dismiss()
                     }
                     .foregroundColor(RsfTheme.colors.onSurface)
                 }
@@ -495,10 +695,10 @@ struct TimePickerSheet: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
                         onSave()
-                        dismiss()
+                        presentationMode.wrappedValue.dismiss()
                     }
                     .foregroundColor(RsfTheme.colors.primary)
-                    .fontWeight(.semibold)
+                    .font(.headline)
                 }
             }
         }
