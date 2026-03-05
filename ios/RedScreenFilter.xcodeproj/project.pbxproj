@@ -1,0 +1,453 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AA1000001 /* RedScreenFilterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000002 /* RedScreenFilterApp.swift */; };
+		AA1000003 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000004 /* AppDelegate.swift */; };
+		AA1000005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA1000006 /* Assets.xcassets */; };
+		AA1000007 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000008 /* MainView.swift */; };
+		AA1000009 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100000A /* SettingsView.swift */; };
+		AA100000B /* AnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100000C /* AnalyticsView.swift */; };
+		AA100000D /* OverlayWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100000E /* OverlayWindowManager.swift */; };
+		AA100000F /* PreferencesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000010 /* PreferencesManager.swift */; };
+		AA1000011 /* SchedulingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000012 /* SchedulingService.swift */; };
+		AA1000013 /* OverlayViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000014 /* OverlayViewModel.swift */; };
+		AA1000015 /* OverlaySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000016 /* OverlaySettings.swift */; };
+		AA1000017 /* UsageEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000018 /* UsageEvent.swift */; };
+		AA1000019 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100001A /* Constants.swift */; };
+		AA100001B /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100001C /* Extensions.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		AA1000000 /* RedScreenFilter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RedScreenFilter.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA1000002 /* RedScreenFilterApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedScreenFilterApp.swift; sourceTree = "<group>"; };
+		AA1000004 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		AA1000006 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AA1000020 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA1000021 /* RedScreenFilter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RedScreenFilter.entitlements; sourceTree = "<group>"; };
+		AA1000008 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		AA100000A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		AA100000C /* AnalyticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsView.swift; sourceTree = "<group>"; };
+		AA100000E /* OverlayWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowManager.swift; sourceTree = "<group>"; };
+		AA1000010 /* PreferencesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesManager.swift; sourceTree = "<group>"; };
+		AA1000012 /* SchedulingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchedulingService.swift; sourceTree = "<group>"; };
+		AA1000014 /* OverlayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayViewModel.swift; sourceTree = "<group>"; };
+		AA1000016 /* OverlaySettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlaySettings.swift; sourceTree = "<group>"; };
+		AA1000018 /* UsageEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageEvent.swift; sourceTree = "<group>"; };
+		AA100001A /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		AA100001C /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AA1000030 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		AA1000040 = {
+			isa = PBXGroup;
+			children = (
+				AA1000050 /* RedScreenFilter */,
+				AA1000060 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		AA1000050 /* RedScreenFilter */ = {
+			isa = PBXGroup;
+			children = (
+				AA1000070 /* Sources */,
+				AA1000020 /* Info.plist */,
+				AA1000021 /* RedScreenFilter.entitlements */,
+			);
+			path = RedScreenFilter;
+			sourceTree = "<group>";
+		};
+		AA1000070 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				AA1000080 /* App */,
+				AA1000090 /* Views */,
+				AA10000A0 /* Services */,
+				AA10000B0 /* ViewModels */,
+				AA10000C0 /* Models */,
+				AA10000D0 /* Utilities */,
+				AA10000E0 /* Resources */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		AA1000080 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				AA1000002 /* RedScreenFilterApp.swift */,
+				AA1000004 /* AppDelegate.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		AA1000090 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				AA1000008 /* MainView.swift */,
+				AA100000A /* SettingsView.swift */,
+				AA100000C /* AnalyticsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		AA10000A0 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				AA100000E /* OverlayWindowManager.swift */,
+				AA1000010 /* PreferencesManager.swift */,
+				AA1000012 /* SchedulingService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		AA10000B0 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				AA1000014 /* OverlayViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		AA10000C0 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				AA1000016 /* OverlaySettings.swift */,
+				AA1000018 /* UsageEvent.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		AA10000D0 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				AA100001A /* Constants.swift */,
+				AA100001C /* Extensions.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		AA10000E0 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				AA1000006 /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		AA1000060 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AA1000000 /* RedScreenFilter.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AA1000100 /* RedScreenFilter */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA1000110 /* Build configuration list for PBXNativeTarget "RedScreenFilter" */;
+			buildPhases = (
+				AA1000120 /* Sources */,
+				AA1000030 /* Frameworks */,
+				AA1000130 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = RedScreenFilter;
+			productName = RedScreenFilter;
+			productReference = AA1000000 /* RedScreenFilter.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AA1000140 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					AA1000100 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = AA1000150 /* Build configuration list for PBXProject "RedScreenFilter" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AA1000040;
+			productRefGroup = AA1000060 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AA1000100 /* RedScreenFilter */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AA1000130 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA1000005 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AA1000120 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA1000001 /* RedScreenFilterApp.swift in Sources */,
+				AA1000003 /* AppDelegate.swift in Sources */,
+				AA1000007 /* MainView.swift in Sources */,
+				AA1000009 /* SettingsView.swift in Sources */,
+				AA100000B /* AnalyticsView.swift in Sources */,
+				AA100000D /* OverlayWindowManager.swift in Sources */,
+				AA100000F /* PreferencesManager.swift in Sources */,
+				AA1000011 /* SchedulingService.swift in Sources */,
+				AA1000013 /* OverlayViewModel.swift in Sources */,
+				AA1000015 /* OverlaySettings.swift in Sources */,
+				AA1000017 /* UsageEvent.swift in Sources */,
+				AA1000019 /* Constants.swift in Sources */,
+				AA100001B /* Extensions.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		AA1000200 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		AA1000201 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		AA1000202 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = RedScreenFilter/RedScreenFilter.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = RedScreenFilter/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.redscreenfilter;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AA1000203 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = RedScreenFilter/RedScreenFilter.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = RedScreenFilter/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.redscreenfilter;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AA1000110 /* Build configuration list for PBXNativeTarget "RedScreenFilter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA1000202 /* Debug */,
+				AA1000203 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA1000150 /* Build configuration list for PBXProject "RedScreenFilter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA1000200 /* Debug */,
+				AA1000201 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = AA1000140 /* Project object */;
+}
