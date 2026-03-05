@@ -15,6 +15,7 @@ struct OverlaySettings: Codable {
     var scheduleEndTime: String = "07:00"
     var useAmbientLight: Bool = false
     var useLocationSchedule: Bool = false
+    var sunsetOffsetMinutes: Int = 0
     var colorVariant: String = "red_standard"
     
     enum CodingKeys: String, CodingKey {
@@ -25,6 +26,7 @@ struct OverlaySettings: Codable {
         case scheduleEndTime
         case useAmbientLight
         case useLocationSchedule
+        case sunsetOffsetMinutes
         case colorVariant
     }
 }

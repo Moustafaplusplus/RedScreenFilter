@@ -30,9 +30,11 @@ class OverlayWindowManager {
     func updateOpacity(_ opacity: Float) {
         guard let overlayView = overlayView else { return }
         
-        let color = getColorForVariant(prefsManager.getColorVariant())
-        overlayView.backgroundColor = color.withAlphaComponent(CGFloat(opacity))
-        prefsManager.setOpacity(opacity)
+        let variant = prefsManager.getColorVariantEnum()
+        let validatedOpacity = ColorUtility.validatedOpacity(opacity, for: variant)
+        let color = ColorUtility.uiColor(for: variant, opacity: validatedOpacity)
+        overlayView.backgroundColor = color
+        prefsManager.setOpacity(validatedOpacity)
     }
     
     // MARK: - Private Methods
@@ -41,31 +43,22 @@ class OverlayWindowManager {
         guard overlayWindow == nil else { return }
         
         let window = UIWindow(frame: UIScreen.main.bounds)
+        window.windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
         window.windowLevel = .alert - 1  // Below alerts but above content
         window.backgroundColor = .clear
         window.isUserInteractionEnabled = false
         
         let overlayView = UIView(frame: UIScreen.main.bounds)
-        let color = getColorForVariant(prefsManager.getColorVariant())
-        overlayView.backgroundColor = color.withAlphaComponent(CGFloat(prefsManager.getOpacity()))
+        let variant = prefsManager.getColorVariantEnum()
+        let color = ColorUtility.uiColor(for: variant, opacity: prefsManager.getOpacity())
+        overlayView.backgroundColor = color
         
         window.addSubview(overlayView)
-        window.makeKeyAndVisible()
+        window.isHidden = false
         
         self.overlayWindow = window
         self.overlayView = overlayView
     }
     
-    private func getColorForVariant(_ variant: String) -> UIColor {
-        switch variant {
-        case "red_orange":
-            return UIColor(red: 1.0, green: 0.39, blue: 0, alpha: 1.0)
-        case "red_pink":
-            return UIColor(red: 1.0, green: 0, blue: 0.39, alpha: 1.0)
-        case "high_contrast":
-            return UIColor(red: 1.0, green: 0, blue: 0, alpha: 1.0)
-        default:  // red_standard
-            return UIColor(red: 1.0, green: 0, blue: 0, alpha: 1.0)
-        }
-    }
+    // Color handling is now delegated to ColorUtility for consistency
 }

@@ -45,6 +45,7 @@ extension Float {
 // MARK: - Color Extensions
 
 extension Color {
+    // Overlay Color Variants
     static let redStandard = Color(red: 1.0, green: 0, blue: 0)
     static let redOrange = Color(red: 1.0, green: 0.39, blue: 0)
     static let redPink = Color(red: 1.0, green: 0, blue: 0.39)
@@ -61,5 +62,35 @@ extension Color {
         default:
             return .redStandard
         }
+    }
+    
+    // MARK: - RSF Theme Color Access (convenience aliases)
+    
+    static var rsfPrimary: Color {
+        RsfTheme.colors.primary
+    }
+    
+    static var rsfSecondary: Color {
+        RsfTheme.colors.secondary
+    }
+    
+    static var rsfTertiary: Color {
+        RsfTheme.colors.tertiary
+    }
+    
+    static var rsfBackground: Color {
+        RsfTheme.colors.background
+    }
+    
+    static var rsfSurface: Color {
+        RsfTheme.colors.surface
+    }
+    
+    static var rsfSurfaceVariant: Color {
+        RsfTheme.colors.surfaceVariant
+    }
+    
+    static var rsfError: Color {
+        RsfTheme.colors.error
     }
 }
