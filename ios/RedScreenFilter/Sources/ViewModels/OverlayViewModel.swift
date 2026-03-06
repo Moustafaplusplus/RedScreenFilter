@@ -49,6 +49,7 @@ class OverlayViewModel: NSObject, ObservableObject {
     private let batteryMonitor: BatteryMonitor
     private let lightSensorManager: LightSensorManager
     private let eyeStrainReminderService: EyeStrainReminderService
+    private let analyticsService: AnalyticsService
     private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Initialization
@@ -61,6 +62,7 @@ class OverlayViewModel: NSObject, ObservableObject {
         self.batteryMonitor = BatteryMonitor.shared
         self.lightSensorManager = LightSensorManager.shared
         self.eyeStrainReminderService = EyeStrainReminderService.shared
+        self.analyticsService = AnalyticsService.shared
         
         super.init()
         
@@ -90,6 +92,13 @@ class OverlayViewModel: NSObject, ObservableObject {
         isEnabled.toggle()
         prefsManager.setOverlayEnabled(isEnabled)
         updateOverlayManager()
+        
+        // Log analytics event
+        analyticsService.logOverlayToggled(
+            isEnabled: isEnabled,
+            opacity: opacity,
+            preset: currentPreset
+        )
     }
     
     /// Update overlay opacity
@@ -101,6 +110,12 @@ class OverlayViewModel: NSObject, ObservableObject {
             let adjustedOpacity = getEffectiveOpacity()
             overlayManager.updateOpacity(adjustedOpacity)
         }
+        
+        // Log analytics event (throttled internally)
+        analyticsService.logOpacityChanged(
+            opacity: opacity,
+            preset: currentPreset
+        )
     }
     
     /// Update color variant
@@ -302,6 +317,12 @@ class OverlayViewModel: NSObject, ObservableObject {
             prefsManager.setOverlayEnabled(true)
             updateOverlayManager()
         }
+        
+        // Log analytics event for preset application
+        analyticsService.logPresetApplied(
+            preset: preset.name,
+            opacity: preset.opacity
+        )
     }
     
     /// Apply preset by name
@@ -314,24 +335,36 @@ class OverlayViewModel: NSObject, ObservableObject {
         currentPreset = presetName
         prefsManager.setCurrentPreset(presetName)
         
+        var presetOpacity: Float = 0.5
+        
         switch presetName.lowercased() {
         case "work":
-            updateOpacity(0.3)
+            presetOpacity = 0.3
+            updateOpacity(presetOpacity)
             settings.colorVariant = Constants.Colors.redStandard
         case "gaming":
-            updateOpacity(0.4)
+            presetOpacity = 0.4
+            updateOpacity(presetOpacity)
             settings.colorVariant = Constants.Colors.redOrange
         case "movie":
-            updateOpacity(0.5)
+            presetOpacity = 0.5
+            updateOpacity(presetOpacity)
             settings.colorVariant = Constants.Colors.redStandard
         case "sleep":
-            updateOpacity(0.7)
+            presetOpacity = 0.7
+            updateOpacity(presetOpacity)
             settings.colorVariant = Constants.Colors.redPink
         default:
             break
         }
 
         updateColorVariant(settings.colorVariant)
+        
+        // Log analytics event for preset application
+        analyticsService.logPresetApplied(
+            preset: presetName,
+            opacity: presetOpacity
+        )
     }
     
     // MARK: - Private Methods

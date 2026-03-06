@@ -3,12 +3,14 @@
 //  RedScreenFilter
 //
 //  Created on March 5, 2026.
+//  Enhanced in Phase 98-99% with permission management
 //
 
 import Foundation
 import Combine
 import UserNotifications
 import CallKit
+import OSLog
 
 /// EyeStrainReminderService - Manages 20-20-20 eye strain reminder notifications
 /// Schedules periodic reminders to take eye breaks
@@ -55,6 +57,7 @@ class EyeStrainReminderService: NSObject, ObservableObject {
     // MARK: - Properties
     
     private let notificationCenter = UNUserNotificationCenter.current()
+    private let permissionManager = PermissionManager.shared
     private var removalObserver: NSObjectProtocol?
     private var callObserver: CXCallObserverDelegate?
     
@@ -77,27 +80,29 @@ class EyeStrainReminderService: NSObject, ObservableObject {
     
     /// Request user permission for notifications
     func requestNotificationPermission(completion: @escaping (Bool) -> Void) {
-        notificationCenter.requestAuthorization(options: [.alert, .sound, .badge]) { [weak self] granted, error in
-            DispatchQueue.main.async {
-                if granted {
-                    self?.checkAuthorizationStatus()
-                    completion(true)
-                } else if let error = error {
-                    print("Notification permission error: \(error.localizedDescription)")
-                    completion(false)
-                } else {
-                    print("Notification permission denied")
-                    completion(false)
-                }
-            }
-        }
+        permissionManager.requestNotificationPermission(completion: completion)
     }
     
-    /// Enable eye strain reminders
+    /// Enable eye strain reminders - now with permission check
     func enableReminders() {
-        guard authorizationStatus == .authorized || authorizationStatus == .provisional else {
+        // Check permission first
+        guard permissionManager.hasNotificationPermission else {
+            AppLogger.notifications.info("Requesting notification permission for reminders...")
             requestNotificationPermission { [weak self] granted in
                 if granted {
+                    self?.enableRemindersInternal()
+                } else {
+                    AppLogger.notifications.warning("Notification permission denied - reminders cannot be enabled")
+                }
+            }
+            return
+        }
+        
+        enableRemindersInternal()
+    }
+    
+    /// Internal method to enable reminders (after permission check)
+    private func enableRemindersInternal() {
                     self?.enableReminders()
                 }
             }
@@ -243,9 +248,9 @@ class EyeStrainReminderService: NSObject, ObservableObject {
         // Schedule
         notificationCenter.add(request) { [weak self] error in
             if let error = error {
-                print("Failed to schedule eye strain reminder: \(error.localizedDescription)")
+                AppLogger.notifications.error("Failed to schedule eye strain reminder", error: error)
             } else {
-                print("Scheduled next eye strain reminder in \(self?.reminderInterval ?? 20) minutes")
+                AppLogger.notifications.debug("Scheduled next eye strain reminder in \(self?.reminderInterval ?? 20) minutes")
                 
                 // Schedule another notification after this one fires
                 DispatchQueue.main.asyncAfter(deadline: .now() + Double((self?.reminderInterval ?? 20) * 60) + 1) {

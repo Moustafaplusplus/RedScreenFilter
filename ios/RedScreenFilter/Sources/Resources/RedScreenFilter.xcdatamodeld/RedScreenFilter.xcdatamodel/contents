@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21754" systemVersion="22D68" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="UsageEvent" representedClassName="UsageEvent" syncable="YES">
+        <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="overlayEnabled" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="opacity" attributeType="Float" defaultValueString="0.5" usesScalarValueType="YES"/>
+        <attribute name="preset" attributeType="String" defaultValueString="Standard"/>
+    </entity>
+    <entity name="DailyStats" representedClassName="DailyStats" syncable="YES">
+        <attribute name="date" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="totalUsage" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="preset" attributeType="String" defaultValueString="Standard"/>
+    </entity>
+    <elements>
+        <element name="UsageEvent" positionX="-63" positionY="-18" width="128" height="89"/>
+        <element name="DailyStats" positionX="144" positionY="-18" width="128" height="74"/>
+    </elements>
+</model>

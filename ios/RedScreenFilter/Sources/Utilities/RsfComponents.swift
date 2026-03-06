@@ -3,6 +3,7 @@
 //  RedScreenFilter
 //
 //  Created on March 5, 2026.
+//  Enhanced in Phase 99-100% with Accessibility Support
 //
 
 import SwiftUI
@@ -121,9 +122,12 @@ struct RsfPrimaryButton: View {
                 .padding(.vertical, RsfTheme.spacing.md)
                 .background(RsfTheme.colors.primary)
                 .cornerRadius(RsfTheme.radius.md)
+                .frame(minHeight: 44) // Minimum touch target
         }
         .disabled(isDisabled || isLoading)
         .opacity(isDisabled ? 0.5 : 1.0)
+        .accessibilityLabel(label)
+        .accessibilityHint(isLoading ? "Loading" : (isDisabled ? "Disabled" : ""))
     }
 }
 
@@ -148,9 +152,12 @@ struct RsfSecondaryButton: View {
                     RoundedRectangle(cornerRadius: RsfTheme.radius.md)
                         .stroke(RsfTheme.colors.glassStroke, lineWidth: RsfTheme.border.thin)
                 )
+                .frame(minHeight: 44) // Minimum touch target
         }
         .disabled(isDisabled || isLoading)
         .opacity(isDisabled ? 0.5 : 1.0)
+        .accessibilityLabel(label)
+        .accessibilityHint(isLoading ? "Loading" : (isDisabled ? "Disabled" : ""))
     }
 }
 
@@ -173,6 +180,8 @@ struct RsfSwitch: View {
             
             Toggle("", isOn: $isOn)
                 .tint(RsfTheme.colors.primary)
+                .accessibilityLabel(label ?? "Toggle")
+                .accessibilityValue(isOn ? AccessibilityHelper.toggleOn : AccessibilityHelper.toggleOff)
         }
     }
 }

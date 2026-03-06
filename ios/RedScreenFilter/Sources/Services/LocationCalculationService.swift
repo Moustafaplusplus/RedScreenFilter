@@ -3,38 +3,74 @@
 //  RedScreenFilter
 //
 //  Created on March 5, 2026.
+//  Enhanced in Phase 98-99% with permission handling
 //
 
 import Foundation
 import CoreLocation
+import OSLog
 
 final class LocationCalculationService: NSObject, ObservableObject {
     static let shared = LocationCalculationService()
 
     @Published private(set) var sunriseTime: Date?
     @Published private(set) var sunsetTime: Date?
+    @Published private(set) var isLocationAvailable: Bool = false
 
     private let locationManager = CLLocationManager()
+    private let permissionManager = PermissionManager.shared
     private var lastLocation: CLLocation?
+    private var locationRequestCompletion: ((Bool) -> Void)?
 
     private override init() {
         super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyKilometer
+        
+        // Calculate default times even without location
+        let defaultTimes = calculateTimes(for: nil)
+        sunriseTime = defaultTimes.sunrise
+        sunsetTime = defaultTimes.sunset
     }
 
-    func requestLocationPermission() {
-        locationManager.requestWhenInUseAuthorization()
+    /// Request location permission with completion handler
+    /// - Parameter completion: Called with success/failure
+    func requestLocationPermission(completion: ((Bool) -> Void)? = nil) {
+        permissionManager.requestLocationPermission { [weak self] granted in
+            if granted {
+                self?.fetchSunriseSunsetTimes()
+            }
+            completion?(granted)
+        }
     }
 
+    /// Fetch sunrise/sunset times - checks permission first
+    /// - Parameter forceRefresh: Force a new location request
     func fetchSunriseSunsetTimes(forceRefresh: Bool = false) {
+        // Check permission status first
+        guard permissionManager.hasLocationPermission else {
+            AppLogger.location.warning("Location permission not granted - using approximate times")
+            updateTimesWithoutLocation()
+            return
+        }
+        
         if forceRefresh || lastLocation == nil {
             locationManager.requestLocation()
+        } else {
+            // Use cached location
+            let calculatedTimes = calculateTimes(for: lastLocation)
+            sunriseTime = calculatedTimes.sunrise
+            sunsetTime = calculatedTimes.sunset
+            isLocationAvailable = true
         }
-
-        let calculatedTimes = calculateTimes(for: lastLocation)
+    }
+    
+    /// Update times without location (uses approximate times)
+    private func updateTimesWithoutLocation() {
+        let calculatedTimes = calculateTimes(for: nil)
         sunriseTime = calculatedTimes.sunrise
         sunsetTime = calculatedTimes.sunset
+        isLocationAvailable = false
     }
 
     func getSunriseSunsetWithOffset(offsetMinutes: Int) -> (sunrise: Date, sunset: Date)? {
@@ -82,15 +118,31 @@ final class LocationCalculationService: NSObject, ObservableObject {
 
 extension LocationCalculationService: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        lastLocation = locations.last
-        let calculatedTimes = calculateTimes(for: lastLocation)
+        guard let location = locations.last else { return }
+        
+        lastLocation = location
+        isLocationAvailable = true
+        
+        let calculatedTimes = calculateTimes(for: location)
         sunriseTime = calculatedTimes.sunrise
         sunsetTime = calculatedTimes.sunset
+        
+        AppLogger.location.debug("Location updated: \(location.coordinate.latitude), \(location.coordinate.longitude)")
+        AppLogger.location.debug("Sunrise: \(getFormattedTimes()["sunrise"] ?? "N/A"), Sunset: \(getFormattedTimes()["sunset"] ?? "N/A")")
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        let calculatedTimes = calculateTimes(for: nil)
-        sunriseTime = calculatedTimes.sunrise
-        sunsetTime = calculatedTimes.sunset
+        AppLogger.location.error("Location error", error: error)
+        updateTimesWithoutLocation()
+    }
+    
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        // Permission status changed - update availability
+        isLocationAvailable = permissionManager.hasLocationPermission
+        
+        if permissionManager.hasLocationPermission {
+            fetchSunriseSunsetTimes()
+        }
     }
 }
+

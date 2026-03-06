@@ -3,21 +3,32 @@
 //  RedScreenFilter
 //
 //  Created on March 5, 2026.
+//  Updated for Core Data on March 6, 2026.
 //
 
 import Foundation
+import CoreData
 
-struct UsageEvent: Identifiable, Codable {
-    let id: UUID = UUID()
-    let timestamp: Date
-    let overlayEnabled: Bool
-    let opacity: Float
-    let preset: String?
+/// Core Data entity representing a single usage event
+@objc(UsageEvent)
+public class UsageEvent: NSManagedObject {
+    @NSManaged public var timestamp: Date
+    @NSManaged public var overlayEnabled: Bool
+    @NSManaged public var opacity: Float
+    @NSManaged public var preset: String
+}
+
+extension UsageEvent {
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<UsageEvent> {
+        return NSFetchRequest<UsageEvent>(entityName: "UsageEvent")
+    }
     
-    enum CodingKeys: String, CodingKey {
-        case timestamp
-        case overlayEnabled
-        case opacity
-        case preset
+    /// Convenience initializer for creating usage events
+    convenience init(context: NSManagedObjectContext, overlayEnabled: Bool, opacity: Float, preset: String) {
+        self.init(context: context)
+        self.timestamp = Date()
+        self.overlayEnabled = overlayEnabled
+        self.opacity = opacity
+        self.preset = preset
     }
 }
