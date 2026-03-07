@@ -240,39 +240,31 @@ class PreferencesManager: NSObject, ObservableObject {
     }
     
     func loadSettings() -> OverlaySettings {
-        if let data = defaults.data(forKey: settingsKey),
-           let decoded = try? JSONDecoder().decode(OverlaySettings.self, from: data) {
-            overlayEnabled = decoded.isEnabled
-            opacity = decoded.opacity
-            colorVariant = decoded.colorVariant
-            scheduleEnabled = decoded.scheduleEnabled
-            scheduleStartTime = decoded.scheduleStartTime
-            scheduleEndTime = decoded.scheduleEndTime
-            useAmbientLight = decoded.useAmbientLight
-            useLocationSchedule = decoded.useLocationSchedule
-            return decoded
-        }
-        
-        // Load individual values for backward compatibility
-        overlayEnabled = defaults.bool(forKey: overlayEnabledKey)
-        opacity = defaults.float(forKey: opacityKey)
-        if opacity == 0 {
-            opacity = 0.5
-        }
-        colorVariant = defaults.string(forKey: colorVariantKey) ?? "red_standard"
-        
-        scheduleEnabled = defaults.bool(forKey: scheduleEnabledKey)
-        scheduleStartTime = defaults.string(forKey: scheduleStartTimeKey) ?? "21:00"
-        scheduleEndTime = defaults.string(forKey: scheduleEndTimeKey) ?? "07:00"
-        
-        useLocationSchedule = defaults.bool(forKey: useLocationScheduleKey)
-        useAmbientLight = defaults.bool(forKey: useAmbientLightKey)
+        // Legacy blob support (fallback only). Individual keys are the source of truth.
+        let legacySettings: OverlaySettings? = {
+            guard let data = defaults.data(forKey: settingsKey) else { return nil }
+            return try? JSONDecoder().decode(OverlaySettings.self, from: data)
+        }()
+
+        overlayEnabled = (defaults.object(forKey: overlayEnabledKey) as? Bool) ?? legacySettings?.isEnabled ?? false
+        opacity = defaults.object(forKey: opacityKey) != nil
+            ? defaults.float(forKey: opacityKey)
+            : (legacySettings?.opacity ?? 0.5)
+        colorVariant = defaults.string(forKey: colorVariantKey) ?? legacySettings?.colorVariant ?? "red_standard"
+
+        scheduleEnabled = (defaults.object(forKey: scheduleEnabledKey) as? Bool) ?? legacySettings?.scheduleEnabled ?? false
+        scheduleStartTime = defaults.string(forKey: scheduleStartTimeKey) ?? legacySettings?.scheduleStartTime ?? "21:00"
+        scheduleEndTime = defaults.string(forKey: scheduleEndTimeKey) ?? legacySettings?.scheduleEndTime ?? "07:00"
+
+        useLocationSchedule = (defaults.object(forKey: useLocationScheduleKey) as? Bool) ?? legacySettings?.useLocationSchedule ?? false
+        useAmbientLight = (defaults.object(forKey: useAmbientLightKey) as? Bool) ?? legacySettings?.useAmbientLight ?? false
+        sunsetOffsetMinutes = defaults.object(forKey: sunsetOffsetMinutesKey) as? Int ?? legacySettings?.sunsetOffsetMinutes ?? 0
         ambientLightSensitivity = defaults.string(forKey: ambientLightSensitivityKey) ?? "medium"
-        
+
         batteryOptimizationEnabled = defaults.object(forKey: batteryOptimizationKey) as? Bool ?? true
         let threshold = defaults.float(forKey: batteryThresholdKey)
         batteryOptimizationThreshold = threshold > 0 ? threshold : 0.2
-        
+
         eyeStrainRemindersEnabled = defaults.object(forKey: eyeStrainRemindersKey) as? Bool ?? true
         reminderInterval = defaults.integer(forKey: reminderIntervalKey)
         if reminderInterval == 0 {
@@ -280,6 +272,11 @@ class PreferencesManager: NSObject, ObservableObject {
         }
         notificationStyle = defaults.string(forKey: notificationStyleKey) ?? "sound"
         currentPreset = defaults.string(forKey: currentPresetKey) ?? "Standard"
+
+        // Migration cleanup: do not let stale blob override future launches.
+        if legacySettings != nil {
+            defaults.removeObject(forKey: settingsKey)
+        }
 
         syncToAppGroup()
         
@@ -291,6 +288,7 @@ class PreferencesManager: NSObject, ObservableObject {
             scheduleEndTime: scheduleEndTime,
             useAmbientLight: useAmbientLight,
             useLocationSchedule: useLocationSchedule,
+            sunsetOffsetMinutes: sunsetOffsetMinutes,
             colorVariant: colorVariant
         )
     }

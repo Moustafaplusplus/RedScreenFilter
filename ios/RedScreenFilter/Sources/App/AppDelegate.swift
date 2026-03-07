@@ -24,12 +24,16 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         
         // Register background task for schedule updates
         BackgroundScheduleTask.registerBackgroundTask()
+        configureGlobalAppearance()
         
         // Initialize overlay state from App Groups (for widget sync)
         restoreOverlayState()
         
         // Check and request permissions if needed
         checkInitialPermissions()
+
+        // Ensure shortcut reminder notifications match persisted schedule settings.
+        SchedulingService.shared.syncShortcutReminders()
         
         AppLogger.lifecycle.success("AppDelegate initialized - Background task registered")
         
@@ -163,6 +167,32 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     
     // MARK: - Permission Management
     
+    private func configureGlobalAppearance() {
+        let navigationAppearance = UINavigationBarAppearance()
+        navigationAppearance.configureWithOpaqueBackground()
+        navigationAppearance.backgroundColor = .black
+        navigationAppearance.shadowColor = .clear
+        navigationAppearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+        navigationAppearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
+
+        UINavigationBar.appearance().standardAppearance = navigationAppearance
+        UINavigationBar.appearance().scrollEdgeAppearance = navigationAppearance
+        UINavigationBar.appearance().compactAppearance = navigationAppearance
+        UINavigationBar.appearance().tintColor = .white
+
+        let tabAppearance = UITabBarAppearance()
+        tabAppearance.configureWithOpaqueBackground()
+        tabAppearance.backgroundColor = .black
+        tabAppearance.shadowColor = .clear
+
+        UITabBar.appearance().standardAppearance = tabAppearance
+        if #available(iOS 15.0, *) {
+            UITabBar.appearance().scrollEdgeAppearance = tabAppearance
+        }
+        UITabBar.appearance().tintColor = .systemRed
+        UITabBar.appearance().unselectedItemTintColor = UIColor.white.withAlphaComponent(0.7)
+    }
+
     /// Check if initial permissions need to be requested on first launch
     private func checkInitialPermissions() {
         let hasLaunchedBefore = UserDefaults.standard.bool(forKey: "hasLaunchedBefore")

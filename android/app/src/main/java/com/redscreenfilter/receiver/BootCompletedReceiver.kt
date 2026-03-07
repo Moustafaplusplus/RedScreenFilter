@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.redscreenfilter.data.SchedulingManager
-import com.redscreenfilter.utils.WorkScheduler
+import com.redscreenfilter.utils.ExactAlarmScheduler
 
 /**
  * Boot Completed Receiver
@@ -16,7 +16,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
     private val TAG = "BootCompletedReceiver"
     
     override fun onReceive(context: Context?, intent: Intent?) {
-        if (context == null || intent?.action != Intent.ACTION_BOOT_COMPLETED) {
+        if (context == null || (intent?.action != Intent.ACTION_BOOT_COMPLETED && intent?.action != Intent.ACTION_LOCKED_BOOT_COMPLETED)) {
             return
         }
         
@@ -25,10 +25,8 @@ class BootCompletedReceiver : BroadcastReceiver() {
         // Check if scheduling is enabled
         val schedulingManager = SchedulingManager.getInstance(context)
         if (schedulingManager.isScheduleEnabled()) {
-            Log.d(TAG, "onReceive: Scheduling is enabled, re-scheduling WorkManager")
-            WorkScheduler.schedulePeriodicWork(context)
+            Log.d(TAG, "onReceive: Scheduling is enabled, re-scheduling Alarms")
+            ExactAlarmScheduler.scheduleNextAlarm(context)
         }
-        
-        // Future: Also restore overlay state if it was active before reboot (Phase 98-100%)
     }
 }

@@ -26,8 +26,11 @@ struct WidgetSharedState {
         let store = defaults
         overlayEnabled = store?.bool(forKey: Keys.overlayEnabled) ?? false
 
-        let storedOpacity = store?.float(forKey: Keys.opacity) ?? 0
-        opacity = storedOpacity > 0 ? storedOpacity : 0.5
+        if let store, store.object(forKey: Keys.opacity) != nil {
+            opacity = store.float(forKey: Keys.opacity)
+        } else {
+            opacity = 0.5
+        }
 
         scheduleEnabled = store?.bool(forKey: Keys.scheduleEnabled) ?? false
         scheduleStartTime = store?.string(forKey: Keys.scheduleStartTime) ?? "21:00"

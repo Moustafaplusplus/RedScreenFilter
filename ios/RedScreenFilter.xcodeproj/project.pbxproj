@@ -7,17 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		BB2000001 /* WidgetActionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000017 /* WidgetActionCoordinator.swift */; };
-		BB2000002 /* RedScreenControlWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000011 /* RedScreenControlWidgetBundle.swift */; };
-		BB2000003 /* RedScreenControlWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000012 /* RedScreenControlWidget.swift */; };
-		BB2000004 /* WidgetSharedState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000013 /* WidgetSharedState.swift */; };
-		BB2000005 /* WidgetIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000014 /* WidgetIntents.swift */; };
-		BB2000006 /* RedScreenControlWidgetExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = BB2000010 /* RedScreenControlWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		BB2000007 /* BatteryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000018 /* BatteryMonitor.swift */; };
-		BB2000008 /* LightSensorManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000019 /* LightSensorManager.swift */; };
-		BB2000009 /* EyeStrainReminderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB200001A /* EyeStrainReminderService.swift */; };
-		CC1000001 /* SiriShortcutsLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1000002 /* SiriShortcutsLauncher.swift */; };
-		CC1000003 /* VoiceControlIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1000004 /* VoiceControlIntents.swift */; };
+		88150B1A2F5A93AD008B81B9 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88150B192F5A93AD008B81B9 /* AnalyticsService.swift */; };
+		88150B1C2F5A93E3008B81B9 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88150B1B2F5A93E3008B81B9 /* AppLogger.swift */; };
+		88150B1E2F5A93E3008B81B9 /* PermissionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88150B1D2F5A93E3008B81B9 /* PermissionManager.swift */; };
+		88150B202F5A93E3008B81B9 /* CoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88150B1F2F5A93E3008B81B9 /* CoreDataStack.swift */; };
+		88150B222F5A9433008B81B9 /* AnalyticsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88150B212F5A9433008B81B9 /* AnalyticsViewModel.swift */; };
+		88150B242F5A9434008B81B9 /* AnalyticsComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88150B232F5A9434008B81B9 /* AnalyticsComponents.swift */; };
+		88150B262F5AB0E1008B81B9 /* LaunchSplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88150B252F5AB0E1008B81B9 /* LaunchSplashView.swift */; };
 		884B783E2F599A0500797F4A /* ColorVariant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884B783D2F599A0500797F4A /* ColorVariant.swift */; };
 		884B78402F599A0500797F4A /* PresetProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884B783F2F599A0500797F4A /* PresetProfile.swift */; };
 		884B78422F599A0600797F4A /* PresetsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884B78412F599A0600797F4A /* PresetsManager.swift */; };
@@ -25,6 +21,7 @@
 		884B78462F599A0600797F4A /* LocationCalculationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884B78452F599A0600797F4A /* LocationCalculationService.swift */; };
 		884B78482F599A3A00797F4A /* RsfTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884B78472F599A3A00797F4A /* RsfTheme.swift */; };
 		884B784A2F599A6700797F4A /* BackgroundScheduleTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884B78492F599A6700797F4A /* BackgroundScheduleTask.swift */; };
+		888BC0B62F5AC9B1009AD8A7 /* SystemWideShortcutReminderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 888BC0B52F5AC9B0009AD8A7 /* SystemWideShortcutReminderService.swift */; };
 		AA1000001 /* RedScreenFilterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000002 /* RedScreenFilterApp.swift */; };
 		AA1000003 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000004 /* AppDelegate.swift */; };
 		AA1000005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA1000006 /* Assets.xcassets */; };
@@ -39,6 +36,17 @@
 		AA1000017 /* UsageEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1000018 /* UsageEvent.swift */; };
 		AA1000019 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100001A /* Constants.swift */; };
 		AA100001B /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100001C /* Extensions.swift */; };
+		BB2000001 /* WidgetActionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000017 /* WidgetActionCoordinator.swift */; };
+		BB2000002 /* RedScreenControlWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000011 /* RedScreenControlWidgetBundle.swift */; };
+		BB2000003 /* RedScreenControlWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000012 /* RedScreenControlWidget.swift */; };
+		BB2000004 /* WidgetSharedState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000013 /* WidgetSharedState.swift */; };
+		BB2000005 /* WidgetIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000014 /* WidgetIntents.swift */; };
+		BB2000006 /* RedScreenControlWidgetExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = BB2000010 /* RedScreenControlWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		BB2000007 /* BatteryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000018 /* BatteryMonitor.swift */; };
+		BB2000008 /* LightSensorManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2000019 /* LightSensorManager.swift */; };
+		BB2000009 /* EyeStrainReminderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB200001A /* EyeStrainReminderService.swift */; };
+		CC1000001 /* SiriShortcutsLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1000002 /* SiriShortcutsLauncher.swift */; };
+		CC1000003 /* VoiceControlIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1000004 /* VoiceControlIntents.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -66,19 +74,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		BB2000010 /* RedScreenControlWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = RedScreenControlWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		BB2000011 /* RedScreenControlWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedScreenControlWidgetBundle.swift; sourceTree = "<group>"; };
-		BB2000012 /* RedScreenControlWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedScreenControlWidget.swift; sourceTree = "<group>"; };
-		BB2000013 /* WidgetSharedState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSharedState.swift; sourceTree = "<group>"; };
-		BB2000014 /* WidgetIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetIntents.swift; sourceTree = "<group>"; };
-		BB2000015 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		BB2000016 /* RedScreenControlWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RedScreenControlWidgetExtension.entitlements; sourceTree = "<group>"; };
-		BB2000017 /* WidgetActionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetActionCoordinator.swift; sourceTree = "<group>"; };
-		BB2000018 /* BatteryMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryMonitor.swift; sourceTree = "<group>"; };
-		BB2000019 /* LightSensorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LightSensorManager.swift; sourceTree = "<group>"; };
-		BB200001A /* EyeStrainReminderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EyeStrainReminderService.swift; sourceTree = "<group>"; };
-		CC1000002 /* SiriShortcutsLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiriShortcutsLauncher.swift; sourceTree = "<group>"; };
-		CC1000004 /* VoiceControlIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceControlIntents.swift; sourceTree = "<group>"; };
+		88150B192F5A93AD008B81B9 /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
+		88150B1B2F5A93E3008B81B9 /* AppLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogger.swift; sourceTree = "<group>"; };
+		88150B1D2F5A93E3008B81B9 /* PermissionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionManager.swift; sourceTree = "<group>"; };
+		88150B1F2F5A93E3008B81B9 /* CoreDataStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataStack.swift; sourceTree = "<group>"; };
+		88150B212F5A9433008B81B9 /* AnalyticsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsViewModel.swift; sourceTree = "<group>"; };
+		88150B232F5A9434008B81B9 /* AnalyticsComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsComponents.swift; sourceTree = "<group>"; };
+		88150B252F5AB0E1008B81B9 /* LaunchSplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchSplashView.swift; sourceTree = "<group>"; };
 		884B783D2F599A0500797F4A /* ColorVariant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorVariant.swift; sourceTree = "<group>"; };
 		884B783F2F599A0500797F4A /* PresetProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetProfile.swift; sourceTree = "<group>"; };
 		884B78412F599A0600797F4A /* PresetsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetsManager.swift; sourceTree = "<group>"; };
@@ -86,6 +88,7 @@
 		884B78452F599A0600797F4A /* LocationCalculationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationCalculationService.swift; sourceTree = "<group>"; };
 		884B78472F599A3A00797F4A /* RsfTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RsfTheme.swift; sourceTree = "<group>"; };
 		884B78492F599A6700797F4A /* BackgroundScheduleTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundScheduleTask.swift; sourceTree = "<group>"; };
+		888BC0B52F5AC9B0009AD8A7 /* SystemWideShortcutReminderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemWideShortcutReminderService.swift; sourceTree = "<group>"; };
 		AA1000000 /* RedScreenFilter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RedScreenFilter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA1000002 /* RedScreenFilterApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedScreenFilterApp.swift; sourceTree = "<group>"; };
 		AA1000004 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -103,17 +106,30 @@
 		AA100001C /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		AA1000020 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA1000021 /* RedScreenFilter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RedScreenFilter.entitlements; sourceTree = "<group>"; };
+		BB2000010 /* RedScreenControlWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = RedScreenControlWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		BB2000011 /* RedScreenControlWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedScreenControlWidgetBundle.swift; sourceTree = "<group>"; };
+		BB2000012 /* RedScreenControlWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedScreenControlWidget.swift; sourceTree = "<group>"; };
+		BB2000013 /* WidgetSharedState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSharedState.swift; sourceTree = "<group>"; };
+		BB2000014 /* WidgetIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetIntents.swift; sourceTree = "<group>"; };
+		BB2000015 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		BB2000016 /* RedScreenControlWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RedScreenControlWidgetExtension.entitlements; sourceTree = "<group>"; };
+		BB2000017 /* WidgetActionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetActionCoordinator.swift; sourceTree = "<group>"; };
+		BB2000018 /* BatteryMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryMonitor.swift; sourceTree = "<group>"; };
+		BB2000019 /* LightSensorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LightSensorManager.swift; sourceTree = "<group>"; };
+		BB200001A /* EyeStrainReminderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EyeStrainReminderService.swift; sourceTree = "<group>"; };
+		CC1000002 /* SiriShortcutsLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiriShortcutsLauncher.swift; sourceTree = "<group>"; };
+		CC1000004 /* VoiceControlIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceControlIntents.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		BB2000020 /* Frameworks */ = {
+		AA1000030 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		AA1000030 /* Frameworks */ = {
+		BB2000020 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -123,6 +139,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		88150B272F5AB116008B81B9 /* Animations 2 */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = "Animations 2";
+			sourceTree = "<group>";
+		};
 		AA1000040 = {
 			isa = PBXGroup;
 			children = (
@@ -181,6 +204,8 @@
 				AA100000A /* SettingsView.swift */,
 				AA100000C /* AnalyticsView.swift */,
 				884B78472F599A3A00797F4A /* RsfTheme.swift */,
+				88150B232F5A9434008B81B9 /* AnalyticsComponents.swift */,
+				88150B252F5AB0E1008B81B9 /* LaunchSplashView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -191,13 +216,19 @@
 				AA100000E /* OverlayWindowManager.swift */,
 				AA1000010 /* PreferencesManager.swift */,
 				AA1000012 /* SchedulingService.swift */,
-				CC1000002 /* SiriShortcutsLauncher.swift */,				CC1000004 /* VoiceControlIntents.swift */,				BB2000017 /* WidgetActionCoordinator.swift */,
+				CC1000002 /* SiriShortcutsLauncher.swift */,
+				CC1000004 /* VoiceControlIntents.swift */,
+				BB2000017 /* WidgetActionCoordinator.swift */,
 				BB2000018 /* BatteryMonitor.swift */,
 				BB2000019 /* LightSensorManager.swift */,
 				BB200001A /* EyeStrainReminderService.swift */,
 				884B78412F599A0600797F4A /* PresetsManager.swift */,
 				884B78452F599A0600797F4A /* LocationCalculationService.swift */,
 				884B78492F599A6700797F4A /* BackgroundScheduleTask.swift */,
+				88150B192F5A93AD008B81B9 /* AnalyticsService.swift */,
+				88150B1D2F5A93E3008B81B9 /* PermissionManager.swift */,
+				88150B1F2F5A93E3008B81B9 /* CoreDataStack.swift */,
+				888BC0B52F5AC9B0009AD8A7 /* SystemWideShortcutReminderService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -206,6 +237,7 @@
 			isa = PBXGroup;
 			children = (
 				AA1000014 /* OverlayViewModel.swift */,
+				88150B212F5A9433008B81B9 /* AnalyticsViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -227,6 +259,7 @@
 				AA100001A /* Constants.swift */,
 				AA100001C /* Extensions.swift */,
 				884B78432F599A0600797F4A /* ColorUtility.swift */,
+				88150B1B2F5A93E3008B81B9 /* AppLogger.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -235,6 +268,7 @@
 			isa = PBXGroup;
 			children = (
 				AA1000006 /* Assets.xcassets */,
+				88150B272F5AB116008B81B9 /* Animations 2 */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -255,23 +289,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		BB2000040 /* RedScreenControlWidgetExtension */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = BB2000072 /* Build configuration list for PBXNativeTarget "RedScreenControlWidgetExtension" */;
-			buildPhases = (
-				BB2000060 /* Sources */,
-				BB2000020 /* Frameworks */,
-				BB2000061 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = RedScreenControlWidgetExtension;
-			productName = RedScreenControlWidgetExtension;
-			productReference = BB2000010 /* RedScreenControlWidgetExtension.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
 		AA1000100 /* RedScreenFilter */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = AA1000110 /* Build configuration list for PBXNativeTarget "RedScreenFilter" */;
@@ -291,6 +308,23 @@
 			productReference = AA1000000 /* RedScreenFilter.app */;
 			productType = "com.apple.product-type.application";
 		};
+		BB2000040 /* RedScreenControlWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BB2000072 /* Build configuration list for PBXNativeTarget "RedScreenControlWidgetExtension" */;
+			buildPhases = (
+				BB2000060 /* Sources */,
+				BB2000020 /* Frameworks */,
+				BB2000061 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = RedScreenControlWidgetExtension;
+			productName = RedScreenControlWidgetExtension;
+			productReference = BB2000010 /* RedScreenControlWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -299,7 +333,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1500;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					AA1000100 = {
 						CreatedOnToolsVersion = 15.0;
@@ -329,13 +363,6 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		BB2000061 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		AA1000130 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -344,26 +371,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-/* End PBXResourcesBuildPhase section */
-
-/* Begin PBXSourcesBuildPhase section */
-		BB2000060 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
+		BB2000061 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BB2000002 /* RedScreenControlWidgetBundle.swift in Sources */,
-				BB2000003 /* RedScreenControlWidget.swift in Sources */,
-				BB2000004 /* WidgetSharedState.swift in Sources */,
-				BB2000005 /* WidgetIntents.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
 		AA1000120 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				884B78422F599A0600797F4A /* PresetsManager.swift in Sources */,
 				AA1000001 /* RedScreenFilterApp.swift in Sources */,
+				88150B242F5A9434008B81B9 /* AnalyticsComponents.swift in Sources */,
 				BB2000007 /* BatteryMonitor.swift in Sources */,
 				CC1000001 /* SiriShortcutsLauncher.swift in Sources */,
 				CC1000003 /* VoiceControlIntents.swift in Sources */,
@@ -373,21 +397,39 @@
 				BB2000008 /* LightSensorManager.swift in Sources */,
 				884B78462F599A0600797F4A /* LocationCalculationService.swift in Sources */,
 				BB2000009 /* EyeStrainReminderService.swift in Sources */,
+				88150B262F5AB0E1008B81B9 /* LaunchSplashView.swift in Sources */,
 				AA1000009 /* SettingsView.swift in Sources */,
 				AA100000B /* AnalyticsView.swift in Sources */,
 				AA100000D /* OverlayWindowManager.swift in Sources */,
 				AA100000F /* PreferencesManager.swift in Sources */,
+				88150B202F5A93E3008B81B9 /* CoreDataStack.swift in Sources */,
 				AA1000011 /* SchedulingService.swift in Sources */,
 				BB2000001 /* WidgetActionCoordinator.swift in Sources */,
 				AA1000013 /* OverlayViewModel.swift in Sources */,
 				AA1000015 /* OverlaySettings.swift in Sources */,
+				88150B1C2F5A93E3008B81B9 /* AppLogger.swift in Sources */,
+				88150B222F5A9433008B81B9 /* AnalyticsViewModel.swift in Sources */,
 				AA1000017 /* UsageEvent.swift in Sources */,
+				888BC0B62F5AC9B1009AD8A7 /* SystemWideShortcutReminderService.swift in Sources */,
+				88150B1A2F5A93AD008B81B9 /* AnalyticsService.swift in Sources */,
 				884B78442F599A0600797F4A /* ColorUtility.swift in Sources */,
 				AA1000019 /* Constants.swift in Sources */,
 				884B78482F599A3A00797F4A /* RsfTheme.swift in Sources */,
 				AA100001B /* Extensions.swift in Sources */,
 				884B78402F599A0500797F4A /* PresetProfile.swift in Sources */,
+				88150B1E2F5A93E3008B81B9 /* PermissionManager.swift in Sources */,
 				884B783E2F599A0500797F4A /* ColorVariant.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BB2000060 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BB2000002 /* RedScreenControlWidgetBundle.swift in Sources */,
+				BB2000003 /* RedScreenControlWidget.swift in Sources */,
+				BB2000004 /* WidgetSharedState.swift in Sources */,
+				BB2000005 /* WidgetIntents.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

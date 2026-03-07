@@ -506,7 +506,7 @@ class MainActivity : AppCompatActivity() {
                     uiState = wellnessComposeUiState,
                     onBatteryOptimizationToggle = { isEnabled -> handleBatteryOptimizationToggle(isEnabled) },
                     onEyeStrainReminderToggle = { isEnabled -> handleEyeStrainReminderToggle(isEnabled) },
-                    onNotificationStyleSelected = { style -> handleNotificationStyleChangeByValue(style) }
+                    onNotificationStyleSelected = { style -> handleNotificationStyleChange(style) }
                 )
                 else -> OverlayVisibilitySettingsSectionCompose(
                     uiState = overlayVisibilityComposeUiState,
@@ -535,6 +535,7 @@ class MainActivity : AppCompatActivity() {
         val automationState = automationSettingsViewModel.loadState()
         if (automationState.isSchedulingEnabled) {
             WorkScheduler.schedulePeriodicWork(this)
+            scheduleCoordinator.refreshSchedule(this)
         }
     }
     
@@ -629,11 +630,6 @@ class MainActivity : AppCompatActivity() {
         refreshWellnessComposeUiState()
     }
     
-    private fun handleNotificationStyleChange(style: String) {
-        wellnessSettingsViewModel.onNotificationStyleChanged(style)
-        refreshWellnessComposeUiState()
-    }
-    
     private fun scheduleEyeStrainReminder() {
         try {
             val reminderWorker = androidx.work.PeriodicWorkRequestBuilder<com.redscreenfilter.worker.EyeStrainReminder>(
@@ -685,6 +681,13 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun handleSchedulingToggle(isEnabled: Boolean) {
+        if (isEnabled && !permissionCoordinator.hasExactAlarmPermission(this)) {
+            permissionCoordinator.requestExactAlarmPermission(this)
+            // Note: We don't toggle yet because we need the permission first.
+            // The user will come back after granting it.
+            return
+        }
+
         val automationState = automationSettingsViewModel.onSchedulingToggled(isEnabled)
         if (automationState.isSchedulingEnabled) {
             scheduleCoordinator.onSchedulingToggled(this, true)
@@ -715,7 +718,7 @@ class MainActivity : AppCompatActivity() {
     private fun checkAndApplySchedule() {
         val automationState = automationSettingsViewModel.loadState()
         if (!automationState.isSchedulingEnabled) return
-        scheduleCoordinator.applyScheduleNow(this)
+        scheduleCoordinator.refreshSchedule(this)
         refreshDisplayComposeUiState()
         refreshAutomationComposeUiState()
     }
@@ -836,10 +839,14 @@ class MainActivity : AppCompatActivity() {
     private fun handleLocationOffsetChange(offsetMinutes: Int) {
         automationSettingsViewModel.onLocationOffsetChanged(offsetMinutes)
         updateCalculatedTimes()
+        scheduleCoordinator.refreshSchedule(this)
         refreshAutomationComposeUiState()
     }
 
-    private fun handleNotificationStyleChangeByValue(style: String) = handleNotificationStyleChange(style)
+    private fun handleNotificationStyleChange(style: String) {
+        wellnessSettingsViewModel.onNotificationStyleChanged(style)
+        refreshWellnessComposeUiState()
+    }
 
     private fun getLightSensitivityLabel(value: Float): String = when (value.toInt()) {
         0 -> getString(R.string.light_sensitivity_low)
@@ -848,11 +855,17 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun handleLocationSchedulingToggle(isEnabled: Boolean) {
+        if (isEnabled && !permissionCoordinator.hasExactAlarmPermission(this)) {
+            permissionCoordinator.requestExactAlarmPermission(this)
+            return
+        }
+
         val automationState = automationSettingsViewModel.onLocationSchedulingToggled(isEnabled)
         if (automationState.isLocationSchedulingEnabled) {
             if (locationManager.getCachedLocation() == null) requestLocationPermissionsIfNeeded()
             else updateCalculatedTimes()
         }
+        scheduleCoordinator.refreshSchedule(this)
         refreshAutomationComposeUiState()
     }
     
@@ -866,6 +879,7 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
                     isLocationLoading = false
                     updateCalculatedTimes()
+                    scheduleCoordinator.refreshSchedule(this)
                     refreshAutomationComposeUiState()
                 }
             },

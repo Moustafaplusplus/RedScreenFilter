@@ -13,7 +13,7 @@ struct RsfTheme {
         static let secondary = Color(red: 0.94, green: 0.45, blue: 0.18)
         static let tertiary = Color(red: 0.95, green: 0.22, blue: 0.40)
 
-        static let background = Color(red: 0.07, green: 0.07, blue: 0.08)
+        static let background = Color.black
         static let surface = Color(red: 0.12, green: 0.12, blue: 0.14)
         static let surfaceVariant = Color(red: 0.16, green: 0.16, blue: 0.19)
 

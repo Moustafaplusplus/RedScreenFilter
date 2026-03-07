@@ -30,10 +30,16 @@ enum BackgroundScheduleTask {
         request.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60)
 
         do {
+            BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: taskIdentifier)
             try BGTaskScheduler.shared.submit(request)
             os_log("Scheduled app refresh task", log: logger, type: .info)
         } catch {
-            os_log("Failed to schedule app refresh task", log: logger, type: .error)
+            os_log(
+                "Failed to schedule app refresh task: %{public}@",
+                log: logger,
+                type: .error,
+                String(describing: error)
+            )
         }
     }
 

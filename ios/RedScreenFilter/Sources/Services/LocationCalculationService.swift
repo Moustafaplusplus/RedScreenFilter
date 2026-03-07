@@ -137,10 +137,14 @@ extension LocationCalculationService: CLLocationManagerDelegate {
     }
     
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        // Permission status changed - update availability
-        isLocationAvailable = permissionManager.hasLocationPermission
-        
-        if permissionManager.hasLocationPermission {
+        let status = manager.authorizationStatus
+        let hasPermission = (status == .authorizedAlways || status == .authorizedWhenInUse)
+
+        // Keep PermissionManager in sync for callers that read its cached state.
+        permissionManager.checkPermissions()
+        isLocationAvailable = hasPermission
+
+        if hasPermission {
             fetchSunriseSunsetTimes()
         }
     }

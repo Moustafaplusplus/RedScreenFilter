@@ -13,9 +13,12 @@
     <!-- Notification Permission for Android 13+ -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     
-    <!-- Boot Completed Permission for WorkManager Scheduling -->
+    <!-- Boot Completed Permission for Alarm Scheduling -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    
+
+    <!-- Exact Alarm Permissions for Android 12+ -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
     <!-- Location Permissions for Sunrise/Sunset Scheduling -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -80,13 +83,24 @@
             </property>
         </service>
         
-        <!-- Boot Completed Receiver for WorkManager Scheduling -->
+        <!-- Schedule Receiver for Exact Alarms -->
+        <receiver
+            android:name=".receiver.ScheduleReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.redscreenfilter.action.SCHEDULE_ALARM" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Boot Completed Receiver for Re-scheduling Alarms -->
         <receiver
             android:name=".receiver.BootCompletedReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
         

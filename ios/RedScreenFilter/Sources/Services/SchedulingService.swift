@@ -21,6 +21,7 @@ class SchedulingService {
     
     private let prefsManager = PreferencesManager.shared
     private let locationService = LocationCalculationService.shared
+    private let shortcutReminderService = SystemWideShortcutReminderService.shared
     private let logger = OSLog(subsystem: "com.redscreenfilter", category: "Scheduling")
     
     // Thread-safe access using a concurrent queue with barrier for writes
@@ -34,19 +35,20 @@ class SchedulingService {
     /// - Returns: Boolean indicating if overlay should be enabled
     func determineOverlayState() -> Bool {
         return queue.sync {
-            let settings = prefsManager.loadSettings()
-            
-            guard settings.scheduleEnabled else {
+            guard prefsManager.scheduleEnabled else {
                 return prefsManager.isOverlayEnabled()
             }
             
             // Prioritize location-based schedule if enabled
-            if settings.useLocationSchedule {
+            if prefsManager.useLocationSchedule {
                 return isCurrentTimeInLocationSchedule()
             }
             
             // Fall back to time-based schedule
-            return isCurrentTimeInSchedule(start: settings.scheduleStartTime, end: settings.scheduleEndTime)
+            return isCurrentTimeInSchedule(
+                start: prefsManager.scheduleStartTime,
+                end: prefsManager.scheduleEndTime
+            )
         }
     }
     
@@ -54,8 +56,7 @@ class SchedulingService {
     /// - Returns: Boolean indicating if schedule is active
     func isScheduleActive() -> Bool {
         return queue.sync {
-            let settings = prefsManager.loadSettings()
-            return settings.scheduleEnabled
+            return prefsManager.scheduleEnabled
         }
     }
     
@@ -66,15 +67,16 @@ class SchedulingService {
     ///   - start: Start time in HH:mm format (e.g., "21:00")
     ///   - end: End time in HH:mm format (e.g., "07:00")
     func setSchedule(start: String, end: String) {
-        queue.async(flags: .barrier) {
-            var settings = self.prefsManager.loadSettings()
-            settings.scheduleStartTime = start
-            settings.scheduleEndTime = end
-            settings.scheduleEnabled = true
-            self.prefsManager.saveSettings(settings)
-            
-            // Schedule background task to automatically update overlay state
-            self.requestBackgroundTaskScheduling()
+        queue.sync(flags: .barrier) {
+            self.prefsManager.setScheduleTime(start: start, end: end)
+            self.prefsManager.setScheduleEnabled(true)
+        }
+
+        syncShortcutReminders()
+
+        // Keep UI toggle responsive by scheduling background work off the calling thread.
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            self?.requestBackgroundTaskScheduling()
         }
     }
     
@@ -82,14 +84,14 @@ class SchedulingService {
     /// Thread-safe with barrier for write operations
     /// Cancels any pending background tasks
     func disableSchedule() {
-        queue.async(flags: .barrier) {
-            var settings = self.prefsManager.loadSettings()
-            settings.scheduleEnabled = false
-            self.prefsManager.saveSettings(settings)
+        queue.sync(flags: .barrier) {
+            self.prefsManager.setScheduleEnabled(false)
             
             // Cancel background task when schedule is disabled
             BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: BackgroundScheduleTask.taskIdentifier)
         }
+
+        shortcutReminderService.cancelAllReminders()
     }
     
     /// Requests background task scheduling for automatic overlay updates
@@ -98,6 +100,25 @@ class SchedulingService {
     func requestBackgroundTaskScheduling() {
         BackgroundScheduleTask.scheduleBackgroundTask()
     }
+
+    /// Re-sync notification reminders with persisted schedule settings.
+    func syncShortcutReminders() {
+        let scheduleEnabled = queue.sync { prefsManager.scheduleEnabled }
+        let useLocationSchedule = queue.sync { prefsManager.useLocationSchedule }
+        let scheduleStartTime = queue.sync { prefsManager.scheduleStartTime }
+        let scheduleEndTime = queue.sync { prefsManager.scheduleEndTime }
+
+        guard scheduleEnabled, !useLocationSchedule else {
+            shortcutReminderService.cancelAllReminders()
+            return
+        }
+
+        shortcutReminderService.syncWithSchedule(
+            isEnabled: scheduleEnabled,
+            startTime: scheduleStartTime,
+            endTime: scheduleEndTime
+        )
+    }
     
     // MARK: - Location-Based Scheduling Methods
     
@@ -105,33 +126,36 @@ class SchedulingService {
     /// Fetches initial location and times
     /// - Parameter offsetMinutes: Offset in minutes from actual sunrise/sunset
     func enableLocationSchedule(offsetMinutes: Int = 0) {
-        queue.async(flags: .barrier) {
-            var settings = self.prefsManager.loadSettings()
-            settings.useLocationSchedule = true
-            self.prefsManager.saveSettings(settings)
+        queue.sync(flags: .barrier) {
+            self.prefsManager.setLocationScheduleEnabled(true)
+            self.prefsManager.setSunsetOffset(offsetMinutes)
             
             // Fetch sunrise/sunset times
             self.locationService.fetchSunriseSunsetTimes()
-            
-            // Schedule background task
-            self.requestBackgroundTaskScheduling()
-            
+
             os_log("Location-based scheduling enabled with offset: %d minutes",
                    log: self.logger,
                    type: .info,
                    offsetMinutes)
         }
+
+        // Daily clock-based reminders do not match dynamic sunrise/sunset schedules.
+        shortcutReminderService.cancelAllReminders()
+
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            self?.requestBackgroundTaskScheduling()
+        }
     }
     
     /// Disables location-based scheduling
     func disableLocationSchedule() {
-        queue.async(flags: .barrier) {
-            var settings = self.prefsManager.loadSettings()
-            settings.useLocationSchedule = false
-            self.prefsManager.saveSettings(settings)
+        queue.sync(flags: .barrier) {
+            self.prefsManager.setLocationScheduleEnabled(false)
             
             os_log("Location-based scheduling disabled", log: self.logger, type: .info)
         }
+
+        syncShortcutReminders()
     }
     
     /// Manually refreshes location and sunrise/sunset times
@@ -152,7 +176,8 @@ class SchedulingService {
     /// Location schedule: active from sunset to sunrise
     /// - Returns: Boolean indicating if within schedule
     private func isCurrentTimeInLocationSchedule() -> Bool {
-        guard let times = locationService.getSunriseSunsetWithOffset(offsetMinutes: 0) else {
+        let sunsetOffset = prefsManager.getSunsetOffset()
+        guard let times = locationService.getSunriseSunsetWithOffset(offsetMinutes: sunsetOffset) else {
             os_log("No location times available, falling back to manual schedule",
                    log: logger,
                    type: .default)
@@ -160,7 +185,6 @@ class SchedulingService {
         }
         
         let now = Date()
-        let calendar = Calendar.current
         
         // Get today's dates for comparison
         let todaySunrise = times.sunrise

@@ -38,12 +38,12 @@ class EyeStrainReminderService: NSObject, ObservableObject {
     // MARK: - Types
     
     enum NotificationStyle: String, CaseIterable {
-        case silent = "Silent"
-        case sound = "Sound"
-        case vibration = "Vibration"
-        
+        case silent = "silent"
+        case sound = "sound"
+        case vibration = "vibration"
+
         var description: String {
-            self.rawValue
+            rawValue.capitalized
         }
     }
     
@@ -51,6 +51,7 @@ class EyeStrainReminderService: NSObject, ObservableObject {
     
     private let notificationCategoryIdentifier = "EYE_STRAIN_REMINDER"
     private let notificationRequestIdentifier = "com.redscreenfilter.eyestrain"
+    private let remindersEnabledKey = "eyeStrainReminders"
     private let reminderIntervalKey = "eyeStrainReminderInterval"
     private let notificationStyleKey = "eyeStrainNotificationStyle"
     
@@ -103,25 +104,22 @@ class EyeStrainReminderService: NSObject, ObservableObject {
     
     /// Internal method to enable reminders (after permission check)
     private func enableRemindersInternal() {
-                    self?.enableReminders()
-                }
-            }
-            return
-        }
-        
         isEnabled = true
+        saveSettings()
         scheduleNextReminder()
     }
     
     /// Disable eye strain reminders
     func disableReminders() {
         isEnabled = false
+        saveSettings()
         cancelAllReminders()
     }
     
     /// Set reminder interval (15-120 minutes)
     func setReminderInterval(_ minutes: Int) {
         reminderInterval = max(15, min(120, minutes))
+        saveSettings()
         
         // Reschedule if currently enabled
         if isEnabled {
@@ -133,6 +131,12 @@ class EyeStrainReminderService: NSObject, ObservableObject {
     /// Set notification style
     func setNotificationStyle(_ style: NotificationStyle) {
         notificationStyle = style
+        saveSettings()
+
+        if isEnabled {
+            cancelAllReminders()
+            scheduleNextReminder()
+        }
     }
     
     /// Pause reminders (e.g., during video calls)
@@ -166,13 +170,16 @@ class EyeStrainReminderService: NSObject, ObservableObject {
     /// Load settings from UserDefaults
     private func loadSettings() {
         let defaults = UserDefaults.standard
+        isEnabled = defaults.object(forKey: remindersEnabledKey) as? Bool ?? true
         reminderInterval = defaults.integer(forKey: reminderIntervalKey)
         if reminderInterval == 0 {
             reminderInterval = 20
         }
         
         if let styleString = defaults.string(forKey: notificationStyleKey),
-           let style = NotificationStyle(rawValue: styleString) {
+           let style = NotificationStyle.allCases.first(where: {
+               $0.rawValue.caseInsensitiveCompare(styleString) == .orderedSame
+           }) {
             notificationStyle = style
         } else {
             notificationStyle = .sound
@@ -182,6 +189,7 @@ class EyeStrainReminderService: NSObject, ObservableObject {
     /// Save settings to UserDefaults
     private func saveSettings() {
         let defaults = UserDefaults.standard
+        defaults.set(isEnabled, forKey: remindersEnabledKey)
         defaults.set(reminderInterval, forKey: reminderIntervalKey)
         defaults.set(notificationStyle.rawValue, forKey: notificationStyleKey)
     }
@@ -229,14 +237,9 @@ class EyeStrainReminderService: NSObject, ObservableObject {
         // Create notification content
         let content = createReminderContent()
         
-        // Calculate next trigger time
-        let calendar = Calendar.current
-        let now = Date()
-        let nextTime = calendar.date(byAdding: .minute, value: reminderInterval, to: now) ?? now.addingTimeInterval(Double(reminderInterval) * 60)
-        
-        // Create trigger
-        let components = calendar.dateComponents([.hour, .minute], from: nextTime)
-        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+        // Repeating interval-based trigger keeps reminders active when the app is suspended.
+        let intervalSeconds = TimeInterval(reminderInterval * 60)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: intervalSeconds, repeats: true)
         
         // Create request
         let request = UNNotificationRequest(
@@ -251,13 +254,6 @@ class EyeStrainReminderService: NSObject, ObservableObject {
                 AppLogger.notifications.error("Failed to schedule eye strain reminder", error: error)
             } else {
                 AppLogger.notifications.debug("Scheduled next eye strain reminder in \(self?.reminderInterval ?? 20) minutes")
-                
-                // Schedule another notification after this one fires
-                DispatchQueue.main.asyncAfter(deadline: .now() + Double((self?.reminderInterval ?? 20) * 60) + 1) {
-                    if self?.isEnabled == true && self?.isPaused == false {
-                        self?.scheduleNextReminder()
-                    }
-                }
             }
         }
     }

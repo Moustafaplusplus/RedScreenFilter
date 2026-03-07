@@ -187,3 +187,4 @@ class OverlayQuickSettingsTile : TileService() {
     companion object {
         private const val ACTION_OVERLAY_STATE_CHANGED = "com.redscreenfilter.OVERLAY_STATE_CHANGED"
     }
+}

@@ -10,7 +10,6 @@ import SwiftUI
 struct SettingsView: View {
     @ObservedObject var viewModel: OverlayViewModel
     @State private var showingScheduleHelp = false
-    @State private var selectedColor: String = Constants.Colors.redStandard
     @State private var showingStartTimePicker = false
     @State private var showingEndTimePicker = false
     @State private var tempStartTime = Date()
@@ -170,47 +169,6 @@ struct SettingsView: View {
                             }
                         }
                         
-                        // MARK: - Color Variant Section
-                        SettingsSectionCard(title: "Color Variant") {
-                            VStack(alignment: .leading, spacing: RsfTheme.spacing.md) {
-                                Text("Choose the color that works best for you")
-                                    .font(.caption)
-                                    .foregroundColor(RsfTheme.colors.onSurfaceVariant)
-                                
-                                VStack(spacing: RsfTheme.spacing.sm) {
-                                    ForEach(ColorVariant.allCases, id: \.self) { variant in
-                                        ColorVariantOptionRow(
-                                            variant: variant,
-                                            isSelected: viewModel.settings.colorVariant == variant.rawValue,
-                                            onSelect: {
-                                                viewModel.updateColorVariant(variant.rawValue)
-                                            }
-                                        )
-                                    }
-                                }
-                                
-                                Divider()
-                                    .padding(.vertical, RsfTheme.spacing.sm)
-                                
-                                // Preview strip showing all color variants
-                                HStack(spacing: 0) {
-                                    ForEach(ColorVariant.allCases, id: \.self) { variant in
-                                        Color.fromVariant(variant, opacity: 0.8)
-                                            .frame(height: 40)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: RsfTheme.radius.sm)
-                                                    .stroke(
-                                                        viewModel.settings.colorVariant == variant.rawValue ? RsfTheme.colors.primary : Color.clear,
-                                                        lineWidth: 2
-                                                    )
-                                                    .padding(2)
-                                            )
-                                    }
-                                }
-                                .cornerRadius(RsfTheme.radius.md)
-                            }
-                        }
-                        
                         // MARK: - Smart Features Section
                         SettingsSectionCard(title: "Smart Features") {
                             VStack(spacing: RsfTheme.spacing.md) {
@@ -266,13 +224,13 @@ struct SettingsView: View {
                                         // Battery indicator bar
                                         VStack(spacing: RsfTheme.spacing.xs) {
                                             ZStack(alignment: .leading) {
-                                                RoundedRectangle(cornerRadius: RsfTheme.radius.xs)
+                                                RoundedRectangle(cornerRadius: RsfTheme.radius.sm)
                                                     .fill(RsfTheme.colors.surfaceVariant)
                                                     .frame(height: 8)
                                                 
-                                                RoundedRectangle(cornerRadius: RsfTheme.radius.xs)
+                                                RoundedRectangle(cornerRadius: RsfTheme.radius.sm)
                                                     .fill(batteryIndicatorColor())
-                                                    .frame(width: 60 * CGFloat(viewModel.batteryLevel), height: 8)
+                                                    .frame(width: 60 * CGFloat(viewModel.batteryLevel.isFinite ? max(0.0, min(viewModel.batteryLevel, 1.0)) : 0.0), height: 8)
                                             }
                                             .frame(width: 60)
                                         }
@@ -363,11 +321,11 @@ struct SettingsView: View {
                                                 // Light indicator bar
                                                 VStack(spacing: RsfTheme.spacing.xs) {
                                                     ZStack(alignment: .leading) {
-                                                        RoundedRectangle(cornerRadius: RsfTheme.radius.xs)
+                                                        RoundedRectangle(cornerRadius: RsfTheme.radius.sm)
                                                             .fill(RsfTheme.colors.surfaceVariant)
                                                             .frame(height: 8)
                                                         
-                                                        RoundedRectangle(cornerRadius: RsfTheme.radius.xs)
+                                                        RoundedRectangle(cornerRadius: RsfTheme.radius.sm)
                                                             .fill(lightConditionColor(viewModel.lightingCondition))
                                                             .frame(width: 60 * CGFloat(min(viewModel.currentLux / 5000, 1.0)), height: 8)
                                                     }

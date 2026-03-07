@@ -9,7 +9,6 @@ struct ToggleOverlayIntent: AppIntent {
 
     func perform() async throws -> some IntentResult {
         WidgetSharedState.toggleOverlay()
-        WidgetSharedState.markOpenRequest()
         WidgetCenter.shared.reloadAllTimelines()
         return .result()
     }

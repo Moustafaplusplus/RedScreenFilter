@@ -125,15 +125,13 @@ class SchedulingManager private constructor(private val context: Context) {
         // Get current time
         val currentMillis = System.currentTimeMillis()
         
-        // If adjusted sunrise is after adjusted sunset, it means the period is within the SAME day
-        // (e.g. 18:00 to 06:00 where 06:00 is next day)
         // Correct logic for "Night" (between sunset and sunrise):
         val isInRange = if (adjustedSunriseMillis < adjustedSunsetMillis) {
             // Sunrise is earlier in the day than sunset (Normal day)
             // Night is BEFORE sunrise OR AFTER sunset
             currentMillis < adjustedSunriseMillis || currentMillis >= adjustedSunsetMillis
         } else {
-            // Sunrise is later than sunset (Shouldn't normally happen for same-day calc unless polar)
+            // Sunrise is later than sunset (Polar or adjusted)
             currentMillis >= adjustedSunsetMillis && currentMillis < adjustedSunriseMillis
         }
         
@@ -179,6 +177,81 @@ class SchedulingManager private constructor(private val context: Context) {
             Log.e(TAG, "isCurrentTimeInRange: Error parsing time", e)
             return false
         }
+    }
+    
+    /**
+     * Calculates the next transition point (either start or end time)
+     * used for AlarmManager precise scheduling.
+     */
+    fun getNextTransitionTimeMillis(): Long {
+        if (!isScheduleEnabled()) return -1L
+        
+        return if (isLocationScheduleEnabled()) {
+            getNextLocationTransitionMillis()
+        } else {
+            getNextManualTransitionMillis()
+        }
+    }
+
+    private fun getNextManualTransitionMillis(): Long {
+        val startTimeStr = preferencesManager.getScheduleStartTime()
+        val endTimeStr = preferencesManager.getScheduleEndTime()
+        
+        val startParts = startTimeStr.split(":")
+        val endParts = endTimeStr.split(":")
+        
+        val now = Calendar.getInstance()
+        
+        val startTime = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, startParts[0].toInt())
+            set(Calendar.MINUTE, startParts[1].toInt())
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        
+        val endTime = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, endParts[0].toInt())
+            set(Calendar.MINUTE, endParts[1].toInt())
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        
+        val times = mutableListOf<Long>()
+        
+        // Add start/end for today
+        times.add(startTime.timeInMillis)
+        times.add(endTime.timeInMillis)
+        
+        // Add start/end for tomorrow
+        times.add(startTime.timeInMillis + (24 * 60 * 60 * 1000L))
+        times.add(endTime.timeInMillis + (24 * 60 * 60 * 1000L))
+        
+        // Add start/end for yesterday just in case
+        times.add(startTime.timeInMillis - (24 * 60 * 60 * 1000L))
+        times.add(endTime.timeInMillis - (24 * 60 * 60 * 1000L))
+
+        // Return the first time that is strictly in the future
+        return times.filter { it > now.timeInMillis }.minOrNull() ?: -1L
+    }
+
+    private fun getNextLocationTransitionMillis(): Long {
+        val location = locationManager.getCachedLocation() ?: return getNextManualTransitionMillis()
+        val (latitude, longitude) = location
+        
+        val now = Calendar.getInstance()
+        val offsetMillis = preferencesManager.getLocationOffsetMinutes() * 60 * 1000L
+        
+        val times = mutableListOf<Long>()
+        
+        // Check today, tomorrow, and yesterday to be safe
+        for (dayOffset in -1..1) {
+            val cal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, dayOffset) }
+            val (sunrise, sunset) = SunriseCalculator.calculateSunriseSunset(latitude, longitude, cal)
+            times.add(sunrise + offsetMillis)
+            times.add(sunset + offsetMillis)
+        }
+        
+        return times.filter { it > now.timeInMillis }.minOrNull() ?: -1L
     }
     
     /**

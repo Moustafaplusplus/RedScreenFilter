@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import UIKit
 
 /// OverlayViewModel - MVVM ViewModel managing overlay state
 /// Uses @Published properties for reactive updates
@@ -132,21 +133,32 @@ class OverlayViewModel: NSObject, ObservableObject {
     /// Enable/disable overlay schedule
     func setScheduleEnabled(_ enabled: Bool) {
         scheduleEnabled = enabled
-        prefsManager.setScheduleEnabled(enabled)
+
+        if enabled {
+            schedulingService.setSchedule(start: scheduleStartTime, end: scheduleEndTime)
+            applyCurrentScheduleState()
+        } else {
+            schedulingService.disableSchedule()
+        }
     }
     
     /// Update schedule times
     func setScheduleTime(start: String, end: String) {
         scheduleStartTime = start
         scheduleEndTime = end
-        prefsManager.setScheduleTime(start: start, end: end)
+
+        if scheduleEnabled {
+            schedulingService.setSchedule(start: start, end: end)
+            applyCurrentScheduleState()
+        } else {
+            prefsManager.setScheduleTime(start: start, end: end)
+        }
     }
     
     /// Enable/disable location-based scheduling
     func setLocationScheduleEnabled(_ enabled: Bool) {
         useLocationSchedule = enabled
-        prefsManager.setLocationScheduleEnabled(enabled)
-        
+
         if enabled {
             // Request location permission
             locationService.requestLocationPermission()
@@ -156,6 +168,10 @@ class OverlayViewModel: NSObject, ObservableObject {
             schedulingService.enableLocationSchedule(offsetMinutes: sunsetOffsetMinutes)
         } else {
             schedulingService.disableLocationSchedule()
+        }
+
+        if scheduleEnabled {
+            applyCurrentScheduleState()
         }
     }
     
@@ -167,6 +183,10 @@ class OverlayViewModel: NSObject, ObservableObject {
         // Update scheduling if location schedule is enabled
         if useLocationSchedule {
             schedulingService.enableLocationSchedule(offsetMinutes: offsetMinutes)
+        }
+
+        if scheduleEnabled && useLocationSchedule {
+            applyCurrentScheduleState()
         }
     }
     
@@ -296,9 +316,11 @@ class OverlayViewModel: NSObject, ObservableObject {
     func setNotificationStyle(_ style: String) {
         notificationStyle = style
         prefsManager.setNotificationStyle(style)
-        
-        if let notificationStyle = EyeStrainReminderService.NotificationStyle(rawValue: style) {
-            eyeStrainReminderService.setNotificationStyle(notificationStyle)
+
+        if let matchedStyle = EyeStrainReminderService.NotificationStyle.allCases.first(where: {
+            $0.rawValue.caseInsensitiveCompare(style) == .orderedSame
+        }) {
+            eyeStrainReminderService.setNotificationStyle(matchedStyle)
         }
     }
     
@@ -368,6 +390,13 @@ class OverlayViewModel: NSObject, ObservableObject {
     }
     
     // MARK: - Private Methods
+
+    private func applyCurrentScheduleState() {
+        let shouldEnableOverlay = schedulingService.determineOverlayState()
+        isEnabled = shouldEnableOverlay
+        prefsManager.setOverlayEnabled(shouldEnableOverlay)
+        updateOverlayManager()
+    }
     
     private func loadSettings() {
         let prefs = prefsManager
@@ -449,12 +478,14 @@ class OverlayViewModel: NSObject, ObservableObject {
         batteryMonitor.$batteryLevel
             .sink { [weak self] value in
                 self?.batteryLevel = value
+                self?.batteryStatusIcon = self?.batteryMonitor.getBatteryStatusIcon() ?? "🔋"
             }
             .store(in: &cancellables)
         
         batteryMonitor.$isLow
             .sink { [weak self] value in
                 self?.isBatteryLow = value
+                self?.batteryStatusIcon = self?.batteryMonitor.getBatteryStatusIcon() ?? "🔋"
                 // Update overlay opacity when battery state changes
                 if self?.isEnabled == true && self?.batteryOptimizationEnabled == true {
                     self?.updateOverlayManager()
@@ -465,16 +496,11 @@ class OverlayViewModel: NSObject, ObservableObject {
         batteryMonitor.$isCritical
             .sink { [weak self] value in
                 self?.isBatteryCritical = value
+                self?.batteryStatusIcon = self?.batteryMonitor.getBatteryStatusIcon() ?? "🔋"
                 // Update overlay opacity when battery state changes
                 if self?.isEnabled == true && self?.batteryOptimizationEnabled == true {
                     self?.updateOverlayManager()
                 }
-            }
-            .store(in: &cancellables)
-        
-        batteryMonitor.$batteryStatusIcon
-            .sink { [weak self] value in
-                self?.batteryStatusIcon = value
             }
             .store(in: &cancellables)
         

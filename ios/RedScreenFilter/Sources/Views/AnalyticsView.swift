@@ -178,7 +178,7 @@ struct InsightsSection: View {
                     InsightRow(
                         icon: "moon.fill",
                         text: "High opacity usage - great for evening sessions",
-                        color: .indigo
+                        color: .purple
                     )
                 }
                 
@@ -190,7 +190,7 @@ struct InsightsSection: View {
             }
             .padding(RsfTheme.spacing.md)
             .background(RsfTheme.colors.surface)
-            .cornerRadius(RsfTheme.cornerRadius.md)
+            .cornerRadius(RsfTheme.radius.md)
             .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
         }
     }
@@ -257,9 +257,9 @@ struct TipsCard: View {
                 endPoint: .bottomTrailing
             )
         )
-        .cornerRadius(RsfTheme.cornerRadius.lg)
+        .cornerRadius(RsfTheme.radius.lg)
         .overlay(
-            RoundedRectangle(cornerRadius: RsfTheme.cornerRadius.lg)
+            RoundedRectangle(cornerRadius: RsfTheme.radius.lg)
                 .stroke(RsfTheme.colors.primary.opacity(0.2), lineWidth: 1)
         )
     }

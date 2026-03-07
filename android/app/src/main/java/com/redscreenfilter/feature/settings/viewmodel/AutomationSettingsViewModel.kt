@@ -26,11 +26,17 @@ class AutomationSettingsViewModel(
 
     fun onSchedulingToggled(isEnabled: Boolean): AutomationSettingsState {
         schedulingManager.setScheduleEnabled(isEnabled)
+        if (isEnabled) {
+            schedulingManager.setLocationScheduleEnabled(false)
+        }
         return loadState()
     }
 
     fun onLocationSchedulingToggled(isEnabled: Boolean): AutomationSettingsState {
         schedulingManager.setLocationScheduleEnabled(isEnabled)
+        if (isEnabled) {
+            schedulingManager.setScheduleEnabled(false)
+        }
         return loadState()
     }
 

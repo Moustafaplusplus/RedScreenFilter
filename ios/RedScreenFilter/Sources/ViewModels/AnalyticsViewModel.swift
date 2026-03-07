@@ -6,260 +6,180 @@
 //
 
 import Foundation
-import Combine
+import SwiftUI
 
-/// AnalyticsViewModel - Prepares analytics data for display
-/// Formats time intervals, calculates percentages, and manages period selection
-class AnalyticsViewModel: ObservableObject {
-    // MARK: - Published Properties
-    
-    @Published var selectedPeriod: AnalyticsPeriod = .today
-    @Published var totalUsageTime: String = "0m"
-    @Published var averageOpacity: String = "0%"
-    @Published var mostUsedPreset: String = "None"
-    @Published var currentStreak: String = "0 days"
-    @Published var usageData: [DayUsageData] = []
-    @Published var isLoading: Bool = false
-    
-    // MARK: - Dependencies
-    
-    private let analyticsService: AnalyticsService
-    private var cancellables = Set<AnyCancellable>()
-    
-    // MARK: - Analytics Period Enum
-    
-    enum AnalyticsPeriod: Int, CaseIterable {
-        case today = 0
-        case week = 1
-        case month = 2
-        
-        var title: String {
-            switch self {
-            case .today: return "Today"
-            case .week: return "Week"
-            case .month: return "Month"
-            }
-        }
-    }
-    
-    // MARK: - Initialization
-    
-    init(analyticsService: AnalyticsService = .shared) {
-        self.analyticsService = analyticsService
-        setupBindings()
-        loadAnalytics()
-    }
-    
-    // MARK: - Setup
-    
-    private func setupBindings() {
-        // Reload analytics when period changes
-        $selectedPeriod
-            .sink { [weak self] _ in
-                self?.loadAnalytics()
-            }
-            .store(in: &cancellables)
-    }
-    
-    // MARK: - Data Loading
-    
-    /// Load analytics data for the selected period
-    func loadAnalytics() {
-        isLoading = true
-        
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            guard let self = self else { return }
-            
-            let calendar = Calendar.current
-            let now = Date()
-            let startDate: Date
-            let endDate = now
-            
-            // Determine date range based on period
-            switch self.selectedPeriod {
-            case .today:
-                startDate = calendar.startOfDay(for: now)
-            case .week:
-                startDate = calendar.date(byAdding: .day, value: -7, to: now) ?? now
-            case .month:
-                startDate = calendar.date(byAdding: .day, value: -30, to: now) ?? now
-            }
-            
-            // Fetch statistics
-            let totalUsage = self.analyticsService.getTotalUsage(from: startDate, to: endDate)
-            let avgOpacity = self.analyticsService.getAverageOpacity()
-            let mostUsed = self.analyticsService.getMostUsedPreset()
-            let streak = self.analyticsService.getStreakCount()
-            
-            // Fetch daily data for charts
-            let dailyData = self.loadDailyUsageData(from: startDate, to: endDate)
-            
-            // Update UI on main thread
-            DispatchQueue.main.async {
-                self.totalUsageTime = self.formatTimeInterval(totalUsage)
-                self.averageOpacity = "\(Int(avgOpacity * 100))%"
-                self.mostUsedPreset = mostUsed?.preset ?? "None"
-                self.currentStreak = streak > 0 ? "\(streak) \(streak == 1 ? "day" : "days")" : "0 days"
-                self.usageData = dailyData
-                self.isLoading = false
-            }
-        }
-    }
-    
-    /// Load daily usage data for chart visualization
-    private func loadDailyUsageData(from startDate: Date, to endDate: Date) -> [DayUsageData] {
-        let calendar = Calendar.current
-        var data: [DayUsageData] = []
-        var currentDate = calendar.startOfDay(for: startDate)
-        
-        while currentDate <= endDate {
-            let nextDay = calendar.date(byAdding: .day, value: 1, to: currentDate)!
-            let usage = analyticsService.getTotalUsage(from: currentDate, to: min(nextDay, endDate))
-            
-            let dayName: String
-            if calendar.isDateInToday(currentDate) {
-                dayName = "Today"
-            } else if selectedPeriod == .today {
-                dayName = formatHour(currentDate)
-            } else {
-                dayName = formatDayName(currentDate)
-            }
-            
-            data.append(DayUsageData(
-                date: currentDate,
-                label: dayName,
-                usageSeconds: Int(usage),
-                usageFormatted: formatTimeInterval(usage, shortForm: true)
-            ))
-            
-            currentDate = nextDay
-        }
-        
-        return data
-    }
-    
-    // MARK: - Formatting Methods
-    
-    /// Format time interval into human-readable string
-    /// - Parameters:
-    ///   - interval: Time interval in seconds
-    ///   - shortForm: Use short form (e.g., "2h 30m" vs "2 hours 30 minutes")
-    /// - Returns: Formatted string
-    func formatTimeInterval(_ interval: TimeInterval, shortForm: Bool = false) -> String {
-        let hours = Int(interval) / 3600
-        let minutes = (Int(interval) % 3600) / 60
-        let seconds = Int(interval) % 60
-        
-        if shortForm {
-            if hours > 0 {
-                return minutes > 0 ? "\(hours)h \(minutes)m" : "\(hours)h"
-            } else if minutes > 0 {
-                return "\(minutes)m"
-            } else {
-                return "\(seconds)s"
-            }
-        } else {
-            if hours > 0 {
-                let hourStr = hours == 1 ? "hour" : "hours"
-                if minutes > 0 {
-                    let minStr = minutes == 1 ? "minute" : "minutes"
-                    return "\(hours) \(hourStr) \(minutes) \(minStr)"
-                } else {
-                    return "\(hours) \(hourStr)"
-                }
-            } else if minutes > 0 {
-                let minStr = minutes == 1 ? "minute" : "minutes"
-                return "\(minutes) \(minStr)"
-            } else {
-                let secStr = seconds == 1 ? "second" : "seconds"
-                return "\(seconds) \(secStr)"
-            }
-        }
-    }
-    
-    /// Format day name for chart labels
-    private func formatDayName(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        
-        switch selectedPeriod {
-        case .today:
-            formatter.dateFormat = "HH:mm"
-        case .week:
-            formatter.dateFormat = "EEE" // Mon, Tue, etc.
-        case .month:
-            formatter.dateFormat = "d" // Day number
-        }
-        
-        return formatter.string(from: date)
-    }
-    
-    /// Format hour for today view
-    private func formatHour(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        return formatter.string(from: date)
-    }
-    
-    /// Calculate percentage change from previous period
-    func calculatePercentageChange(current: TimeInterval, previous: TimeInterval) -> String {
-        guard previous > 0 else {
-            return current > 0 ? "+100%" : "0%"
-        }
-        
-        let change = ((current - previous) / previous) * 100
-        let sign = change >= 0 ? "+" : ""
-        return "\(sign)\(Int(change))%"
-    }
-    
-    /// Get streak emoji based on count
-    func getStreakEmoji(_ count: Int) -> String {
-        switch count {
-        case 0: return "🌱"
-        case 1...3: return "🔥"
-        case 4...7: return "⚡️"
-        case 8...14: return "🌟"
-        case 15...30: return "💎"
-        default: return "👑"
-        }
-    }
-    
-    /// Get usage level description
-    func getUsageLevelDescription(hours: Double) -> String {
-        switch hours {
-        case 0..<1: return "Light usage"
-        case 1..<3: return "Moderate usage"
-        case 3..<6: return "Heavy usage"
-        default: return "Very heavy usage"
-        }
-    }
-    
-    // MARK: - Refresh
-    
-    /// Manually refresh analytics data
-    func refresh() {
-        loadAnalytics()
-    }
+struct UsageDataPoint: Identifiable {
+    let id = UUID()
+    let label: String
+    let usageHours: Double
 }
 
-// MARK: - Supporting Models
-
-/// Represents usage data for a single day
-struct DayUsageData: Identifiable {
-    let id = UUID()
-    let date: Date
-    let label: String
-    let usageSeconds: Int
-    let usageFormatted: String
-    
-    /// Normalized value for chart (0.0 - 1.0)
-    var normalizedValue: Double {
-        // Normalize to hours (max 12 hours for scale)
-        let hours = Double(usageSeconds) / 3600.0
-        return min(hours / 12.0, 1.0)
+@MainActor
+final class AnalyticsViewModel: ObservableObject {
+    enum AnalyticsPeriod {
+        case today
+        case week
+        case month
     }
-    
-    /// Usage in hours (for display)
-    var usageHours: Double {
-        return Double(usageSeconds) / 3600.0
+
+    @Published var selectedPeriod: AnalyticsPeriod = .today {
+        didSet {
+            refresh()
+        }
+    }
+
+    @Published var isLoading: Bool = false
+    @Published var totalUsageTime: String = "0h 0m"
+    @Published var averageOpacity: String = "0%"
+    @Published var mostUsedPreset: String = "Standard"
+    @Published var currentStreak: String = "0 days"
+    @Published var usageData: [UsageDataPoint] = []
+
+    private let preferences = PreferencesManager.shared
+    private let analyticsService = AnalyticsService.shared
+
+    init() {
+        refresh()
+    }
+
+    func refresh() {
+        isLoading = true
+
+        let startDate = periodStartDate(for: selectedPeriod)
+        let events = analyticsService.fetchEvents(from: startDate)
+        let points = generateUsageData(for: selectedPeriod, events: events)
+        usageData = points
+
+        let totalHours = points.reduce(0.0) { $0 + $1.usageHours }
+        totalUsageTime = formatHours(totalHours)
+
+        let opacityPercent: Int
+        let opacities = events.map(\.opacity)
+        if !opacities.isEmpty {
+            let avg = opacities.reduce(0, +) / Float(opacities.count)
+            opacityPercent = Int((avg * 100).rounded())
+        } else {
+            opacityPercent = Int((preferences.getOpacity() * 100).rounded())
+        }
+        averageOpacity = "\(opacityPercent)%"
+
+        mostUsedPreset = mostUsedPreset(from: events)
+        currentStreak = "\(computeCurrentStreak(from: points)) days"
+
+        isLoading = false
+    }
+
+    func getStreakEmoji(_ days: Int) -> String {
+        switch days {
+        case 14...:
+            return "🔥"
+        case 7...:
+            return "⭐️"
+        case 3...:
+            return "👏"
+        default:
+            return "🙂"
+        }
+    }
+
+    func getUsageLevelDescription(hours: Double) -> String {
+        switch hours {
+        case 0..<2:
+            return "Light usage period. Keep a consistent routine."
+        case 2..<6:
+            return "Balanced usage. Good eye-care habits overall."
+        default:
+            return "High usage detected. Consider more frequent breaks."
+        }
+    }
+
+    private func generateUsageData(for period: AnalyticsPeriod, events: [UsageEvent]) -> [UsageDataPoint] {
+        let grouped = Dictionary(grouping: events) { event in
+            bucketLabel(for: event.timestamp, period: period)
+        }
+
+        switch period {
+        case .today:
+            return [
+                UsageDataPoint(label: "Morning", usageHours: usageHours(grouped["Morning"] ?? [])),
+                UsageDataPoint(label: "Afternoon", usageHours: usageHours(grouped["Afternoon"] ?? [])),
+                UsageDataPoint(label: "Evening", usageHours: usageHours(grouped["Evening"] ?? []))
+            ]
+        case .week:
+            let labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+            return labels.map { label in
+                UsageDataPoint(label: label, usageHours: usageHours(grouped[label] ?? []))
+            }
+        case .month:
+            let labels = ["W1", "W2", "W3", "W4", "W5"]
+            let points = labels.map { label in
+                UsageDataPoint(label: label, usageHours: usageHours(grouped[label] ?? []))
+            }
+            if points.last?.usageHours == 0 {
+                return Array(points.dropLast())
+            }
+            return points
+        }
+    }
+
+    private func computeCurrentStreak(from points: [UsageDataPoint]) -> Int {
+        points.reversed().prefix { $0.usageHours > 0.25 }.count
+    }
+
+    private func formatHours(_ hours: Double) -> String {
+        let wholeHours = Int(hours)
+        let minutes = Int((hours - Double(wholeHours)) * 60)
+        return "\(wholeHours)h \(minutes)m"
+    }
+
+    private func periodStartDate(for period: AnalyticsPeriod) -> Date {
+        let calendar = Calendar.current
+        let now = Date()
+
+        switch period {
+        case .today:
+            return calendar.startOfDay(for: now)
+        case .week:
+            return calendar.date(byAdding: .day, value: -6, to: calendar.startOfDay(for: now)) ?? now
+        case .month:
+            return calendar.date(byAdding: .day, value: -29, to: calendar.startOfDay(for: now)) ?? now
+        }
+    }
+
+    private func usageHours(_ events: [UsageEvent]) -> Double {
+        guard !events.isEmpty else { return 0 }
+        let weighted = events.reduce(0.0) { partialResult, event in
+            event.overlayEnabled ? partialResult + Double(event.opacity) : partialResult
+        }
+        return weighted / 2.0
+    }
+
+    private func bucketLabel(for date: Date, period: AnalyticsPeriod) -> String {
+        let calendar = Calendar.current
+        switch period {
+        case .today:
+            let hour = calendar.component(.hour, from: date)
+            if hour < 12 { return "Morning" }
+            if hour < 18 { return "Afternoon" }
+            return "Evening"
+        case .week:
+            let weekday = calendar.component(.weekday, from: date)
+            let labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+            return labels[max(0, min(labels.count - 1, weekday - 1))]
+        case .month:
+            let week = calendar.component(.weekOfMonth, from: date)
+            return "W\(max(1, min(5, week)))"
+        }
+    }
+
+    private func mostUsedPreset(from events: [UsageEvent]) -> String {
+        let counts = events.reduce(into: [String: Int]()) { partialResult, event in
+            partialResult[event.preset, default: 0] += 1
+        }
+        if let top = counts.max(by: { $0.value < $1.value })?.key, !top.isEmpty {
+            return top
+        }
+        let current = preferences.getCurrentPreset()
+        return current.isEmpty ? "Standard" : current
     }
 }

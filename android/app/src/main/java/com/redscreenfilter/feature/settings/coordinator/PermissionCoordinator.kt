@@ -2,6 +2,7 @@ package com.redscreenfilter.feature.settings.coordinator
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlarmManager
 import android.app.AppOpsManager
 import android.content.Context
 import android.content.Intent
@@ -95,5 +96,24 @@ class PermissionCoordinator {
 
     fun hasLocationPermissions(context: Context): Boolean {
         return hasFineLocationPermission(context) && hasCoarseLocationPermission(context)
+    }
+
+    fun hasExactAlarmPermission(context: Context): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmManager.canScheduleExactAlarms()
+        } else {
+            true
+        }
+    }
+
+    fun requestExactAlarmPermission(activity: Activity) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val intent = Intent(
+                Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+                Uri.parse("package:${activity.packageName}")
+            )
+            activity.startActivity(intent)
+        }
     }
 }

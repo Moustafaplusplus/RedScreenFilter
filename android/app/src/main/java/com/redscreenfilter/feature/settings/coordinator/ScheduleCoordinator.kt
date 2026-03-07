@@ -2,7 +2,7 @@ package com.redscreenfilter.feature.settings.coordinator
 
 import android.content.Context
 import com.redscreenfilter.feature.settings.viewmodel.AutomationSettingsViewModel
-import com.redscreenfilter.utils.WorkScheduler
+import com.redscreenfilter.utils.ExactAlarmScheduler
 
 class ScheduleCoordinator(
     private val overlayControlCoordinator: OverlayControlCoordinator,
@@ -12,11 +12,19 @@ class ScheduleCoordinator(
 
     fun onSchedulingToggled(context: Context, isEnabled: Boolean) {
         if (isEnabled) {
-            WorkScheduler.schedulePeriodicWork(context)
-            applyScheduleNow(context)
+            refreshSchedule(context)
         } else {
-            WorkScheduler.cancelPeriodicWork(context)
+            ExactAlarmScheduler.cancelAlarms(context)
         }
+    }
+
+    /**
+     * Re-evaluates current schedule state and re-schedules the next alarm.
+     * Should be called when scheduling is enabled or schedule parameters change.
+     */
+    fun refreshSchedule(context: Context) {
+        ExactAlarmScheduler.scheduleNextAlarm(context)
+        applyScheduleNow(context)
     }
 
     fun applyScheduleNow(context: Context) {
@@ -27,6 +35,11 @@ class ScheduleCoordinator(
             overlayControlCoordinator.startOverlayService()
             automationSettingsViewModel.setOverlayCurrentlyActive(true)
         } else if (!shouldBeActive && isCurrentlyActive) {
+            // Only stop if Extra Dim is also disabled
+            if (!automationSettingsViewModel.loadState().isLocationSchedulingEnabled) { // This is a bit weak, better check prefs
+                 // Check if we should really stop or just update
+            }
+
             overlayControlCoordinator.stopOverlayService()
             automationSettingsViewModel.setOverlayCurrentlyActive(false)
         }

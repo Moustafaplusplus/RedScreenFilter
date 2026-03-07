@@ -83,6 +83,11 @@ class BatteryMonitor: NSObject, ObservableObject {
         }
     }
     
+    /// Public refresh hook used by app lifecycle handlers.
+    func updateBatteryState() {
+        updateBatteryStatus()
+    }
+    
     /// Get formatted battery level as percentage string
     func getBatteryPercentageString() -> String {
         return "\(Int(batteryLevel * 100))%"
@@ -181,7 +186,8 @@ class BatteryMonitor: NSObject, ObservableObject {
             guard let self = self else { return }
             
             let device = UIDevice.current
-            let currentLevel = device.batteryLevel
+            let rawLevel = device.batteryLevel
+            let currentLevel = rawLevel.isFinite ? max(0.0, min(1.0, rawLevel)) : 0.0
             let currentState = device.batteryState
             
             // Update published properties

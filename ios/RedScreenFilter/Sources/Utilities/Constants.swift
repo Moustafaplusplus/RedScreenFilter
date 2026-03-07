@@ -42,9 +42,9 @@ struct Constants {
         static let enableWorkName = "Enable Color Filter - Work Mode"
 
         // Replace with actual published iCloud shortcut links when available.
-        static let enableSleepShareURL = "https://www.icloud.com/shortcuts/REPLACE_WITH_SLEEP_SHORTCUT_ID"
-        static let disableFilterShareURL = "https://www.icloud.com/shortcuts/REPLACE_WITH_DISABLE_SHORTCUT_ID"
-        static let enableWorkShareURL = "https://www.icloud.com/shortcuts/REPLACE_WITH_WORK_SHORTCUT_ID"
+        static let enableSleepShareURL = "https://www.icloud.com/shortcuts/c0f29214ee8d489f876948e393855159"
+        static let disableFilterShareURL = "https://www.icloud.com/shortcuts/f9ff99dbda0d4d4396e25f3be884ae40"
+        static let enableWorkShareURL = "https://www.icloud.com/shortcuts/777cd0a4a5cb427bb8b892153a73e779"
     }
 
     struct VoiceCommands {
