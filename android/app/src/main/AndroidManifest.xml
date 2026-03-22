@@ -70,7 +70,13 @@
                 <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
             </intent-filter>
         </activity>
-        
+
+        <!-- WebView Activity for Docs -->
+        <activity
+            android:name=".ui.WebViewActivity"
+            android:exported="false"
+            android:theme="@style/Theme.RedScreenFilter" />
+
         <!-- Red Overlay Foreground Service -->
         <service
             android:name=".service.RedOverlayService"

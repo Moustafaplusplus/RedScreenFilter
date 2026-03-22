@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.redscreenfilter.R
 import com.redscreenfilter.core.designsystem.RsfCard
 import com.redscreenfilter.core.designsystem.RsfSectionHeader
+import com.redscreenfilter.ui.WebViewActivity
 
 @Composable
 fun AboutSettingsSectionCompose(
@@ -105,8 +106,9 @@ fun AboutSettingsSectionCompose(
                 // Terms and Conditions
                 TextButton(
                     onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW).apply {
-                            data = Uri.parse("file:///android_asset/docs/terms-and-conditions.html")
+                        val intent = Intent(context, WebViewActivity::class.java).apply {
+                            putExtra("url", "file:///android_asset/docs/terms-and-conditions.html")
+                            putExtra("title", "Terms and Conditions")
                         }
                         context.startActivity(intent)
                     },
@@ -134,8 +136,9 @@ fun AboutSettingsSectionCompose(
                 // Privacy Policy
                 TextButton(
                     onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW).apply {
-                            data = Uri.parse("file:///android_asset/docs/privacy-policy.html")
+                        val intent = Intent(context, WebViewActivity::class.java).apply {
+                            putExtra("url", "file:///android_asset/docs/privacy-policy.html")
+                            putExtra("title", "Privacy Policy")
                         }
                         context.startActivity(intent)
                     },

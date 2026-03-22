@@ -39,6 +39,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -179,7 +180,7 @@ class MainActivity : AppCompatActivity() {
     private var selectedRootTab by mutableStateOf(RootTab.SETTINGS)
     private var selectedSettingsTab by mutableStateOf(0)
 
-    private enum class RootTab { SETTINGS, ANALYTICS, EXEMPTIONS }
+    private enum class RootTab { SETTINGS, ANALYTICS, EXEMPTIONS, ABOUT }
     
     // Coroutine job for lux updates
     private var luxUpdateJob: Job? = null
@@ -426,6 +427,15 @@ class MainActivity : AppCompatActivity() {
                                 indicatorColor = RsfTheme.colors.primary.copy(alpha = 0.2f)
                             )
                         )
+                        NavigationBarItem(
+                            selected = selectedRootTab == RootTab.ABOUT,
+                            onClick = { selectedRootTab = RootTab.ABOUT },
+                            icon = { Icon(Icons.Default.Info, contentDescription = getString(R.string.tab_about)) },
+                            label = { Text(getString(R.string.tab_about)) },
+                            colors = NavigationBarItemDefaults.colors(
+                                indicatorColor = RsfTheme.colors.primary.copy(alpha = 0.2f)
+                            )
+                        )
                     }
                 }
             ) { paddingValues ->
@@ -452,6 +462,9 @@ class MainActivity : AppCompatActivity() {
                         onRequestPermission = { permissionCoordinator.requestUsageStatsPermission(this@MainActivity) },
                         modifier = Modifier.padding(paddingValues)
                     )
+                    RootTab.ABOUT -> Box(modifier = Modifier.padding(paddingValues).padding(16.dp).verticalScroll(rememberScrollState())) {
+                        AboutSettingsSectionCompose()
+                    }
                 }
             }
         }
@@ -472,8 +485,7 @@ class MainActivity : AppCompatActivity() {
                     getString(R.string.tab_display),
                     getString(R.string.tab_automation),
                     getString(R.string.tab_wellness),
-                    getString(R.string.tab_visibility),
-                    getString(R.string.tab_about)
+                    getString(R.string.tab_visibility)
                 ),
                 selectedIndex = selectedSettingsTab,
                 onSelectionChanged = { selectedSettingsTab = it }
@@ -515,7 +527,6 @@ class MainActivity : AppCompatActivity() {
                     onHideOnLockScreenChanged = { isEnabled -> handleHideOverlayOnLockScreenToggle(isEnabled) },
                     onHideOnHomeScreenChanged = { isEnabled -> handleHideOverlayOnHomeScreenToggle(isEnabled) }
                 )
-                4 -> AboutSettingsSectionCompose()
             }
         }
     }

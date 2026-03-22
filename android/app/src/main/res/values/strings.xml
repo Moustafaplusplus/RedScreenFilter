@@ -108,7 +108,7 @@
     <string name="notification_style_silent">Silent</string>
     
     <!-- App Exemption Strings -->
-    <string name="app_exemptions">App Exemptions</string>
+    <string name="app_exemptions">Exemptions</string>
     <string name="app_exemptions_subtitle">Hide overlay for specific apps</string>
     <string name="app_exemptions_description">Select apps where you want to disable the red screen overlay (e.g., camera, photo editor)</string>
     <string name="search_apps">Search apps...</string>
@@ -117,7 +117,7 @@
     <string name="no_apps_found">No apps found</string>
     
     <!-- Analytics Dashboard Strings -->
-    <string name="analytics_title">Usage Analytics</string>
+    <string name="analytics_title">Analytics</string>
     <string name="analytics_subtitle">Your red screen filter statistics</string>
     <string name="analytics_period_today">Showing Today data</string>
     <string name="analytics_period_week">Showing This Week data</string>
