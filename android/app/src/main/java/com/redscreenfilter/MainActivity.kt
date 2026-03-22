@@ -74,6 +74,7 @@ import com.redscreenfilter.feature.settings.ui.OverlayVisibilityComposeUiState
 import com.redscreenfilter.feature.settings.ui.OverlayVisibilitySettingsSectionCompose
 import com.redscreenfilter.feature.settings.ui.WellnessComposeUiState
 import com.redscreenfilter.feature.settings.ui.WellnessSettingsSectionCompose
+import com.redscreenfilter.feature.settings.ui.AboutSettingsSectionCompose
 import com.redscreenfilter.data.repository.AnalyticsRepository.AnalyticsPeriod
 import com.redscreenfilter.feature.settings.viewmodel.AutomationSettingsViewModel
 import com.redscreenfilter.feature.settings.viewmodel.BrightnessSettingsViewModel
@@ -471,7 +472,8 @@ class MainActivity : AppCompatActivity() {
                     getString(R.string.tab_display),
                     getString(R.string.tab_automation),
                     getString(R.string.tab_wellness),
-                    getString(R.string.tab_visibility)
+                    getString(R.string.tab_visibility),
+                    getString(R.string.tab_about)
                 ),
                 selectedIndex = selectedSettingsTab,
                 onSelectionChanged = { selectedSettingsTab = it }
@@ -508,11 +510,12 @@ class MainActivity : AppCompatActivity() {
                     onEyeStrainReminderToggle = { isEnabled -> handleEyeStrainReminderToggle(isEnabled) },
                     onNotificationStyleSelected = { style -> handleNotificationStyleChange(style) }
                 )
-                else -> OverlayVisibilitySettingsSectionCompose(
+                3 -> OverlayVisibilitySettingsSectionCompose(
                     uiState = overlayVisibilityComposeUiState,
                     onHideOnLockScreenChanged = { isEnabled -> handleHideOverlayOnLockScreenToggle(isEnabled) },
                     onHideOnHomeScreenChanged = { isEnabled -> handleHideOverlayOnHomeScreenToggle(isEnabled) }
                 )
+                4 -> AboutSettingsSectionCompose()
             }
         }
     }

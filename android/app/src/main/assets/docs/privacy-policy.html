@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - Red Screen Filter</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #c62828;
+            border-bottom: 3px solid #c62828;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #d32f2f;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #e53935;
+            margin-top: 20px;
+        }
+        .summary {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .highlight {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        .date {
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Privacy Policy for Red Screen Filter</h1>
+        <p class="date"><strong>Last Updated: March 4, 2026</strong></p>
+
+        <div class="summary">
+            <h3>Summary in Plain English</h3>
+            <p>Red Screen Filter is a privacy-focused app. We don't collect, transmit, or share your data. Everything stays on your device. Location is only used if you enable sunset/sunrise scheduling, and it's only used for calculation—never sent anywhere. No ads, no tracking, no accounts, no servers. Your data is yours.</p>
+        </div>
+
+        <h2>Introduction</h2>
+        <p>Red Screen Filter ("we", "our", or "the app") is committed to protecting your privacy. This Privacy Policy explains how our application handles your information.</p>
+
+        <h2>Information We Collect</h2>
+
+        <h3>Information Collected and Stored Locally</h3>
+        <p>Red Screen Filter stores the following information <strong>only on your device</strong>. We do not transmit, share, or upload this data to any servers:</p>
+
+        <ol>
+            <li><strong>App Settings and Preferences</strong>
+                <ul>
+                    <li>Overlay opacity level</li>
+                    <li>Color variant preferences</li>
+                    <li>Scheduling settings (start/end times)</li>
+                    <li>Extra dim settings</li>
+                    <li>Automation preferences</li>
+                </ul>
+            </li>
+
+            <li><strong>Location Data</strong> (Optional)
+                <ul>
+                    <li>Approximate location (latitude/longitude) for sunset/sunrise calculation</li>
+                    <li>Used only when you enable the "Sunset/Sunrise Scheduling" feature</li>
+                    <li>Stored locally on your device only</li>
+                    <li>Never transmitted to our servers or third parties</li>
+                    <li>You can disable this feature at any time</li>
+                </ul>
+            </li>
+
+            <li><strong>Usage Analytics</strong> (Local Only)
+                <ul>
+                    <li>Overlay activation/deactivation events</li>
+                    <li>Usage duration and patterns</li>
+                    <li>Streak tracking</li>
+                    <li>All analytics data is stored locally on your device</li>
+                    <li>Used only to show you your own usage statistics</li>
+                </ul>
+            </li>
+
+            <li><strong>App Usage Statistics</strong>
+                <ul>
+                    <li>Required for "App Exemption" feature to detect foreground apps</li>
+                    <li>Allows you to disable overlay for specific apps (e.g., camera, photo editor)</li>
+                    <li>Data accessed only while the app is running</li>
+                    <li>Never stored permanently or transmitted</li>
+                </ul>
+            </li>
+
+            <li><strong>Installed Apps List</strong>
+                <ul>
+                    <li>Used only for the "App Exemption" feature</li>
+                    <li>Allows you to select which apps should not show the overlay</li>
+                    <li>List is queried on-demand and not stored</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h2>Permissions Explained</h2>
+
+        <h3>Required Permissions</h3>
+        <ul>
+            <li><strong>Display over other apps (SYSTEM_ALERT_WINDOW)</strong>
+                <ul>
+                    <li>Purpose: Display the red screen overlay on top of other apps</li>
+                    <li>This is the core functionality of the app</li>
+                </ul>
+            </li>
+
+            <li><strong>Foreground Service (FOREGROUND_SERVICE)</strong>
+                <ul>
+                    <li>Purpose: Keep the overlay running while you use other apps</li>
+                    <li>Ensures the overlay persists across different apps</li>
+                </ul>
+            </li>
+
+            <li><strong>Post Notifications (POST_NOTIFICATIONS)</strong> (Android 13+)
+                <ul>
+                    <li>Purpose: Show notification for overlay status and wellness reminders</li>
+                    <li>You can disable notifications in Android settings</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3>Optional Permissions (You Control)</h3>
+        <ul>
+            <li><strong>Location Access</strong>
+                <ul>
+                    <li>Purpose: Calculate local sunset and sunrise times for automatic scheduling</li>
+                    <li>Only used if you enable "Sunset/Sunrise Scheduling" feature</li>
+                    <li>Can be denied; app works fully without it</li>
+                    <li>Location is used only for calculation, never stored or shared</li>
+                </ul>
+            </li>
+
+            <li><strong>Usage Access (PACKAGE_USAGE_STATS)</strong>
+                <ul>
+                    <li>Purpose: Detect which app is currently in the foreground</li>
+                    <li>Required for "App Exemption" feature to hide overlay in selected apps</li>
+                    <li>Can be denied; app works without it (exemptions won't function)</li>
+                </ul>
+            </li>
+
+            <li><strong>Query All Packages</strong>
+                <ul>
+                    <li>Purpose: Show list of installed apps for app exemption selection</li>
+                    <li>Used only to display app names and icons when you select exemptions</li>
+                    <li>Can be denied; app works without it</li>
+                </ul>
+            </li>
+
+            <li><strong>Modify System Settings (WRITE_SETTINGS)</strong>
+                <ul>
+                    <li>Purpose: Allow the app to adjust screen brightness</li>
+                    <li>Optional feature; app works without it</li>
+                </ul>
+            </li>
+
+            <li><strong>Receive Boot Completed</strong>
+                <ul>
+                    <li>Purpose: Restore scheduled overlays after device restart</li>
+                    <li>Only used if you enable scheduling</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h2>Data Storage and Security</h2>
+        <ul>
+            <li><strong>All data is stored locally</strong> on your device using Android's encrypted SharedPreferences and encrypted DataStore</li>
+            <li><strong>No cloud storage</strong>: We do not store any of your data on remote servers</li>
+            <li><strong>No user accounts</strong>: The app does not require or support user accounts</li>
+            <li><strong>No data transmission</strong>: Your data never leaves your device</li>
+            <li><strong>Encryption</strong>: Sensitive settings are stored using Android's Security Crypto library</li>
+        </ul>
+
+        <h2>Data Sharing and Third Parties</h2>
+        <div class="highlight">
+            <p><strong>We do not share, sell, or transmit your data to any third parties.</strong></p>
+        </div>
+
+        <p>The app does not:</p>
+        <ul>
+            <li>Use analytics services (e.g., Google Analytics, Firebase Analytics)</li>
+            <li>Include advertising networks</li>
+            <li>Transmit data to remote servers</li>
+            <li>Use tracking technologies</li>
+            <li>Share data with third-party services</li>
+        </ul>
+
+        <h2>Google Play Services</h2>
+        <p>The app uses Google Play Services location APIs solely for sunset/sunrise calculations. This usage is:</p>
+        <ul>
+            <li>Completely optional (only if you enable the feature)</li>
+            <li>Local processing only</li>
+            <li>Subject to Google's Privacy Policy when enabled</li>
+        </ul>
+
+        <h2>Children's Privacy</h2>
+        <p>Red Screen Filter does not knowingly collect any information from children under 13 years of age. The app is suitable for all ages and does not require any personal information.</p>
+
+        <h2>Data Backup</h2>
+        <ul>
+            <li>Android may back up app preferences to Google Drive (if you enable Android backup)</li>
+            <li>This follows Android's standard backup mechanism</li>
+            <li>Backups are encrypted by Android</li>
+            <li>You can disable app backup in your Android settings</li>
+        </ul>
+
+        <h2>Your Rights and Control</h2>
+        <p>You have complete control over your data:</p>
+        <ul>
+            <li><strong>Access</strong>: All your data is visible in the app settings</li>
+            <li><strong>Deletion</strong>: Uninstalling the app deletes all data</li>
+            <li><strong>Export</strong>: Not applicable (no cloud storage)</li>
+            <li><strong>Correction</strong>: Modify any setting directly in the app</li>
+            <li><strong>Opt-out</strong>: Disable any optional permission in Android settings</li>
+        </ul>
+
+        <h2>Changes to This Privacy Policy</h2>
+        <p>We may update this Privacy Policy from time to time. We will notify you of any changes by:</p>
+        <ul>
+            <li>Updating the "Last Updated" date at the top of this policy</li>
+            <li>Showing an in-app notice (for material changes)</li>
+        </ul>
+        <p>Continued use of the app after changes constitutes acceptance of the updated policy.</p>
+
+        <h2>Contact Us</h2>
+        <p>If you have questions about this Privacy Policy or how the app handles your data, you can contact us:</p>
+        <ul>
+            <li><strong>Email</strong>: redscreenfilter@gmail.com</li>
+        </ul>
+
+        <h2>Legal Compliance</h2>
+        <p>This app complies with:</p>
+        <ul>
+            <li>GDPR (General Data Protection Regulation) - EU</li>
+            <li>CCPA (California Consumer Privacy Act) - California, USA</li>
+            <li>Google Play Developer Program Policies</li>
+            <li>Android permissions best practices</li>
+        </ul>
+
+        <h2>Your Consent</h2>
+        <p>By using Red Screen Filter, you consent to this Privacy Policy.</p>
+    </div>
+</body>
+</html>

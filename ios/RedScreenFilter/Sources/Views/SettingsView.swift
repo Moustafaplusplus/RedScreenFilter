@@ -446,6 +446,119 @@ struct SettingsView: View {
                             }
                         }
                         
+                        // MARK: - About Section
+                        SettingsSectionCard(title: "About") {
+                            VStack(spacing: RsfTheme.spacing.md) {
+                                // App Info
+                                HStack(spacing: RsfTheme.spacing.md) {
+                                    Image(systemName: "circle.hexagongrid.fill")
+                                        .font(.system(size: 40))
+                                        .foregroundColor(RsfTheme.colors.primary)
+                                    
+                                    VStack(alignment: .leading, spacing: RsfTheme.spacing.xs) {
+                                        Text("Red Screen Filter")
+                                            .font(.headline)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(RsfTheme.colors.onSurface)
+                                        
+                                        Text("Version 1.6")
+                                            .font(.caption)
+                                            .foregroundColor(RsfTheme.colors.onSurfaceVariant)
+                                        
+                                        Text("One-time purchase - No subscriptions")
+                                            .font(.caption2)
+                                            .foregroundColor(RsfTheme.colors.primary)
+                                    }
+                                    
+                                    Spacer()
+                                }
+                                
+                                Divider()
+                                    .background(RsfTheme.colors.glassStroke)
+                                
+                                // Description
+                                Text("A privacy-focused red screen filter app to reduce eye strain and improve sleep quality.")
+                                    .font(.caption)
+                                    .foregroundColor(RsfTheme.colors.onSurfaceVariant)
+                                
+                                Divider()
+                                    .background(RsfTheme.colors.glassStroke)
+                                
+                                // Legal Links
+                                VStack(alignment: .leading, spacing: RsfTheme.spacing.sm) {
+                                    Text("Legal")
+                                        .font(.caption)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(RsfTheme.colors.onSurface)
+                                    
+                                    VStack(spacing: RsfTheme.spacing.xs) {
+                                        Button(action: {
+                                            if let url = Bundle.main.url(forResource: "privacy-policy", withExtension: "html") {
+                                                UIApplication.shared.open(url)
+                                            }
+                                        }) {
+                                            HStack {
+                                                Text("Privacy Policy")
+                                                    .font(.caption)
+                                                    .foregroundColor(RsfTheme.colors.primary)
+                                                Spacer()
+                                                Image(systemName: "chevron.right")
+                                                    .font(.caption2)
+                                                    .foregroundColor(RsfTheme.colors.primary)
+                                            }
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
+                                        
+                                        Button(action: {
+                                            if let url = Bundle.main.url(forResource: "terms-and-conditions", withExtension: "html") {
+                                                UIApplication.shared.open(url)
+                                            }
+                                        }) {
+                                            HStack {
+                                                Text("Terms and Conditions")
+                                                    .font(.caption)
+                                                    .foregroundColor(RsfTheme.colors.primary)
+                                                Spacer()
+                                                Image(systemName: "chevron.right")
+                                                    .font(.caption2)
+                                                    .foregroundColor(RsfTheme.colors.primary)
+                                            }
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
+                                    }
+                                }
+                                
+                                Divider()
+                                    .background(RsfTheme.colors.glassStroke)
+                                
+                                // Contact
+                                VStack(alignment: .leading, spacing: RsfTheme.spacing.sm) {
+                                    Text("Contact")
+                                        .font(.caption)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(RsfTheme.colors.onSurface)
+                                    
+                                    Button(action: {
+                                        if let url = URL(string: "mailto:redscreenfilter@gmail.com") {
+                                            UIApplication.shared.open(url)
+                                        }
+                                    }) {
+                                        HStack {
+                                            Image(systemName: "envelope.fill")
+                                                .font(.caption)
+                                                .foregroundColor(RsfTheme.colors.primary)
+                                            Text("redscreenfilter@gmail.com")
+                                                .font(.caption)
+                                                .foregroundColor(RsfTheme.colors.primary)
+                                                .underline()
+                                            Spacer()
+                                        }
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                }
+                            }
+                        }
+                        
                         // MARK: - Info Section
                         SettingsSectionCard(backgroundColor: RsfTheme.colors.errorContainer) {
                             HStack(spacing: RsfTheme.spacing.md) {
