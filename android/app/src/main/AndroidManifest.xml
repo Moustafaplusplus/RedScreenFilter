@@ -26,11 +26,8 @@
     <!-- App Exemption Permissions -->
     <!-- Required to detect current foreground app -->
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
-    <!-- Required to query all installed packages (Android 11+) -->
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 
-    <!-- Package visibility for Android 11+ -->
-    <!-- Required to query installed packages for app exemption feature -->
+    <!-- Package visibility for Android 11+: launcher apps only (Play policy compliant) -->
     <queries>
         <intent>
             <action android:name="android.intent.action.MAIN" />

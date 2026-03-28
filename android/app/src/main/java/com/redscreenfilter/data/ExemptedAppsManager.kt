@@ -1,7 +1,7 @@
 package com.redscreenfilter.data
 
-import android.app.ActivityManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Build
@@ -36,45 +36,59 @@ class ExemptedAppsManager(private val context: Context) {
     }
     
     /**
-     * Get list of all user-installed apps sorted by name
-     * Marks exempt apps in the list
+     * User apps that appear in the launcher (matches manifest `<queries>` MAIN/LAUNCHER).
+     * Does not use QUERY_ALL_PACKAGES — Play-compliant package visibility only.
      */
     suspend fun getInstalledApps(): List<InstalledApp> = withContext(Dispatchers.IO) {
         try {
-            Log.d(TAG, "getInstalledApps: Loading installed apps")
+            Log.d(TAG, "getInstalledApps: Loading launcher-visible apps")
             val exemptedPackages = preferencesManager.getExemptedApps()
             val apps = mutableListOf<InstalledApp>()
-            
-            val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                PackageManager.GET_META_DATA or PackageManager.MATCH_ALL
+            val seenPackages = mutableSetOf<String>()
+
+            val launcherIntent = Intent(Intent.ACTION_MAIN).apply {
+                addCategory(Intent.CATEGORY_LAUNCHER)
+            }
+
+            val resolveInfos = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                packageManager.queryIntentActivities(
+                    launcherIntent,
+                    PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_DEFAULT_ONLY.toLong())
+                )
             } else {
                 @Suppress("DEPRECATION")
-                PackageManager.GET_META_DATA or PackageManager.MATCH_UNINSTALLED_PACKAGES
+                packageManager.queryIntentActivities(
+                    launcherIntent,
+                    PackageManager.MATCH_DEFAULT_ONLY
+                )
             }
-            
-            val installedPackages = packageManager.getInstalledApplications(flags)
-            
-            for (appInfo in installedPackages) {
+
+            for (resolveInfo in resolveInfos) {
+                val appInfo = resolveInfo.activityInfo.applicationInfo
+                val pkg = appInfo.packageName
+                if (!seenPackages.add(pkg)) continue
+
                 try {
-                    // Skip system apps (unless they're frequently used like camera)
                     val isSystemApp = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
                     if (isSystemApp) continue
-                    
+
                     val appName = appInfo.loadLabel(packageManager).toString()
                     val appIcon = appInfo.loadIcon(packageManager)
-                    val isExempted = exemptedPackages.contains(appInfo.packageName)
-                    
-                    apps.add(InstalledApp(
-                        packageName = appInfo.packageName,
-                        appName = appName,
-                        icon = appIcon,
-                        isExempted = isExempted
-                    ))
+                    val isExempted = exemptedPackages.contains(pkg)
+
+                    apps.add(
+                        InstalledApp(
+                            packageName = pkg,
+                            appName = appName,
+                            icon = appIcon,
+                            isExempted = isExempted
+                        )
+                    )
                 } catch (e: Exception) {
                     Log.w(TAG, "getInstalledApps: Error loading app", e)
                 }
             }
-            
+
             apps.sort()
             Log.d(TAG, "getInstalledApps: Loaded ${apps.size} apps")
             apps
