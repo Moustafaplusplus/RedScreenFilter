@@ -16,8 +16,8 @@ android {
         applicationId = "com.redscreenfilter"
         minSdk = 28
         targetSdk = 35
-        versionCode = 9
-        versionName = "1.9"
+        versionCode = 10
+        versionName = "1.10"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
