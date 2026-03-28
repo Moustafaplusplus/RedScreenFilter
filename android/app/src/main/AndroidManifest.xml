@@ -27,6 +27,11 @@
     <!-- Required to detect current foreground app -->
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
 
+    <!-- Ensure nothing merged from a library can add this (Play rejects the whole submission if present) -->
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:node="remove" />
+
     <!-- Package visibility for Android 11+: launcher apps only (Play policy compliant) -->
     <queries>
         <intent>
