@@ -45,6 +45,7 @@ class ExemptedAppsManager(private val context: Context) {
             val exemptedPackages = preferencesManager.getExemptedApps()
             val apps = mutableListOf<InstalledApp>()
             val seenPackages = mutableSetOf<String>()
+            val currentPackageName = context.packageName
 
             val launcherIntent = Intent(Intent.ACTION_MAIN).apply {
                 addCategory(Intent.CATEGORY_LAUNCHER)
@@ -66,12 +67,11 @@ class ExemptedAppsManager(private val context: Context) {
             for (resolveInfo in resolveInfos) {
                 val appInfo = resolveInfo.activityInfo.applicationInfo
                 val pkg = appInfo.packageName
-                if (!seenPackages.add(pkg)) continue
+                
+                // Avoid duplicates and don't include this app itself
+                if (!seenPackages.add(pkg) || pkg == currentPackageName) continue
 
                 try {
-                    val isSystemApp = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
-                    if (isSystemApp) continue
-
                     val appName = appInfo.loadLabel(packageManager).toString()
                     val appIcon = appInfo.loadIcon(packageManager)
                     val isExempted = exemptedPackages.contains(pkg)
