@@ -461,7 +461,7 @@ struct SettingsView: View {
                                             .fontWeight(.bold)
                                             .foregroundColor(RsfTheme.colors.onSurface)
                                         
-                                        Text("Version 1.6")
+                                        Text(Bundle.main.appVersionDisplayString)
                                             .font(.caption)
                                             .foregroundColor(RsfTheme.colors.onSurfaceVariant)
                                         
@@ -493,9 +493,7 @@ struct SettingsView: View {
                                     
                                     VStack(spacing: RsfTheme.spacing.xs) {
                                         Button(action: {
-                                            if let url = Bundle.main.url(forResource: "privacy-policy", withExtension: "html") {
-                                                UIApplication.shared.open(url)
-                                            }
+                                            LegalDocumentLinks.openPrivacyPolicy()
                                         }) {
                                             HStack {
                                                 Text("Privacy Policy")
@@ -510,9 +508,7 @@ struct SettingsView: View {
                                         .buttonStyle(PlainButtonStyle())
                                         
                                         Button(action: {
-                                            if let url = Bundle.main.url(forResource: "terms-and-conditions", withExtension: "html") {
-                                                UIApplication.shared.open(url)
-                                            }
+                                            LegalDocumentLinks.openTerms()
                                         }) {
                                             HStack {
                                                 Text("Terms and Conditions")

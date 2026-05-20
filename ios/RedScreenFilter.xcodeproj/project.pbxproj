@@ -47,6 +47,10 @@
 		BB2000009 /* EyeStrainReminderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB200001A /* EyeStrainReminderService.swift */; };
 		CC1000001 /* SiriShortcutsLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1000002 /* SiriShortcutsLauncher.swift */; };
 		CC1000003 /* VoiceControlIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1000004 /* VoiceControlIntents.swift */; };
+		DD1000001 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = DD1000011 /* PrivacyInfo.xcprivacy */; };
+		DD1000002 /* privacy-policy.html in Resources */ = {isa = PBXBuildFile; fileRef = DD1000012 /* privacy-policy.html */; };
+		DD1000003 /* terms-and-conditions.html in Resources */ = {isa = PBXBuildFile; fileRef = DD1000013 /* terms-and-conditions.html */; };
+		DD1000004 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = DD1000014 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -119,6 +123,10 @@
 		BB200001A /* EyeStrainReminderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EyeStrainReminderService.swift; sourceTree = "<group>"; };
 		CC1000002 /* SiriShortcutsLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiriShortcutsLauncher.swift; sourceTree = "<group>"; };
 		CC1000004 /* VoiceControlIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceControlIntents.swift; sourceTree = "<group>"; };
+		DD1000011 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		DD1000012 /* privacy-policy.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "privacy-policy.html"; sourceTree = "<group>"; };
+		DD1000013 /* terms-and-conditions.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "terms-and-conditions.html"; sourceTree = "<group>"; };
+		DD1000014 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -159,10 +167,21 @@
 			isa = PBXGroup;
 			children = (
 				AA1000070 /* Sources */,
+				AA10000F0 /* Bundle Legal Resources */,
 				AA1000020 /* Info.plist */,
 				AA1000021 /* RedScreenFilter.entitlements */,
+				DD1000011 /* PrivacyInfo.xcprivacy */,
 			);
 			path = RedScreenFilter;
+			sourceTree = "<group>";
+		};
+		AA10000F0 /* Bundle Legal Resources */ = {
+			isa = PBXGroup;
+			children = (
+				DD1000012 /* privacy-policy.html */,
+				DD1000013 /* terms-and-conditions.html */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		AA1000060 /* Products */ = {
@@ -280,6 +299,7 @@
 				BB2000012 /* RedScreenControlWidget.swift */,
 				BB2000013 /* WidgetSharedState.swift */,
 				BB2000014 /* WidgetIntents.swift */,
+				DD1000014 /* PrivacyInfo.xcprivacy */,
 				BB2000015 /* Info.plist */,
 				BB2000016 /* RedScreenControlWidgetExtension.entitlements */,
 			);
@@ -368,6 +388,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA1000005 /* Assets.xcassets in Resources */,
+				DD1000001 /* PrivacyInfo.xcprivacy in Resources */,
+				DD1000002 /* privacy-policy.html in Resources */,
+				DD1000003 /* terms-and-conditions.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -375,6 +398,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DD1000004 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

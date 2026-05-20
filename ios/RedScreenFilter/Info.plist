@@ -65,6 +65,8 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Camera access is used only to estimate room brightness when auto-adjust is enabled. No photos or videos are recorded or stored.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>To calculate sunset/sunrise times for automatic scheduling</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>

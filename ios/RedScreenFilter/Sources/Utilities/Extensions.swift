@@ -7,6 +7,43 @@
 
 import Foundation
 import SwiftUI
+import UIKit
+
+// MARK: - Bundle
+
+extension Bundle {
+    var appVersionDisplayString: String {
+        let version = infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
+        let build = infoDictionary?["CFBundleVersion"] as? String ?? ""
+        if build.isEmpty {
+            return "Version \(version)"
+        }
+        return "Version \(version) (\(build))"
+    }
+}
+
+enum LegalDocumentLinks {
+    static func openPrivacyPolicy() {
+        openWebOrBundled(webURL: Constants.Legal.privacyPolicyURL, resource: "privacy-policy", ext: "html")
+    }
+
+    static func openTerms() {
+        openWebOrBundled(webURL: Constants.Legal.termsURL, resource: "terms-and-conditions", ext: "html")
+    }
+
+    private static func openWebOrBundled(webURL: String, resource: String, ext: String) {
+        if let url = URL(string: webURL) {
+            UIApplication.shared.open(url, options: [:]) { accepted in
+                guard !accepted, let local = Bundle.main.url(forResource: resource, withExtension: ext) else { return }
+                UIApplication.shared.open(local)
+            }
+            return
+        }
+        if let local = Bundle.main.url(forResource: resource, withExtension: ext) {
+            UIApplication.shared.open(local)
+        }
+    }
+}
 
 // MARK: - String Extensions
 

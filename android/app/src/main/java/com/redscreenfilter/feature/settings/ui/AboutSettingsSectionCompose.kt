@@ -30,6 +30,24 @@ import com.redscreenfilter.core.designsystem.RsfCard
 import com.redscreenfilter.core.designsystem.RsfSectionHeader
 import com.redscreenfilter.ui.WebViewActivity
 
+private fun openLegalDocument(
+    context: android.content.Context,
+    webUrl: String,
+    assetPath: String,
+    title: String,
+) {
+    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(webUrl))
+    if (browserIntent.resolveActivity(context.packageManager) != null) {
+        context.startActivity(browserIntent)
+        return
+    }
+    val intent = Intent(context, WebViewActivity::class.java).apply {
+        putExtra("url", "file:///android_asset/docs/$assetPath")
+        putExtra("title", title)
+    }
+    context.startActivity(intent)
+}
+
 @Composable
 fun AboutSettingsSectionCompose(
     modifier: Modifier = Modifier
@@ -106,11 +124,12 @@ fun AboutSettingsSectionCompose(
                 // Terms and Conditions
                 TextButton(
                     onClick = {
-                        val intent = Intent(context, WebViewActivity::class.java).apply {
-                            putExtra("url", "file:///android_asset/docs/terms-and-conditions.html")
-                            putExtra("title", "Terms and Conditions")
-                        }
-                        context.startActivity(intent)
+                        openLegalDocument(
+                            context = context,
+                            webUrl = context.getString(R.string.terms_and_conditions_url),
+                            assetPath = "terms-and-conditions.html",
+                            title = "Terms and Conditions",
+                        )
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -136,11 +155,12 @@ fun AboutSettingsSectionCompose(
                 // Privacy Policy
                 TextButton(
                     onClick = {
-                        val intent = Intent(context, WebViewActivity::class.java).apply {
-                            putExtra("url", "file:///android_asset/docs/privacy-policy.html")
-                            putExtra("title", "Privacy Policy")
-                        }
-                        context.startActivity(intent)
+                        openLegalDocument(
+                            context = context,
+                            webUrl = context.getString(R.string.privacy_policy_url),
+                            assetPath = "privacy-policy.html",
+                            title = "Privacy Policy",
+                        )
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {

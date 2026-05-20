@@ -36,6 +36,13 @@ struct Constants {
         static let criticalThreshold: Float = 0.1      // 10%
     }
 
+    struct Legal {
+        static let siteBase = "https://moustafaplusplus.github.io/RedScreenFilter"
+        static let privacyPolicyURL = "\(siteBase)/privacy-policy.html"
+        static let termsURL = "\(siteBase)/terms-and-conditions.html"
+        static let supportEmail = "redscreenfilter@gmail.com"
+    }
+
     struct SiriShortcuts {
         static let enableSleepName = "Enable Red Filter Sleep Mode"
         static let disableFilterName = "Disable Color Filter"
