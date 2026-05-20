@@ -22,10 +22,10 @@ class BootCompletedReceiver : BroadcastReceiver() {
         
         Log.d(TAG, "onReceive: Boot completed, checking scheduling state")
         
-        // Check if scheduling is enabled
+        // Check if any form of automation is enabled
         val schedulingManager = SchedulingManager.getInstance(context)
-        if (schedulingManager.isScheduleEnabled()) {
-            Log.d(TAG, "onReceive: Scheduling is enabled, re-scheduling Alarms")
+        if (schedulingManager.isAnyAutomationEnabled()) {
+            Log.d(TAG, "onReceive: Automation is enabled, re-scheduling Alarms")
             ExactAlarmScheduler.scheduleNextAlarm(context)
         }
     }

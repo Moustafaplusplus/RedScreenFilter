@@ -140,7 +140,7 @@
     <!-- About Section Strings -->
     <string name="tab_about">About</string>
     <string name="about_title">About Red Screen Filter</string>
-    <string name="about_version">Version 1.6</string>
+    <string name="about_version">Version 2.5</string>
     <string name="about_description">A privacy-focused red screen filter app to reduce eye strain and improve sleep quality.</string>
     <string name="terms_and_conditions">Terms and Conditions</string>
     <string name="privacy_policy">Privacy Policy</string>

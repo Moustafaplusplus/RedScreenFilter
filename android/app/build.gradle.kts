@@ -16,8 +16,8 @@ android {
         applicationId = "com.redscreenfilter"
         minSdk = 28
         targetSdk = 35
-        versionCode = 12
-        versionName = "2.0"
+        versionCode = 16
+        versionName = "2.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -42,7 +42,7 @@ android {
                 // This will use the debug keystore for now. After first upload,
                 // let Google Play Console generate the app signing key for you.
                 // You can then create a proper upload key later.
-                val debugKeystore = file("${System.getProperty("user.home")}/.android/debug.keystore")
+                val debugKeystore = file("${System.getProperty("user.home")}/.android/debug.location/debug.keystore")
                 if (debugKeystore.exists()) {
                     storeFile = debugKeystore
                     storePassword = "android"

@@ -39,6 +39,10 @@ class OverlayView(context: Context) : View(context) {
     
     init {
         Log.d(TAG, "OverlayView created")
+        // Extend into status bar and navigation bar areas
+        systemUiVisibility = SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                SYSTEM_UI_FLAG_LAYOUT_STABLE
     }
     
     /**

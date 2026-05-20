@@ -34,10 +34,17 @@ class SchedulingManager private constructor(private val context: Context) {
     }
     
     /**
-     * Check if scheduling is enabled
+     * Check if manual scheduling is enabled
      */
     fun isScheduleEnabled(): Boolean {
         return preferencesManager.isScheduleEnabled()
+    }
+
+    /**
+     * Check if any form of automation (manual or location) is enabled
+     */
+    fun isAnyAutomationEnabled(): Boolean {
+        return isScheduleEnabled() || isLocationScheduleEnabled()
     }
     
     /**
@@ -57,8 +64,8 @@ class SchedulingManager private constructor(private val context: Context) {
      * @return true if current time falls within scheduled window, false otherwise
      */
     fun getScheduledState(): Boolean {
-        if (!isScheduleEnabled()) {
-            Log.d(TAG, "getScheduledState: Schedule disabled, returning false")
+        if (!isAnyAutomationEnabled()) {
+            Log.d(TAG, "getScheduledState: Automation disabled, returning false")
             return false
         }
         
@@ -184,7 +191,7 @@ class SchedulingManager private constructor(private val context: Context) {
      * used for AlarmManager precise scheduling.
      */
     fun getNextTransitionTimeMillis(): Long {
-        if (!isScheduleEnabled()) return -1L
+        if (!isAnyAutomationEnabled()) return -1L
         
         return if (isLocationScheduleEnabled()) {
             getNextLocationTransitionMillis()
@@ -258,6 +265,12 @@ class SchedulingManager private constructor(private val context: Context) {
      * Get formatted display string for schedule
      */
     fun getScheduleDisplayString(): String {
+        if (isLocationScheduleEnabled()) {
+            val sunset = getCalculatedSunsetTime() ?: "--:--"
+            val sunrise = getCalculatedSunriseTime() ?: "--:--"
+            return "Sunset ($sunset) - Sunrise ($sunrise)"
+        }
+
         if (!isScheduleEnabled()) {
             return "Schedule Disabled"
         }

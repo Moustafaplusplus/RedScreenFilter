@@ -32,9 +32,9 @@ class ScheduleReceiver : BroadcastReceiver() {
         val schedulingManager = SchedulingManager.getInstance(context)
         val preferencesManager = PreferencesManager.getInstance(context)
         
-        // 1. Check if scheduling is still enabled
-        if (!schedulingManager.isScheduleEnabled()) {
-            Log.d(TAG, "onReceive: Scheduling is disabled, skipping")
+        // 1. Check if any form of automation is enabled
+        if (!schedulingManager.isAnyAutomationEnabled()) {
+            Log.d(TAG, "onReceive: Automation is disabled, skipping")
             return
         }
         

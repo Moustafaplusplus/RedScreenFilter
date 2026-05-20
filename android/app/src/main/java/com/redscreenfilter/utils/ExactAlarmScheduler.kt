@@ -26,7 +26,7 @@ object ExactAlarmScheduler {
     fun scheduleNextAlarm(context: Context) {
         val schedulingManager = SchedulingManager.getInstance(context)
         
-        if (!schedulingManager.isScheduleEnabled()) {
+        if (!schedulingManager.isAnyAutomationEnabled()) {
             cancelAlarms(context)
             return
         }

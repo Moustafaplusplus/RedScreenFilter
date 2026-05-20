@@ -30,9 +30,9 @@ class ScheduleWorker(
             val schedulingManager = SchedulingManager.getInstance(applicationContext)
             val preferencesManager = PreferencesManager.getInstance(applicationContext)
             
-            // Check if scheduling is enabled
-            if (!schedulingManager.isScheduleEnabled()) {
-                Log.d(TAG, "doWork: Scheduling is disabled, skipping")
+            // Check if any form of automation (manual or location) is enabled
+            if (!schedulingManager.isAnyAutomationEnabled()) {
+                Log.d(TAG, "doWork: Automation is disabled, skipping")
                 return Result.success()
             }
             
